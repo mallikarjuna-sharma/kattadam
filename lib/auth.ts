@@ -22,7 +22,6 @@ export const authOptions: NextAuthOptions = {
         const phone = credentials.phone.trim();
         const otp = credentials.otp.trim();
 
-        // Verify OTP
         const otpRecord = await db.otpCode.findFirst({
           where: {
             phone,
@@ -34,13 +33,11 @@ export const authOptions: NextAuthOptions = {
 
         if (!otpRecord) return null;
 
-        // Mark OTP as used
         await db.otpCode.update({
           where: { id: otpRecord.id },
           data: { used: true },
         });
 
-        // Upsert user
         const user = await db.user.upsert({
           where: { phone },
           create: { phone, role: "CUSTOMER" },
@@ -50,7 +47,7 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user.id,
           phone: user.phone,
-          name: user.name ?? undefined,
+          name: user.name ?? null,
           role: user.role,
         };
       },
@@ -60,16 +57,16 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.phone = (user as any).phone;
-        token.role = (user as any).role;
+        token.phone = user.phone;
+        token.role = user.role;
       }
       return token;
     },
     async session({ session, token }) {
-if (token && session.user) { 
-        session.user.id = token.id as string;
-        (session.user as any).phone = token.phone;
-        (session.user as any).role = token.role;
+      if (token && session.user) {
+        session.user.id = token.id;
+        session.user.phone = token.phone;
+        session.user.role = token.role;
       }
       return session;
     },
