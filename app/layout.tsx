@@ -6,6 +6,8 @@ const display = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-display",
   display: "swap",
+    preload: false,                      // ← added
+  fallback: ["Georgia", "serif"],      // ← added
 });
 
 const body = DM_Sans({
