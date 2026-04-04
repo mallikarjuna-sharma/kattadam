@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand: #f97316;
+    --brand-dark: #ea580c;
+    --earth-bg: #fafaf9;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100dvh;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f5f5f4;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d6d3d1;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a29e;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-brand-600 active:bg-brand-700 transition-all duration-150 shadow-sm hover:shadow-md;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-earth-800 border border-earth-200 px-6 py-3 rounded-xl font-semibold hover:bg-earth-50 hover:border-earth-300 transition-all duration-150;
+  }
+
+  .btn-ghost {
+    @apply text-earth-600 px-4 py-2 rounded-lg font-medium hover:bg-earth-100 transition-all duration-150;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl border border-earth-200 shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .input {
+    @apply w-full px-4 py-3 rounded-xl border border-earth-200 bg-white text-earth-900 placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-150;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+
+  .badge-green {
+    @apply badge bg-green-100 text-green-700;
+  }
+
+  .badge-orange {
+    @apply badge bg-brand-100 text-brand-700;
+  }
+
+  .badge-gray {
+    @apply badge bg-earth-100 text-earth-600;
+  }
+
+  .section-title {
+    @apply font-display text-3xl md:text-4xl font-bold text-earth-900;
+  }
+
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Stagger animations */
+  .stagger-1 { animation-delay: 0ms; }
+  .stagger-2 { animation-delay: 80ms; }
+  .stagger-3 { animation-delay: 160ms; }
+  .stagger-4 { animation-delay: 240ms; }
+  .stagger-5 { animation-delay: 320ms; }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-brand {
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  }
+
+  .gradient-earth {
+    background: linear-gradient(135deg, #292524 0%, #44403c 100%);
+  }
+}

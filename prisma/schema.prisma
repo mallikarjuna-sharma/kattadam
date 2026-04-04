@@ -1,0 +1,236 @@
+// Kattodam — Prisma Schema
+// DB: PostgreSQL (Supabase recommended)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ────────────────────────────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  DEALER
+  BUILDER
+  ADMIN
+}
+
+enum ListingType {
+  BUY
+  SELL
+  RENT
+}
+
+enum ListingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum EnquiryStatus {
+  NEW
+  READ
+  RESPONDED
+}
+
+enum MaterialCategory {
+  CEMENT
+  TMT_STEEL
+  BRICKS
+  SAND
+  AGGREGATES
+  PAINT
+  TILES
+  PLUMBING
+  ELECTRICAL
+  GLASS
+  WOOD
+  OTHER
+}
+
+// ─── USERS ────────────────────────────────────────────────
+
+model User {
+  id          String   @id @default(cuid())
+  phone       String   @unique
+  name        String?
+  email       String?  @unique
+  role        UserRole @default(CUSTOMER)
+  avatar      String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  dealer      Dealer?
+  builder     Builder?
+  enquiries   Enquiry[]
+  properties  Property[]
+  sentMessages    Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
+}
+
+// ─── DEALERS (Material Sellers) ───────────────────────────
+
+model Dealer {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  shopName     String
+  description  String?
+  address      String
+  city         String   @default("Coimbatore")
+  area         String   // e.g., RS Puram, Gandhipuram
+  phone        String
+  whatsapp     String?
+  isVerified   Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  logoUrl      String?
+  rating       Float    @default(0)
+  reviewCount  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user         User              @relation(fields: [userId], references: [id])
+  materials    DealerMaterial[]
+  enquiries    Enquiry[]
+}
+
+model DealerMaterial {
+  id           String           @id @default(cuid())
+  dealerId     String
+  category     MaterialCategory
+  name         String           // e.g., "Ultratech OPC 53 Grade"
+  brand        String?
+  unit         String           // e.g., "bag", "tonne", "sq.ft"
+  priceMin     Float?           // Starting price
+  priceMax     Float?           // Max price (for range display)
+  description  String?
+  inStock      Boolean          @default(true)
+  imageUrl     String?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  dealer       Dealer           @relation(fields: [dealerId], references: [id])
+}
+
+// ─── BUILDERS / ARCHITECTS ────────────────────────────────
+
+model Builder {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  companyName  String
+  ownerName    String
+  type         String   // "Builder" | "Architect" | "Contractor"
+  description  String?
+  address      String
+  city         String   @default("Coimbatore")
+  area         String
+  phone        String
+  experience   Int      // years
+  isVerified   Boolean  @default(false)
+  isActive     Boolean  @default(true)
+  logoUrl      String?
+  rating       Float    @default(0)
+  reviewCount  Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id])
+  projects     BuilderProject[]
+  enquiries    Enquiry[]
+}
+
+model BuilderProject {
+  id          String   @id @default(cuid())
+  builderId   String
+  title       String
+  description String?
+  location    String
+  completedAt DateTime?
+  images      String[] // array of Cloudinary URLs
+  createdAt   DateTime @default(now())
+
+  builder     Builder  @relation(fields: [builderId], references: [id])
+}
+
+// ─── PROPERTIES ───────────────────────────────────────────
+
+model Property {
+  id          String        @id @default(cuid())
+  userId      String        // who listed it
+  title       String
+  description String?
+  type        ListingType
+  status      ListingStatus @default(PENDING)
+  price       Float
+  area        Float         // sq.ft
+  bedrooms    Int?
+  bathrooms   Int?
+  location    String
+  city        String        @default("Coimbatore")
+  landmark    String?
+  images      String[]      // Cloudinary URLs
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id])
+  enquiries   Enquiry[]
+}
+
+// ─── ENQUIRIES ────────────────────────────────────────────
+
+model Enquiry {
+  id          String        @id @default(cuid())
+  userId      String?       // logged-in user (optional)
+  name        String
+  phone       String
+  message     String
+  status      EnquiryStatus @default(NEW)
+
+  // Polymorphic — only one of these will be set
+  dealerId    String?
+  builderId   String?
+  propertyId  String?
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User?         @relation(fields: [userId], references: [id])
+  dealer      Dealer?       @relation(fields: [dealerId], references: [id])
+  builder     Builder?      @relation(fields: [builderId], references: [id])
+  property    Property?     @relation(fields: [propertyId], references: [id])
+}
+
+// ─── MESSAGES (Chat) ──────────────────────────────────────
+
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  sender      User     @relation("MessageSender", fields: [senderId], references: [id])
+  receiver    User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+}
+
+// ─── OTP ──────────────────────────────────────────────────
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+}
