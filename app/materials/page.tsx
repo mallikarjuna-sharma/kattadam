@@ -1,10 +1,11 @@
 "use client";
+
 import { useState } from "react";
-import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
+import ListingPageShell from "@/components/layout/ListingPageShell";
+import AreaSelect from "@/components/ui/AreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
-import { Search, MapPin, Star, Phone, ChevronRight, Package, CheckCircle } from "lucide-react";
-import { DEALERS, MATERIAL_CATEGORIES, AREAS } from "@/lib/mock-data";
+import { MapPin, Star, Phone, Package, CheckCircle } from "lucide-react";
+import { DEALERS, MATERIAL_CATEGORIES } from "@/lib/mock-data";
 
 export default function MaterialsPage() {
   const [search, setSearch] = useState("");
@@ -13,52 +14,46 @@ export default function MaterialsPage() {
   const [enquiry, setEnquiry] = useState<string | null>(null);
 
   const filtered = DEALERS.filter((d) => {
-    const matchSearch = d.shopName.toLowerCase().includes(search.toLowerCase()) ||
-      d.materials.some(m => m.name.toLowerCase().includes(search.toLowerCase()));
-    const matchCat = cat === "ALL" || d.categories.some(c => c.toUpperCase().replace(" ", "_") === cat);
+    const matchSearch =
+      d.shopName.toLowerCase().includes(search.toLowerCase()) ||
+      d.materials.some((m) => m.name.toLowerCase().includes(search.toLowerCase()));
+    const matchCat = cat === "ALL" || d.categories.some((c) => c.toUpperCase().replace(" ", "_") === cat);
     const matchArea = area === "All Areas" || d.area === area;
     return matchSearch && matchCat && matchArea;
   });
 
   return (
-    <div className="min-h-screen bg-earth-50">
-      <Navbar />
-
-      <div className="bg-earth-900 text-white">
-        <div className="page-container py-8">
-          <Link href="/" className="text-earth-500 text-sm hover:text-earth-300 transition-colors mb-3 inline-block">← Back</Link>
-          <h1 className="font-display text-3xl font-bold mb-4">Construction Materials</h1>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-earth-400" />
-            <input className="w-full bg-white/10 border border-white/20 text-white placeholder-earth-500 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
-              placeholder="Search cement, steel, bricks…"
-              value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-        </div>
-      </div>
-
+    <ListingPageShell
+      title="Construction Materials"
+      searchPlaceholder="Search cement, steel, bricks…"
+      search={search}
+      onSearchChange={setSearch}
+      backHref="/"
+    >
       <div className="page-container py-6">
-        {/* Category chips */}
         <div className="flex gap-2 overflow-x-auto pb-3 mb-4 -mx-4 px-4">
           {[{ key: "ALL", label: "All", emoji: "🏠" }, ...MATERIAL_CATEGORIES].map((c) => (
-            <button key={c.key} onClick={() => setCat(c.key)}
+            <button
+              key={c.key}
+              onClick={() => setCat(c.key)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
-                cat === c.key ? "bg-brand-500 text-white border-brand-500" : "bg-white text-earth-600 border-earth-200 hover:border-brand-300"}`}>
+                cat === c.key
+                  ? "bg-brand-500 text-white border-brand-500"
+                  : "bg-white text-earth-600 border-earth-200 hover:border-brand-300"
+              }`}
+            >
               <span>{c.emoji}</span> {c.label}
             </button>
           ))}
         </div>
 
-        {/* Area filter + count */}
         <div className="flex items-center justify-between mb-5">
-          <p className="text-sm text-earth-500"><span className="font-semibold text-earth-900">{filtered.length}</span> dealers found</p>
-          <select className="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none focus:ring-2 focus:ring-brand-400"
-            value={area} onChange={e => setArea(e.target.value)}>
-            {AREAS.map(a => <option key={a}>{a}</option>)}
-          </select>
+          <p className="text-sm text-earth-500">
+            <span className="font-semibold text-earth-900">{filtered.length}</span> dealers found
+          </p>
+          <AreaSelect value={area} onChange={setArea} />
         </div>
 
-        {/* Dealer cards */}
         <div className="space-y-4">
           {filtered.map((dealer) => (
             <div key={dealer.id} className="card p-5">
@@ -90,13 +85,14 @@ export default function MaterialsPage() {
                   <span className="text-xs text-earth-400">({dealer.reviewCount})</span>
                 </div>
                 <div className="flex gap-1.5">
-                  {dealer.categories.map(c => (
-                    <span key={c} className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">{c}</span>
+                  {dealer.categories.map((c) => (
+                    <span key={c} className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
+                      {c}
+                    </span>
                   ))}
                 </div>
               </div>
 
-              {/* Price list */}
               <div className="bg-earth-50 rounded-xl p-3 space-y-2 mb-4">
                 {dealer.materials.map((m) => (
                   <div key={m.name} className="flex items-center justify-between text-sm">
@@ -109,8 +105,10 @@ export default function MaterialsPage() {
                 ))}
               </div>
 
-              <button onClick={() => setEnquiry(dealer.shopName)}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-sm">
+              <button
+                onClick={() => setEnquiry(dealer.shopName)}
+                className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-sm"
+              >
                 <Phone className="w-4 h-4" /> Send Enquiry
               </button>
             </div>
@@ -126,6 +124,6 @@ export default function MaterialsPage() {
       </div>
 
       {enquiry && <EnquiryModal target={enquiry} onClose={() => setEnquiry(null)} />}
-    </div>
+    </ListingPageShell>
   );
 }

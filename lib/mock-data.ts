@@ -247,6 +247,81 @@ export const MATERIAL_CATEGORIES = [
   { key: "WOOD", label: "Wood", emoji: "🪵" },
 ];
 
+export const SERVICE_CATEGORY_FILTERS = [
+  "All",
+  "Electrical",
+  "Plumbing",
+  "Interior",
+  "Painting",
+  "Civil",
+] as const;
+
+export const SERVICES = [
+  {
+    id: "1",
+    name: "Vel Electrical Works",
+    category: "Electrical",
+    area: "Gandhipuram",
+    rating: 4.7,
+    reviewCount: 112,
+    isVerified: true,
+    description:
+      "Licensed electrical contractor for residential and commercial wiring, panel upgrades, and safety audits.",
+    tags: ["Wiring", "Panel Upgrade", "Safety Audit"],
+    priceFrom: "₹500/hr",
+  },
+  {
+    id: "2",
+    name: "AK Plumbing Solutions",
+    category: "Plumbing",
+    area: "RS Puram",
+    rating: 4.5,
+    reviewCount: 78,
+    isVerified: true,
+    description:
+      "Expert plumbing for new construction, bathroom fittings, pipeline repairs, and water tank installation.",
+    tags: ["Pipeline", "Bathroom Fittings", "Water Tank"],
+    priceFrom: "₹400/hr",
+  },
+  {
+    id: "3",
+    name: "Dream Interior Studio",
+    category: "Interior",
+    area: "Peelamedu",
+    rating: 4.8,
+    reviewCount: 95,
+    isVerified: true,
+    description:
+      "Full interior design and execution — modular kitchens, false ceilings, wardrobes, and complete home interiors.",
+    tags: ["Modular Kitchen", "False Ceiling", "Wardrobes"],
+    priceFrom: "₹800/sq.ft",
+  },
+  {
+    id: "4",
+    name: "Coimbatore Painting Works",
+    category: "Painting",
+    area: "Singanallur",
+    rating: 4.3,
+    reviewCount: 64,
+    isVerified: false,
+    description: "Interior and exterior painting, texture finishes, waterproofing, and wall putty application.",
+    tags: ["Interior Paint", "Exterior Paint", "Texture"],
+    priceFrom: "₹12/sq.ft",
+  },
+  {
+    id: "5",
+    name: "Ravi Civil & Masonry",
+    category: "Civil",
+    area: "Kalapatti",
+    rating: 4.4,
+    reviewCount: 48,
+    isVerified: true,
+    description: "Masonry, brickwork, compound walls, flooring, and tile fixing for residential projects.",
+    tags: ["Masonry", "Flooring", "Tile Fixing"],
+    priceFrom: "₹350/hr",
+  },
+];
+
 export const AREAS = [
   "All Areas", "RS Puram", "Gandhipuram", "Peelamedu",
   "Saibaba Colony", "Race Course", "Singanallur",

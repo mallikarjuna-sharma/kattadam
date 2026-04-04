@@ -38,25 +38,19 @@ kattodam/
 │   ├── services/           # Skilled services
 │   └── admin/              # Admin dashboard
 ├── components/
-│   ├── layout/Navbar.tsx   # Shared navbar
-│   └── ui/EnquiryModal.tsx # Enquiry form modal
+│   ├── layout/
+│   │   ├── Navbar.tsx           # Shared navbar
+│   │   └── ListingPageShell.tsx # Navbar + dark hero + search (listing pages)
+│   └── ui/
+│       ├── EnquiryModal.tsx     # Enquiry form modal
+│       └── AreaSelect.tsx       # Area filter dropdown
 └── lib/
-    └── mock-data.ts        # All mock data — replace with API calls later
+    ├── mock-data.ts             # All sample listings & categories
+    └── utils.ts                 # Tailwind class helpers
 ```
 
 ---
 
 ## 🔜 When You're Ready for Backend
 
-Replace the mock data in `lib/mock-data.ts` with real API calls:
-
-```ts
-// Before (mock)
-import { DEALERS } from "@/lib/mock-data";
-
-// After (real API)
-const res = await fetch("/api/dealers");
-const { dealers } = await res.json();
-```
-
-Add your backend separately — this UI is fully decoupled and ready.
+Wire pages to your API: keep the same UI components and swap `lib/mock-data.ts` imports for `fetch` (or a data hook) in each page.
