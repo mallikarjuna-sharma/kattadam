@@ -1,3 +1,9 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  transpilePackages: ["@kattadam/data-layer"],
+  experimental: {
+    instrumentationHook: true,
+  },
+};
+
 module.exports = nextConfig;

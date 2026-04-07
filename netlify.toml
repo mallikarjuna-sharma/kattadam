@@ -1,6 +1,11 @@
+# Customer app (KATTADAM) — Site 1 on Netlify
+# Link this repo, leave "Base directory" EMPTY, use this file as-is.
+
 [build]
   command = "npm run build"
-  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
