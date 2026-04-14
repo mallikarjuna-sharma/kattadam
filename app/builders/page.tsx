@@ -2,16 +2,17 @@
 
 import { useState } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
-import AreaSelect from "@/components/ui/AreaSelect";
+import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import { MapPin, Star, Phone, Briefcase, CheckCircle } from "lucide-react";
-import { BUILDERS } from "@/lib/mock-data";
+import { BUILDERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
 
 const TYPES = ["All", "Builder", "Architect", "Contractor"];
 
 export default function BuildersPage() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("All");
+  const [district, setDistrict] = useState<string>(DISTRICT_FILTER_ALL);
   const [area, setArea] = useState("All Areas");
   const [enquiry, setEnquiry] = useState<string | null>(null);
 
@@ -20,8 +21,9 @@ export default function BuildersPage() {
       b.companyName.toLowerCase().includes(search.toLowerCase()) ||
       b.ownerName.toLowerCase().includes(search.toLowerCase());
     const matchType = type === "All" || b.type === type;
+    const matchDistrict = district === DISTRICT_FILTER_ALL || b.district === district;
     const matchArea = area === "All Areas" || b.area === area;
-    return matchSearch && matchType && matchArea;
+    return matchSearch && matchType && matchDistrict && matchArea;
   });
 
   return (
@@ -52,7 +54,13 @@ export default function BuildersPage() {
           <p className="text-sm text-earth-500">
             <span className="font-semibold text-earth-900">{filtered.length}</span> found
           </p>
-          <AreaSelect value={area} onChange={setArea} className="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none" />
+          <DistrictAreaSelect
+            district={district}
+            onDistrictChange={setDistrict}
+            area={area}
+            onAreaChange={setArea}
+            selectClassName="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 sm:min-w-[130px]"
+          />
         </div>
 
         <div className="space-y-4">
@@ -81,7 +89,7 @@ export default function BuildersPage() {
                     </div>
                     <span className="text-xs text-earth-400">·</span>
                     <div className="flex items-center gap-1 text-xs text-earth-500">
-                      <MapPin className="w-3 h-3" /> {b.area}
+                      <MapPin className="w-3 h-3" /> {b.area}, {b.district}
                     </div>
                     <span className="text-xs text-earth-400">·</span>
                     <span className="text-xs text-earth-500">{b.experience} yrs exp</span>

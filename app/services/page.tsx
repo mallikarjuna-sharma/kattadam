@@ -2,9 +2,10 @@
 
 import { useState, type ReactNode } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
+import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import { MapPin, Star, Phone, CheckCircle, Wrench, Zap, Paintbrush, Hammer } from "lucide-react";
-import { SERVICES, SERVICE_CATEGORY_FILTERS } from "@/lib/mock-data";
+import { SERVICES, SERVICE_CATEGORY_FILTERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
 
 const categoryIcon: Record<string, ReactNode> = {
   Electrical: <Zap className="w-5 h-5 text-yellow-500" />,
@@ -25,6 +26,8 @@ const categoryBg: Record<string, string> = {
 export default function ServicesPage() {
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("All");
+  const [district, setDistrict] = useState<string>(DISTRICT_FILTER_ALL);
+  const [area, setArea] = useState("All Areas");
   const [enquiry, setEnquiry] = useState<string | null>(null);
 
   const filtered = SERVICES.filter((s) => {
@@ -32,7 +35,9 @@ export default function ServicesPage() {
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.description.toLowerCase().includes(search.toLowerCase());
     const matchCat = cat === "All" || s.category === cat;
-    return matchSearch && matchCat;
+    const matchDistrict = district === DISTRICT_FILTER_ALL || s.district === district;
+    const matchArea = area === "All Areas" || s.area === area;
+    return matchSearch && matchCat && matchDistrict && matchArea;
   });
 
   return (
@@ -60,9 +65,18 @@ export default function ServicesPage() {
           ))}
         </div>
 
-        <p className="text-sm text-earth-500 mb-5">
-          <span className="font-semibold text-earth-900">{filtered.length}</span> service providers found
-        </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
+          <p className="text-sm text-earth-500">
+            <span className="font-semibold text-earth-900">{filtered.length}</span> service providers found
+          </p>
+          <DistrictAreaSelect
+            district={district}
+            onDistrictChange={setDistrict}
+            area={area}
+            onAreaChange={setArea}
+            selectClassName="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 sm:min-w-[130px]"
+          />
+        </div>
 
         <div className="space-y-4">
           {filtered.map((s) => (
@@ -91,7 +105,7 @@ export default function ServicesPage() {
                     </div>
                     <span className="text-xs text-earth-400">·</span>
                     <div className="flex items-center gap-1 text-xs text-earth-500">
-                      <MapPin className="w-3 h-3" /> {s.area}, Coimbatore
+                      <MapPin className="w-3 h-3" /> {s.area}, {s.district}
                     </div>
                   </div>
                 </div>

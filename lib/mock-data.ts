@@ -1,9 +1,100 @@
 // lib/mock-data.ts — Static mock data for all pages
 
+export const DISTRICTS = ["Coimbatore", "Tirupur", "Erode", "Namakkal", "Salem"] as const;
+export type District = (typeof DISTRICTS)[number];
+export const DISTRICT_FILTER_ALL = "All Districts" as const;
+
+/** Well-known localities per district (for filters & mock listings) */
+export const DISTRICT_AREAS: Record<District, string[]> = {
+  Coimbatore: [
+    "RS Puram",
+    "Gandhipuram",
+    "Peelamedu",
+    "Saibaba Colony",
+    "Race Course",
+    "Singanallur",
+    "Ganapathy",
+    "Vadavalli",
+    "Kalapatti",
+    "Sulur",
+  ],
+  Tirupur: [
+    "Avinashi Road",
+    "Dharapuram Road",
+    "PN Road",
+    "Kumaran Road",
+    "Kongu Nagar",
+    "Velampalayam",
+    "Tirupur Town",
+    "Palladam Road",
+    "Uthukuli Road",
+    "Collectorate",
+  ],
+  Erode: [
+    "Erode Town",
+    "Perundurai Road",
+    "Chennimalai Road",
+    "Kavundampalayam",
+    "Chithode",
+    "Bhavani",
+    "Gobichettipalayam",
+    "Modakurichi",
+    "Ingur",
+    "EVN Road",
+  ],
+  Namakkal: [
+    "Namakkal Town",
+    "Tiruchengode",
+    "Rasipuram",
+    "Paramathi-Velur",
+    "Mohanur",
+    "Komarapalayam",
+    "Kumarapalayam",
+    "Senthamangalam",
+    "Namagiripettai",
+    "Trichy Road",
+  ],
+  Salem: [
+    "Fairlands",
+    "Hasthampatti",
+    "Ammapet",
+    "Suramangalam",
+    "Meyyanur",
+    "Omalur",
+    "Jagir",
+    "Steel Plant Road",
+    "Gugai",
+    "Yercaud Road",
+  ],
+};
+
+export function areaOptionsForDistrict(district: string): string[] {
+  if (district === DISTRICT_FILTER_ALL) return ["All Areas"];
+  const list = DISTRICT_AREAS[district as District];
+  if (!list) return ["All Areas"];
+  return ["All Areas", ...list];
+}
+
+/** Parse "Area, District" from API-style location strings */
+export function parseLocationToAreaDistrict(
+  location: string | null | undefined
+): { area: string; district: District } {
+  if (!location?.trim()) return { area: "Coimbatore", district: "Coimbatore" };
+  const parts = location.split(",").map((s) => s.trim()).filter(Boolean);
+  const last = parts[parts.length - 1]!;
+  const district = (DISTRICTS as readonly string[]).includes(last) ? (last as District) : "Coimbatore";
+  const area = parts.length >= 2 ? parts[0]! : last;
+  return { area, district };
+}
+
+/** @deprecated Prefer `areaOptionsForDistrict` + `DISTRICT_AREAS` */
+export const AREAS = ["All Areas", ...DISTRICT_AREAS.Coimbatore];
+
 export const DEALERS = [
   {
     id: "1",
     shopName: "Sri Ram Cement Depot",
+    district: "Coimbatore" as const,
     area: "RS Puram",
     rating: 4.8,
     reviewCount: 124,
@@ -19,6 +110,7 @@ export const DEALERS = [
   {
     id: "2",
     shopName: "Murugan Steel Traders",
+    district: "Coimbatore" as const,
     area: "Gandhipuram",
     rating: 4.6,
     reviewCount: 89,
@@ -34,6 +126,7 @@ export const DEALERS = [
   {
     id: "3",
     shopName: "Coimbatore Bricks & Aggregates",
+    district: "Coimbatore" as const,
     area: "Singanallur",
     rating: 4.3,
     reviewCount: 56,
@@ -49,6 +142,7 @@ export const DEALERS = [
   {
     id: "4",
     shopName: "Lakshmi Paint & Hardware",
+    district: "Coimbatore" as const,
     area: "Peelamedu",
     rating: 4.5,
     reviewCount: 201,
@@ -64,6 +158,7 @@ export const DEALERS = [
   {
     id: "5",
     shopName: "Vel Electrical Stores",
+    district: "Coimbatore" as const,
     area: "Saibaba Colony",
     rating: 4.7,
     reviewCount: 143,
@@ -76,6 +171,66 @@ export const DEALERS = [
       { name: "Legrand Switch Plate", price: "₹450/unit", inStock: true },
     ],
   },
+  {
+    id: "6",
+    shopName: "Kongu Cement & Steel Mart",
+    district: "Tirupur" as const,
+    area: "Avinashi Road",
+    rating: 4.5,
+    reviewCount: 72,
+    isVerified: true,
+    categories: ["Cement", "TMT Steel"],
+    phone: "92109 87654",
+    materials: [
+      { name: "Ramco Super Grade Cement", price: "₹385/bag", inStock: true },
+      { name: "JSW Neosteel Fe550", price: "₹60,200/tonne", inStock: true },
+    ],
+  },
+  {
+    id: "7",
+    shopName: "Bhavani River Sand & Blue Metal",
+    district: "Erode" as const,
+    area: "Bhavani",
+    rating: 4.4,
+    reviewCount: 38,
+    isVerified: true,
+    categories: ["Sand", "Aggregates"],
+    phone: "91098 76543",
+    materials: [
+      { name: "River Sand (Bhavani)", price: "₹1,750/tonne", inStock: true },
+      { name: "40mm Jelly", price: "₹1,250/tonne", inStock: true },
+    ],
+  },
+  {
+    id: "8",
+    shopName: "Namakkal TMT & Roofing",
+    district: "Namakkal" as const,
+    area: "Namakkal Town",
+    rating: 4.6,
+    reviewCount: 51,
+    isVerified: true,
+    categories: ["TMT Steel"],
+    phone: "90087 65432",
+    materials: [
+      { name: "SAIL TMT Fe500", price: "₹58,800/tonne", inStock: true },
+      { name: "Roofing Sheets (JSW Colouron)", price: "₹95/sq.ft", inStock: true },
+    ],
+  },
+  {
+    id: "9",
+    shopName: "Salem Fairlands Paints",
+    district: "Salem" as const,
+    area: "Fairlands",
+    rating: 4.5,
+    reviewCount: 88,
+    isVerified: false,
+    categories: ["Paint", "Hardware"],
+    phone: "89976 54321",
+    materials: [
+      { name: "Nippon Paint Sumo", price: "₹310/litre", inStock: true },
+      { name: "Asian Tractor Emulsion", price: "₹180/litre", inStock: true },
+    ],
+  },
 ];
 
 export const BUILDERS = [
@@ -84,13 +239,15 @@ export const BUILDERS = [
     companyName: "Shree Constructions",
     ownerName: "Rajesh Kumar",
     type: "Builder",
+    district: "Coimbatore" as const,
     area: "RS Puram",
     experience: 15,
     rating: 4.9,
     reviewCount: 87,
     isVerified: true,
     phone: "98765 11223",
-    description: "Specialising in residential villas and apartments. 200+ projects delivered across Coimbatore with on-time completion guarantee.",
+    description:
+      "Specialising in residential villas and apartments. 200+ projects delivered across western Tamil Nadu with on-time completion guarantee.",
     tags: ["Villas", "Apartments", "Renovation"],
     projects: [
       { title: "Greenfield Villa, Peelamedu", year: 2023, sqft: 2400 },
@@ -102,6 +259,7 @@ export const BUILDERS = [
     companyName: "Design Arc Studio",
     ownerName: "Priya Suresh",
     type: "Architect",
+    district: "Coimbatore" as const,
     area: "Race Course",
     experience: 10,
     rating: 4.8,
@@ -120,6 +278,7 @@ export const BUILDERS = [
     companyName: "AK Civil Works",
     ownerName: "Anand Krishnamurthy",
     type: "Contractor",
+    district: "Coimbatore" as const,
     area: "Singanallur",
     experience: 8,
     rating: 4.4,
@@ -138,6 +297,7 @@ export const BUILDERS = [
     companyName: "Vega Interiors",
     ownerName: "Meena Ravi",
     type: "Architect",
+    district: "Coimbatore" as const,
     area: "Peelamedu",
     experience: 12,
     rating: 4.7,
@@ -151,6 +311,44 @@ export const BUILDERS = [
       { title: "Luxury Flat Interior, Race Course", year: 2023, sqft: 1600 },
     ],
   },
+  {
+    id: "5",
+    companyName: "Kongu Build Tech",
+    ownerName: "Karthik Selvam",
+    type: "Builder",
+    district: "Tirupur" as const,
+    area: "Kumaran Road",
+    experience: 12,
+    rating: 4.6,
+    reviewCount: 44,
+    isVerified: true,
+    phone: "92111 22333",
+    description: "Industrial sheds, knitwear factory buildings, and residential layouts along Avinashi–Tirupur corridor.",
+    tags: ["Industrial", "Factory", "Residential"],
+    projects: [
+      { title: "Textile Unit, Velampalayam", year: 2024, sqft: 18000 },
+      { title: "Gated community, PN Road", year: 2023, sqft: 45000 },
+    ],
+  },
+  {
+    id: "6",
+    companyName: "Salem Heights Developers",
+    ownerName: "Vignesh Pandian",
+    type: "Builder",
+    district: "Salem" as const,
+    area: "Hasthampatti",
+    experience: 14,
+    rating: 4.7,
+    reviewCount: 56,
+    isVerified: true,
+    phone: "91555 33444",
+    description: "Premium apartments and plotted developments in Salem — Fairlands to Suramangalam.",
+    tags: ["Apartments", "Plots", "Gated"],
+    projects: [
+      { title: "Skyline Towers, Fairlands", year: 2024, sqft: 85000 },
+      { title: "Lakeview Villas, Yercaud Road", year: 2023, sqft: 12000 },
+    ],
+  },
 ];
 
 export const PROPERTIES = [
@@ -162,6 +360,7 @@ export const PROPERTIES = [
     area: 1450,
     bedrooms: 3,
     bathrooms: 2,
+    district: "Coimbatore" as const,
     location: "Peelamedu, Coimbatore",
     postedBy: "Suresh R",
     daysAgo: 2,
@@ -175,6 +374,7 @@ export const PROPERTIES = [
     area: 1050,
     bedrooms: 2,
     bathrooms: 2,
+    district: "Coimbatore" as const,
     location: "RS Puram, Coimbatore",
     postedBy: "Kavitha M",
     daysAgo: 1,
@@ -188,6 +388,7 @@ export const PROPERTIES = [
     area: 3600,
     bedrooms: null,
     bathrooms: null,
+    district: "Coimbatore" as const,
     location: "Sulur, Coimbatore",
     postedBy: "Bala K",
     daysAgo: 5,
@@ -201,6 +402,7 @@ export const PROPERTIES = [
     area: 2200,
     bedrooms: 4,
     bathrooms: 3,
+    district: "Coimbatore" as const,
     location: "Saibaba Colony, Coimbatore",
     postedBy: "Anita S",
     daysAgo: 3,
@@ -214,6 +416,7 @@ export const PROPERTIES = [
     area: 650,
     bedrooms: 1,
     bathrooms: 1,
+    district: "Coimbatore" as const,
     location: "Gandhipuram, Coimbatore",
     postedBy: "Ravi T",
     daysAgo: 7,
@@ -227,10 +430,53 @@ export const PROPERTIES = [
     area: 2400,
     bedrooms: null,
     bathrooms: null,
+    district: "Coimbatore" as const,
     location: "Kalapatti, Coimbatore",
     postedBy: "Mani P",
     daysAgo: 10,
     tag: null,
+  },
+  {
+    id: "7",
+    title: "2BHK near Collectorate — Tirupur",
+    type: "RENT",
+    price: 12000,
+    area: 950,
+    bedrooms: 2,
+    bathrooms: 2,
+    district: "Tirupur" as const,
+    location: "Collectorate, Tirupur",
+    postedBy: "Divya N",
+    daysAgo: 4,
+    tag: "New",
+  },
+  {
+    id: "8",
+    title: "Individual House — Perundurai Road",
+    type: "SELL",
+    price: 7200000,
+    area: 1800,
+    bedrooms: 3,
+    bathrooms: 3,
+    district: "Erode" as const,
+    location: "Perundurai Road, Erode",
+    postedBy: "Senthil K",
+    daysAgo: 6,
+    tag: null,
+  },
+  {
+    id: "9",
+    title: "3BHK Apartment — Fairlands",
+    type: "SELL",
+    price: 5800000,
+    area: 1320,
+    bedrooms: 3,
+    bathrooms: 2,
+    district: "Salem" as const,
+    location: "Fairlands, Salem",
+    postedBy: "Latha P",
+    daysAgo: 3,
+    tag: "Hot",
   },
 ];
 
@@ -244,7 +490,6 @@ export const MATERIAL_CATEGORIES = [
   { key: "TILES", label: "Tiles", emoji: "◼️" },
   { key: "PLUMBING", label: "Plumbing", emoji: "🔧" },
   { key: "ELECTRICAL", label: "Electrical", emoji: "⚡" },
-  { key: "WOOD", label: "Wood", emoji: "🪵" },
 ];
 
 export const SERVICE_CATEGORY_FILTERS = [
@@ -261,6 +506,7 @@ export const SERVICES = [
     id: "1",
     name: "Vel Electrical Works",
     category: "Electrical",
+    district: "Coimbatore" as const,
     area: "Gandhipuram",
     rating: 4.7,
     reviewCount: 112,
@@ -274,6 +520,7 @@ export const SERVICES = [
     id: "2",
     name: "AK Plumbing Solutions",
     category: "Plumbing",
+    district: "Coimbatore" as const,
     area: "RS Puram",
     rating: 4.5,
     reviewCount: 78,
@@ -287,6 +534,7 @@ export const SERVICES = [
     id: "3",
     name: "Dream Interior Studio",
     category: "Interior",
+    district: "Coimbatore" as const,
     area: "Peelamedu",
     rating: 4.8,
     reviewCount: 95,
@@ -300,6 +548,7 @@ export const SERVICES = [
     id: "4",
     name: "Coimbatore Painting Works",
     category: "Painting",
+    district: "Coimbatore" as const,
     area: "Singanallur",
     rating: 4.3,
     reviewCount: 64,
@@ -312,6 +561,7 @@ export const SERVICES = [
     id: "5",
     name: "Ravi Civil & Masonry",
     category: "Civil",
+    district: "Coimbatore" as const,
     area: "Kalapatti",
     rating: 4.4,
     reviewCount: 48,
@@ -320,12 +570,19 @@ export const SERVICES = [
     tags: ["Masonry", "Flooring", "Tile Fixing"],
     priceFrom: "₹350/hr",
   },
-];
-
-export const AREAS = [
-  "All Areas", "RS Puram", "Gandhipuram", "Peelamedu",
-  "Saibaba Colony", "Race Course", "Singanallur",
-  "Ganapathy", "Vadavalli", "Kalapatti", "Sulur",
+  {
+    id: "6",
+    name: "Tirupur Pipe & Sanitary",
+    category: "Plumbing",
+    district: "Tirupur" as const,
+    area: "PN Road",
+    rating: 4.5,
+    reviewCount: 41,
+    isVerified: true,
+    description: "CP fittings, overhead tanks, and industrial plumbing for textile units.",
+    tags: ["CP Fittings", "Industrial", "Repairs"],
+    priceFrom: "₹450/hr",
+  },
 ];
 
 export function formatPrice(price: number, type?: string): string {

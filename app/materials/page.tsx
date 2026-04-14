@@ -2,10 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
-import AreaSelect from "@/components/ui/AreaSelect";
+import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import { MapPin, Star, Phone, Package, CheckCircle } from "lucide-react";
-import { DEALERS, MATERIAL_CATEGORIES } from "@/lib/mock-data";
+import {
+  DEALERS,
+  MATERIAL_CATEGORIES,
+  DISTRICT_FILTER_ALL,
+  parseLocationToAreaDistrict,
+} from "@/lib/mock-data";
 
 type ApiCatalogMaterial = {
   id: string;
@@ -20,6 +25,7 @@ type ApiCatalogMaterial = {
 type DealerCard = {
   id: string;
   shopName: string;
+  district: string;
   area: string;
   rating: number;
   reviewCount: number;
@@ -76,10 +82,7 @@ function mapApiDealer(
   },
   catalog: ApiCatalogMaterial[]
 ): DealerCard {
-  const area =
-    d.location?.split(",")[0]?.trim() ||
-    d.location?.trim() ||
-    "Coimbatore";
+  const { area, district } = parseLocationToAreaDistrict(d.location);
   const dealerTags = (d.materials ?? []).map((x) => String(x).trim()).filter(Boolean);
   const materialLines = buildDealerMaterialLines(dealerTags, catalog);
 
@@ -95,6 +98,7 @@ function mapApiDealer(
   return {
     id: d.id,
     shopName: d.shopName,
+    district,
     area,
     rating: d.rating,
     reviewCount: 0,
@@ -110,6 +114,7 @@ function mockDealerToCard(d: (typeof DEALERS)[number]): DealerCard {
   return {
     id: d.id,
     shopName: d.shopName,
+    district: d.district,
     area: d.area,
     rating: d.rating,
     reviewCount: d.reviewCount,
@@ -124,6 +129,7 @@ function mockDealerToCard(d: (typeof DEALERS)[number]): DealerCard {
 export default function MaterialsPage() {
   const [search, setSearch] = useState("");
   const [cat, setCat] = useState("ALL");
+  const [district, setDistrict] = useState<string>(DISTRICT_FILTER_ALL);
   const [area, setArea] = useState("All Areas");
   const [enquiryOpen, setEnquiryOpen] = useState<{ target: string; dealerId?: string } | null>(null);
   const [dealers, setDealers] = useState<DealerCard[]>(() => DEALERS.map(mockDealerToCard));
@@ -179,10 +185,11 @@ export default function MaterialsPage() {
         d.shopName.toLowerCase().includes(search.toLowerCase()) ||
         d.materials.some((m) => m.name.toLowerCase().includes(search.toLowerCase()));
       const matchCat = cat === "ALL" || d.filterCategoryKeys.includes(cat);
+      const matchDistrict = district === DISTRICT_FILTER_ALL || d.district === district;
       const matchArea = area === "All Areas" || d.area === area;
-      return matchSearch && matchCat && matchArea;
+      return matchSearch && matchCat && matchDistrict && matchArea;
     });
-  }, [dealers, search, cat, area]);
+  }, [dealers, search, cat, district, area]);
 
   return (
     <ListingPageShell
@@ -239,11 +246,18 @@ export default function MaterialsPage() {
           ))}
         </div>
 
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
           <p className="text-sm text-cement-500">
             <span className="font-semibold text-cement-900">{filtered.length}</span> dealers found
           </p>
-          <AreaSelect value={area} onChange={setArea} />
+          <DistrictAreaSelect
+            district={district}
+            onDistrictChange={setDistrict}
+            area={area}
+            onAreaChange={setArea}
+            className="flex flex-wrap items-stretch sm:justify-end gap-2"
+            selectClassName="text-sm border border-cement-200 rounded-lg px-3 py-1.5 bg-white text-cement-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 flex-1 sm:flex-none sm:min-w-[140px]"
+          />
         </div>
 
         <div className="space-y-4">
@@ -264,7 +278,7 @@ export default function MaterialsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-1 text-cement-500 text-xs mt-0.5">
-                      <MapPin className="w-3 h-3" /> {dealer.area}, Coimbatore
+                      <MapPin className="w-3 h-3" /> {dealer.area}, {dealer.district}
                     </div>
                   </div>
                 </div>

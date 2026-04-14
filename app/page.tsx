@@ -33,7 +33,7 @@ export default function LandingPage() {
         <div className="page-container py-20 md:py-28 relative">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 bg-brand-500/15 border border-brand-400/30 text-brand-200 text-sm font-medium px-4 py-1.5 rounded-full mb-6">
-              <MapPin className="w-3.5 h-3.5" /> Serving Coimbatore
+              <MapPin className="w-3.5 h-3.5" /> Serving Coimbatore , Tirupur , Erode , Namakkal , Salem 
             </div>
             <div className="flex items-center gap-4 mb-6">
               <Image
@@ -56,8 +56,8 @@ export default function LandingPage() {
               <span className="text-brand-400">Together.</span>
             </h1>
             <p className="text-cement-300 text-lg md:text-xl leading-relaxed mb-10 max-w-xl">
-              Coimbatore&apos;s unified marketplace for construction materials, builders, architects, and
-              properties — verified and local.
+              A unified marketplace for construction materials, builders, architects, and properties across
+              Coimbatore, Tirupur, Erode, Namakkal, and Salem — verified and local.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
@@ -82,7 +82,7 @@ export default function LandingPage() {
               { v: "50+", l: "Verified Dealers" },
               { v: "30+", l: "Builders & Architects" },
               { v: "200+", l: "Properties Listed" },
-              { v: "15+", l: "Areas in Coimbatore" },
+              { v: "45+", l: "Areas across 5 districts" },
             ].map((s) => (
               <div key={s.l}>
                 <div className="text-2xl font-bold text-brand-400">{s.v}</div>
@@ -99,7 +99,7 @@ export default function LandingPage() {
           <div className="text-center mb-12">
             <h2 className="font-display text-4xl font-bold text-cement-900 mb-3">Everything to Build With</h2>
             <p className="text-cement-500 max-w-lg mx-auto">
-              From raw materials to finished homes — one platform for Coimbatore&apos;s construction needs.
+              From raw materials to finished homes — one platform for construction needs across the region.
             </p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -166,8 +166,8 @@ export default function LandingPage() {
           <div>
             <h2 className="font-display text-4xl font-bold text-cement-900 mb-4">Why KATTADAM?</h2>
             <p className="text-cement-500 mb-8 leading-relaxed">
-              We solve real problems in Coimbatore construction — opaque pricing, unreliable contractors, and
-              scattered information.
+              We solve real problems in regional construction — opaque pricing, unreliable contractors, and scattered
+              information.
             </p>
             <div className="space-y-5">
               {[
@@ -189,7 +189,7 @@ export default function LandingPage() {
                 {
                   icon: MapPin,
                   title: "Hyper-local Focus",
-                  desc: "We know every area — RS Puram to Sulur. Built for Coimbatore.",
+                  desc: "District-wise areas — from RS Puram to Fairlands — so you find suppliers near your site.",
                 },
               ].map((item) => (
                 <div key={item.title} className="flex gap-4">
@@ -206,7 +206,9 @@ export default function LandingPage() {
           </div>
           <div className="bg-cement-900 rounded-3xl p-8 text-white">
             <h3 className="font-display text-2xl font-bold mb-2">For Dealers & Builders</h3>
-            <p className="text-cement-400 text-sm mb-6">Get your business in front of buyers in Coimbatore.</p>
+            <p className="text-cement-400 text-sm mb-6">
+              Get your business in front of buyers across Coimbatore, Tirupur, Erode, Namakkal, and Salem.
+            </p>
             <div className="space-y-3 mb-8">
               {[
                 "Get qualified leads directly",
@@ -231,7 +233,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-20 bg-brand-600">
         <div className="page-container text-center text-white">
-          <h2 className="font-display text-4xl font-bold mb-4">Ready to Build in Coimbatore?</h2>
+          <h2 className="font-display text-4xl font-bold mb-4">Ready to Build?</h2>
           <p className="text-white/85 mb-8 max-w-md mx-auto">
             Join homeowners, dealers, and builders who trust KATTADAM.
           </p>

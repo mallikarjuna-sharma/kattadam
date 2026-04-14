@@ -2,24 +2,27 @@
 
 import { useState } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
-import AreaSelect from "@/components/ui/AreaSelect";
+import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import { MapPin, Phone, Home, BedDouble, Bath, Maximize2 } from "lucide-react";
-import { PROPERTIES, formatPrice } from "@/lib/mock-data";
+import { PROPERTIES, formatPrice, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
 
 const TYPES = ["All", "SELL", "RENT"];
 
 export default function PropertiesPage() {
   const [search, setSearch] = useState("");
   const [type, setType] = useState("All");
+  const [district, setDistrict] = useState<string>(DISTRICT_FILTER_ALL);
   const [area, setArea] = useState("All Areas");
   const [enquiry, setEnquiry] = useState<string | null>(null);
 
   const filtered = PROPERTIES.filter((p) => {
     const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
     const matchType = type === "All" || p.type === type;
-    const matchArea = area === "All Areas" || p.location.includes(area);
-    return matchSearch && matchType && matchArea;
+    const matchDistrict = district === DISTRICT_FILTER_ALL || p.district === district;
+    const locality = p.location.split(",")[0]?.trim() ?? "";
+    const matchArea = area === "All Areas" || locality === area;
+    return matchSearch && matchType && matchDistrict && matchArea;
   });
 
   return (
@@ -46,7 +49,13 @@ export default function PropertiesPage() {
               </button>
             ))}
           </div>
-          <AreaSelect value={area} onChange={setArea} className="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none" />
+          <DistrictAreaSelect
+            district={district}
+            onDistrictChange={setDistrict}
+            area={area}
+            onAreaChange={setArea}
+            selectClassName="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 sm:min-w-[130px]"
+          />
         </div>
 
         <p className="text-sm text-earth-500 mb-5">
