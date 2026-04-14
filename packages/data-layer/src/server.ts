@@ -25,6 +25,8 @@ type DealerUpdatePatch = Partial<{
   phone: string | null;
   materials: string[];
   location: string | null;
+  district: string;
+  area: string;
   lat: number | null;
   lng: number | null;
   verified: boolean;
@@ -112,6 +114,12 @@ export async function adminUpdateDealer(id: string, patch: DealerUpdatePatch): P
   const b = getServerBackend();
   if (!b) return null;
   return b.updateDealer(id, patch);
+}
+
+export async function adminDeleteDealer(id: string): Promise<boolean | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.deleteDealer(id);
 }
 
 export async function adminListMaterials(): Promise<MaterialRecord[] | null> {

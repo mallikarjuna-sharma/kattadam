@@ -31,6 +31,8 @@ export interface DealerRecord {
   phone: string | null;
   materials: string[];
   location: string | null;
+  district: string;
+  area: string;
   lat: number | null;
   lng: number | null;
   rating: number;
@@ -46,12 +48,22 @@ export interface DealerRecord {
 export interface MaterialRecord {
   id: string;
   name: string;
+  /** Stored category key, e.g. CEMENT, TMT_STEEL (matches customer filter chips). */
   category: string;
   subcategory: string | null;
   unit: string | null;
   imageUrl: string | null;
+  /** Legacy column; new rows use `price` with pricing_type fixed. */
   pricingType: MaterialPricingType;
   fixedPrice: number | null;
+  /** Primary selling price (same as fixed_price for DB-backed rows). */
+  price: number;
+  /** Internal admin note; optional when dealerId is set. */
+  dealerName: string | null;
+  /** When set, links this catalogue row to Admin → Dealers. */
+  dealerId: string | null;
+  district: string;
+  area: string;
   createdAt: string;
 }
 

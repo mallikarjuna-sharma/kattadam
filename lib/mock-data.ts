@@ -492,6 +492,30 @@ export const MATERIAL_CATEGORIES = [
   { key: "ELECTRICAL", label: "Electrical", emoji: "⚡" },
 ];
 
+/** Category keys that use a fixed subcategory dropdown in admin (others use free-text subcategory). */
+export const MATERIAL_SUBCATEGORY_PRESETS: Record<string, readonly { value: string; label: string }[]> = {
+  CEMENT: [
+    { value: "OPC", label: "OPC" },
+    { value: "PPC", label: "PPC" },
+  ],
+  TMT_STEEL: [
+    { value: "8 mm", label: "8 mm" },
+    { value: "10 mm", label: "10 mm" },
+  ],
+  PAINT: [
+    { value: "interior", label: "Interior" },
+    { value: "exterior", label: "Exterior" },
+  ],
+};
+
+export function materialCategoryUsesSubcategoryDropdown(categoryKey: string): boolean {
+  return Object.prototype.hasOwnProperty.call(MATERIAL_SUBCATEGORY_PRESETS, categoryKey);
+}
+
+export function materialCategoryLabel(categoryKey: string): string {
+  return MATERIAL_CATEGORIES.find((c) => c.key === categoryKey)?.label ?? categoryKey.replace(/_/g, " ");
+}
+
 export const SERVICE_CATEGORY_FILTERS = [
   "All",
   "Electrical",

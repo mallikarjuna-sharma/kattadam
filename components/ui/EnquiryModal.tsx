@@ -6,10 +6,12 @@ interface Props {
   target: string;
   /** When set (real dealer UUID from live catalogue), stored as assigned_dealer_id */
   dealerId?: string;
+  /** When set (material UUID), stored as material_id on the enquiry */
+  materialId?: string;
   onClose: () => void;
 }
 
-export default function EnquiryModal({ target, dealerId, onClose }: Props) {
+export default function EnquiryModal({ target, dealerId, materialId, onClose }: Props) {
   const [form, setForm] = useState({ name: "", phone: "", message: "" });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -29,6 +31,7 @@ export default function EnquiryModal({ target, dealerId, onClose }: Props) {
           message: form.message,
           target,
           ...(dealerId ? { dealerId } : {}),
+          ...(materialId ? { materialId } : {}),
         }),
       });
       const data = (await res.json()) as { ok?: boolean; error?: string };
@@ -127,7 +130,10 @@ export default function EnquiryModal({ target, dealerId, onClose }: Props) {
             </div>
             <h3 className="font-semibold text-earth-900 text-lg mb-2">Enquiry Sent!</h3>
             <p className="text-earth-500 text-sm mb-5">
-              The dealer will contact you on <strong>+91 {form.phone}</strong> shortly.
+              {materialId && !dealerId
+                ? "Our team will contact you on "
+                : "The dealer will contact you on "}
+              <strong>+91 {form.phone}</strong> shortly.
             </p>
             <button onClick={onClose} className="btn-primary px-8">
               Done

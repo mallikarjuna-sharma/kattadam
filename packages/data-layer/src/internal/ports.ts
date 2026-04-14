@@ -40,6 +40,8 @@ export interface IDataBackend {
       phone: string | null;
       materials: string[];
       location: string | null;
+      district: string;
+      area: string;
       lat: number | null;
       lng: number | null;
       verified: boolean;
@@ -50,6 +52,7 @@ export interface IDataBackend {
       licenseDocUrl: string | null;
     }>
   ): Promise<DealerRecord | null>;
+  deleteDealer(id: string): Promise<boolean>;
 
   listMaterials(): Promise<MaterialRecord[]>;
   deleteMaterial(id: string): Promise<boolean>;

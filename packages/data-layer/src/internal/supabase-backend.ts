@@ -34,6 +34,8 @@ type DealerRow = {
   phone: string | null;
   materials: string[] | null;
   location: string | null;
+  district: string | null;
+  area: string | null;
   lat: number | null;
   lng: number | null;
   rating: number;
@@ -55,6 +57,11 @@ type MaterialRow = {
   image_url: string | null;
   pricing_type: string;
   fixed_price: number | null;
+  price: number | null;
+  dealer_id: string | null;
+  dealer_name: string | null;
+  district: string | null;
+  area: string | null;
   created_at: string;
 };
 
@@ -111,6 +118,18 @@ function mapUser(r: UserRow): UserRecord {
 }
 
 function mapDealer(r: DealerRow): DealerRecord {
+  let district = (r.district ?? "").trim();
+  let area = (r.area ?? "").trim();
+  const loc = r.location?.trim() ?? "";
+  if ((!district || !area) && loc.includes(",")) {
+    const parts = loc.split(",").map((s) => s.trim()).filter(Boolean);
+    if (parts.length >= 2) {
+      if (!area) area = parts[0] ?? "";
+      if (!district) district = parts[parts.length - 1] ?? "";
+    }
+  }
+  if (!district) district = "Coimbatore";
+  if (!area) area = loc && !loc.includes(",") ? loc : "—";
   return {
     id: r.id,
     userId: r.user_id,
@@ -119,6 +138,8 @@ function mapDealer(r: DealerRow): DealerRecord {
     phone: r.phone,
     materials: r.materials ?? [],
     location: r.location,
+    district,
+    area,
     lat: r.lat,
     lng: r.lng,
     rating: Number(r.rating),
@@ -133,6 +154,9 @@ function mapDealer(r: DealerRow): DealerRecord {
 }
 
 function mapMaterial(r: MaterialRow): MaterialRecord {
+  const fixed = r.fixed_price != null ? Number(r.fixed_price) : null;
+  const priceCol = r.price != null ? Number(r.price) : null;
+  const price = Number.isFinite(priceCol as number) ? (priceCol as number) : Number.isFinite(fixed as number) ? (fixed as number) : 0;
   return {
     id: r.id,
     name: r.name,
@@ -141,7 +165,12 @@ function mapMaterial(r: MaterialRow): MaterialRecord {
     unit: r.unit,
     imageUrl: r.image_url,
     pricingType: r.pricing_type as MaterialRecord["pricingType"],
-    fixedPrice: r.fixed_price,
+    fixedPrice: fixed,
+    price,
+    dealerName: r.dealer_name ?? null,
+    dealerId: r.dealer_id ?? null,
+    district: r.district?.trim() || "Coimbatore",
+    area: r.area?.trim() || "",
     createdAt: r.created_at,
   };
 }
@@ -189,6 +218,44 @@ function mapNotif(r: NotifRow): NotificationBroadcastRecord {
     body: r.body,
     createdAt: r.created_at,
   };
+}
+
+function isLikelyTransientNetworkError(message: string): boolean {
+  return /fetch failed|failed to fetch|networkerror|econnreset|etimedout|socket|enotfound|eafnosupport/i.test(
+    message
+  );
+}
+
+function formatSupabaseClientError(err: {
+  message: string;
+  details?: string;
+  hint?: string;
+  code?: string;
+  cause?: unknown;
+}): string {
+  const parts = [err.message];
+  if (err.details) parts.push(`Details: ${err.details}`);
+  if (err.hint) parts.push(`Hint: ${err.hint}`);
+  if (err.code) parts.push(`Code: ${err.code}`);
+  if (err.cause instanceof Error) parts.push(`Cause: ${err.cause.message}`);
+  else if (err.cause != null) parts.push(`Cause: ${String(err.cause)}`);
+  return parts.join(" | ");
+}
+
+async function fetchAllMaterialsOrdered(client: SupabaseClient) {
+  return client.from("materials").select("*").order("category", { ascending: true });
+}
+
+async function listMaterialsWithNetworkRetry(client: SupabaseClient): Promise<MaterialRecord[]> {
+  let res = await fetchAllMaterialsOrdered(client);
+  if (res.error && isLikelyTransientNetworkError(res.error.message)) {
+    await new Promise((r) => setTimeout(r, 700));
+    res = await fetchAllMaterialsOrdered(client);
+  }
+  if (res.error) {
+    throw new Error(formatSupabaseClientError(res.error as { message: string; cause?: unknown }));
+  }
+  return ((res.data ?? []) as MaterialRow[]).map(mapMaterial);
 }
 
 export class SupabaseDataBackend implements IDataBackend {
@@ -308,25 +375,31 @@ export class SupabaseDataBackend implements IDataBackend {
   }
 
   async listPublicMaterials(): Promise<MaterialRecord[]> {
-    const { data, error } = await this.client.from("materials").select("*").order("category", { ascending: true });
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as MaterialRow[]).map(mapMaterial);
+    return listMaterialsWithNetworkRetry(this.client);
   }
 
   async upsertDealer(row: Partial<DealerRecord> & { shopName: string }): Promise<DealerRecord> {
+    const district = row.district?.trim() || "Coimbatore";
+    const area = row.area?.trim() || "";
+    const location =
+      row.location?.trim() || (area ? `${area}, ${district}` : district);
+    const status = row.status ?? "approved";
+    const isApproved = status === "approved";
     const payload: Record<string, unknown> = {
       shop_name: row.shopName,
       owner_name: row.ownerName ?? null,
       phone: row.phone ?? null,
       materials: row.materials ?? [],
-      location: row.location ?? null,
+      location,
+      district,
+      area,
       lat: row.lat ?? null,
       lng: row.lng ?? null,
       user_id: row.userId ?? null,
-      verified: row.verified ?? false,
+      verified: row.verified ?? isApproved,
       enabled: row.enabled ?? true,
       top_dealer: row.topDealer ?? false,
-      status: row.status ?? "pending",
+      status,
       gst_doc_url: row.gstDocUrl ?? null,
       license_doc_url: row.licenseDocUrl ?? null,
     };
@@ -347,6 +420,15 @@ export class SupabaseDataBackend implements IDataBackend {
     if (patch.phone !== undefined) row.phone = patch.phone;
     if (patch.materials !== undefined) row.materials = patch.materials;
     if (patch.location !== undefined) row.location = patch.location;
+    if (patch.district !== undefined) row.district = patch.district;
+    if (patch.area !== undefined) row.area = patch.area;
+    if (patch.district !== undefined || patch.area !== undefined) {
+      const { data: cur } = await this.client.from("dealers").select("district,area").eq("id", id).maybeSingle();
+      const curRow = cur as { district?: string | null; area?: string | null } | null;
+      const d = (patch.district !== undefined ? patch.district : curRow?.district)?.toString().trim() || "Coimbatore";
+      const a = (patch.area !== undefined ? patch.area : curRow?.area)?.toString().trim() || "";
+      row.location = a ? `${a}, ${d}` : d;
+    }
     if (patch.lat !== undefined) row.lat = patch.lat;
     if (patch.lng !== undefined) row.lng = patch.lng;
     if (patch.verified !== undefined) row.verified = patch.verified;
@@ -360,13 +442,13 @@ export class SupabaseDataBackend implements IDataBackend {
     return mapDealer(data as DealerRow);
   }
 
+  async deleteDealer(id: string): Promise<boolean> {
+    const { error } = await this.client.from("dealers").delete().eq("id", id);
+    return !error;
+  }
+
   async listMaterials(): Promise<MaterialRecord[]> {
-    const { data, error } = await this.client
-      .from("materials")
-      .select("*")
-      .order("category", { ascending: true });
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as MaterialRow[]).map(mapMaterial);
+    return listMaterialsWithNetworkRetry(this.client);
   }
 
   async deleteMaterial(id: string): Promise<boolean> {
@@ -375,14 +457,25 @@ export class SupabaseDataBackend implements IDataBackend {
   }
 
   async upsertMaterial(row: Partial<MaterialRecord> & { name: string; category: string }): Promise<MaterialRecord> {
+    const priceVal =
+      row.price != null && Number.isFinite(Number(row.price))
+        ? Number(row.price)
+        : row.fixedPrice != null && Number.isFinite(Number(row.fixedPrice))
+          ? Number(row.fixedPrice)
+          : 0;
     const payload: Record<string, unknown> = {
       name: row.name,
       category: row.category,
       subcategory: row.subcategory ?? null,
       unit: row.unit ?? null,
       image_url: row.imageUrl ?? null,
-      pricing_type: row.pricingType ?? "dealer_quote",
-      fixed_price: row.fixedPrice ?? null,
+      pricing_type: "fixed",
+      fixed_price: priceVal,
+      price: priceVal,
+      dealer_id: row.dealerId?.trim() || null,
+      dealer_name: row.dealerName?.trim() ?? "",
+      district: row.district?.trim() || "Coimbatore",
+      area: row.area?.trim() || "",
     };
     if (row.id) {
       const { data, error } = await this.client.from("materials").update(payload).eq("id", row.id).select().single();

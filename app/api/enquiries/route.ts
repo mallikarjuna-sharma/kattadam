@@ -23,6 +23,8 @@ export async function POST(req: Request) {
   const target = typeof o.target === "string" ? o.target.trim() : "";
   const rawDealerId = typeof o.dealerId === "string" ? o.dealerId.trim() : "";
   const assignedDealerId = rawDealerId && isUuid(rawDealerId) ? rawDealerId : null;
+  const rawMaterialId = typeof o.materialId === "string" ? o.materialId.trim() : "";
+  const materialId = rawMaterialId && isUuid(rawMaterialId) ? rawMaterialId : null;
 
   if (!customerName || phone.length < 10 || !message) {
     return NextResponse.json(
@@ -41,6 +43,7 @@ export async function POST(req: Request) {
   const created = await catalogCreateEnquiry({
     customerName,
     materialLabel: target || null,
+    materialId,
     notes,
     assignedDealerId,
   });

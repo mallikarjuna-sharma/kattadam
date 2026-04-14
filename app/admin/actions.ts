@@ -5,6 +5,7 @@ import {
   adminCreateNotification,
   adminCreateZone,
   adminSetDealerZones,
+  adminDeleteDealer,
   adminDeleteMaterial,
   adminUpdateDealer,
   adminUpdateEnquiry,
@@ -22,24 +23,42 @@ export async function actionSetUserStatus(id: string, status: UserStatus) {
   A("/admin/users");
 }
 
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim());
+}
+
 export async function actionUpsertDealer(formData: FormData) {
   const idRaw = formData.get("id");
   const id = typeof idRaw === "string" && idRaw.length > 0 ? idRaw : undefined;
-  const materialsRaw = String(formData.get("materials") || "");
-  const materials = materialsRaw
-    .split(",")
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const categories = formData.getAll("categories").map((x) => String(x).trim()).filter(Boolean);
+  const status =
+    (String(formData.get("status") || "approved") as "pending" | "approved" | "rejected") || "approved";
+  const district = String(formData.get("district") || "").trim() || "Coimbatore";
+  const area = String(formData.get("area") || "").trim();
+  const isApproved = status === "approved";
   await adminUpsertDealer({
     id,
     shopName: String(formData.get("shopName") || "").trim() || "Unnamed shop",
     ownerName: String(formData.get("ownerName") || "").trim() || null,
     phone: String(formData.get("phone") || "").trim() || null,
-    location: String(formData.get("location") || "").trim() || null,
-    materials,
-    status: (String(formData.get("status") || "pending") as "pending" | "approved" | "rejected") || "pending",
+    district,
+    area,
+    location: area ? `${area}, ${district}` : district,
+    materials: categories,
+    status,
+    verified: isApproved,
+    enabled: true,
   });
   A("/admin/dealers");
+  A("/admin/materials");
+}
+
+export async function actionDeleteDealer(id: string) {
+  const ok = await adminDeleteDealer(id);
+  if (ok) {
+    A("/admin/dealers");
+    A("/admin/materials");
+  }
 }
 
 export async function actionDealerApprove(id: string) {
@@ -73,17 +92,25 @@ export async function actionUpdateDealerMaterials(formData: FormData) {
 export async function actionUpsertMaterial(formData: FormData) {
   const idRaw = formData.get("id");
   const id = typeof idRaw === "string" && idRaw.length > 0 ? idRaw : undefined;
-  const fixed = formData.get("fixedPrice");
-  const fixedPrice =
-    fixed != null && String(fixed).trim() !== "" ? Number.parseFloat(String(fixed)) : null;
+  const priceRaw = formData.get("price");
+  const parsed =
+    priceRaw != null && String(priceRaw).trim() !== "" ? Number.parseFloat(String(priceRaw)) : NaN;
+  const price = Number.isFinite(parsed) ? parsed : 0;
+  const rawDealerId = String(formData.get("dealerId") || "").trim();
+  const dealerId = isUuid(rawDealerId) ? rawDealerId : null;
   await adminUpsertMaterial({
     id,
     name: String(formData.get("name") || "").trim() || "Material",
-    category: String(formData.get("category") || "").trim() || "General",
+    category: String(formData.get("categoryKey") || "").trim() || "GENERAL",
     subcategory: String(formData.get("subcategory") || "").trim() || null,
     unit: String(formData.get("unit") || "").trim() || null,
-    pricingType: (String(formData.get("pricingType") || "dealer_quote") as "fixed" | "dealer_quote") || "dealer_quote",
-    fixedPrice: Number.isFinite(fixedPrice) ? fixedPrice : null,
+    pricingType: "fixed",
+    fixedPrice: price,
+    price,
+    dealerId,
+    dealerName: String(formData.get("dealerName") || "").trim() || null,
+    district: String(formData.get("district") || "").trim() || "Coimbatore",
+    area: String(formData.get("area") || "").trim() || "",
   });
   A("/admin/materials");
 }
