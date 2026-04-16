@@ -1,6 +1,6 @@
-import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { IDataBackend } from "./ports";
+import { hashPasswordPbkdf2, verifyPasswordPbkdf2 } from "./password-webcrypto";
 import type {
   AdminEventRecord,
   AppSessionRecord,
@@ -19,28 +19,6 @@ import type {
   ZoneRecord,
 } from "../types";
 import type { DealerStatus, EnquiryStatus, UserStatus } from "../types";
-
-function hashPassword(plain: string): string {
-  const salt = randomBytes(16);
-  const key = scryptSync(plain, salt, 64);
-  return `scrypt:${salt.toString("hex")}:${key.toString("hex")}`;
-}
-
-function verifyPassword(plain: string, stored: string | null | undefined): boolean {
-  if (!stored || !plain) return false;
-  const parts = stored.split(":");
-  if (parts.length !== 3 || parts[0] !== "scrypt") return false;
-  const [, saltHex, keyHex] = parts;
-  if (!saltHex || !keyHex) return false;
-  try {
-    const salt = Buffer.from(saltHex, "hex");
-    const key = Buffer.from(keyHex, "hex");
-    const tryKey = scryptSync(plain, salt, 64);
-    return key.length === tryKey.length && timingSafeEqual(tryKey, key);
-  } catch {
-    return false;
-  }
-}
 
 type UserRow = {
   id: string;
@@ -505,7 +483,7 @@ export class SupabaseDataBackend implements IDataBackend {
 
   async registerCustomerUser(row: { name: string; email: string; password: string }): Promise<UserRecord> {
     const email = row.email.trim().toLowerCase();
-    const ph = hashPassword(row.password);
+    const ph = await hashPasswordPbkdf2(row.password);
     const { data, error } = await this.client
       .from("users")
       .insert({
@@ -530,7 +508,7 @@ export class SupabaseDataBackend implements IDataBackend {
 
   async registerPartnerUser(row: { name: string; email: string; password: string }): Promise<UserRecord> {
     const email = row.email.trim().toLowerCase();
-    const ph = hashPassword(row.password);
+    const ph = await hashPasswordPbkdf2(row.password);
     const { data, error } = await this.client
       .from("users")
       .insert({
@@ -566,7 +544,7 @@ export class SupabaseDataBackend implements IDataBackend {
       .maybeSingle();
     if (error || !data) return null;
     const row = data as UserRow & { password_hash: string | null };
-    if (!verifyPassword(password, row.password_hash)) return null;
+    if (!(await verifyPasswordPbkdf2(password, row.password_hash))) return null;
     return mapUser({
       id: row.id,
       name: row.name,
