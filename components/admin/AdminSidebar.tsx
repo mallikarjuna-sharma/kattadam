@@ -13,12 +13,20 @@ import {
   Star,
   MapPinned,
   Settings,
+  HardHat,
+  Home,
+  Activity,
+  Paintbrush,
 } from "lucide-react";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/activity", label: "Activity", icon: Activity },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/dealers", label: "Dealers", icon: Store },
+  { href: "/admin/experts", label: "Kattadam Experts", icon: HardHat },
+  { href: "/admin/home-services", label: "Home services", icon: Paintbrush },
+  { href: "/admin/properties", label: "Real estate", icon: Home },
   { href: "/admin/materials", label: "Materials", icon: Package },
   { href: "/admin/enquiries", label: "Enquiries", icon: ClipboardList },
   { href: "/admin/notifications", label: "Notifications", icon: Bell },
@@ -36,7 +44,7 @@ export default function AdminSidebar() {
         <Link href="/admin" className="flex items-center gap-3">
           <Image src="/logo.jpeg" alt="" width={40} height={40} className="rounded-lg object-cover" />
           <div>
-            <div className="font-display font-bold text-sm tracking-tight">KATTADAM</div>
+            <div className="font-display font-bold text-sm tracking-tight">Kattadam</div>
             <div className="text-cement-400 text-xs">Admin</div>
           </div>
         </Link>

@@ -7,7 +7,7 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Admin — KATTADAM",
+  title: "Admin — Kattadam",
   description: "Operations dashboard",
 };
 

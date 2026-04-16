@@ -1,22 +1,52 @@
+import { randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { IDataBackend } from "./ports";
 import type {
+  AdminEventRecord,
+  AppSessionRecord,
   DashboardSummary,
   DealerRecord,
   EnquiryRecord,
+  ExpertType,
+  HomeServiceProviderRecord,
+  KattadamExpertRecord,
   MaterialRecord,
   NotificationAudience,
   NotificationBroadcastRecord,
+  PropertyListingRecord,
   ReviewRecord,
   UserRecord,
   ZoneRecord,
 } from "../types";
 import type { DealerStatus, EnquiryStatus, UserStatus } from "../types";
 
+function hashPassword(plain: string): string {
+  const salt = randomBytes(16);
+  const key = scryptSync(plain, salt, 64);
+  return `scrypt:${salt.toString("hex")}:${key.toString("hex")}`;
+}
+
+function verifyPassword(plain: string, stored: string | null | undefined): boolean {
+  if (!stored || !plain) return false;
+  const parts = stored.split(":");
+  if (parts.length !== 3 || parts[0] !== "scrypt") return false;
+  const [, saltHex, keyHex] = parts;
+  if (!saltHex || !keyHex) return false;
+  try {
+    const salt = Buffer.from(saltHex, "hex");
+    const key = Buffer.from(keyHex, "hex");
+    const tryKey = scryptSync(plain, salt, 64);
+    return key.length === tryKey.length && timingSafeEqual(tryKey, key);
+  } catch {
+    return false;
+  }
+}
+
 type UserRow = {
   id: string;
   name: string;
   phone: string | null;
+  email: string | null;
   role: string;
   status: string;
   location: string | null;
@@ -107,12 +137,113 @@ function mapUser(r: UserRow): UserRecord {
     id: r.id,
     name: r.name,
     phone: r.phone,
+    email: r.email ?? null,
     role: r.role as UserRecord["role"],
     status: r.status as UserStatus,
     location: r.location,
     lat: r.lat,
     lng: r.lng,
     kycStatus: r.kyc_status,
+    createdAt: r.created_at,
+  };
+}
+
+type AdminEventRow = { id: string; kind: string; title: string; body: string; created_at: string };
+type AppSessionRow = {
+  id: string;
+  user_id: string | null;
+  email: string | null;
+  started_at: string;
+  last_active_at: string;
+  user_agent: string | null;
+  ended_at: string | null;
+};
+type ExpertRow = {
+  id: string;
+  expert_type: string;
+  firm_name: string;
+  owner_name: string;
+  contact_number: string;
+  serviceable_areas: string;
+  district: string;
+  created_at: string;
+};
+type HomeServiceRow = {
+  id: string;
+  service_category: string;
+  firm_name: string;
+  owner_name: string;
+  contact_number: string;
+  serviceable_areas: string;
+  district: string;
+  created_at: string;
+};
+type PropertyListingRow = {
+  id: string;
+  title: string;
+  listing_type: string;
+  property_subtype: string;
+  price: number;
+  district: string;
+  area: string;
+  description: string | null;
+  published: boolean;
+  created_at: string;
+};
+
+function mapAdminEvent(r: AdminEventRow): AdminEventRecord {
+  return { id: r.id, kind: r.kind, title: r.title, body: r.body, createdAt: r.created_at };
+}
+
+function mapAppSession(r: AppSessionRow): AppSessionRecord {
+  return {
+    id: r.id,
+    userId: r.user_id,
+    email: r.email,
+    startedAt: r.started_at,
+    lastActiveAt: r.last_active_at,
+    userAgent: r.user_agent,
+    endedAt: r.ended_at,
+  };
+}
+
+function mapExpert(r: ExpertRow): KattadamExpertRecord {
+  return {
+    id: r.id,
+    expertType: r.expert_type as ExpertType,
+    firmName: r.firm_name,
+    ownerName: r.owner_name,
+    contactNumber: r.contact_number,
+    serviceableAreas: r.serviceable_areas,
+    district: r.district,
+    createdAt: r.created_at,
+  };
+}
+
+function mapHomeService(r: HomeServiceRow): HomeServiceProviderRecord {
+  return {
+    id: r.id,
+    serviceCategory: r.service_category,
+    firmName: r.firm_name,
+    ownerName: r.owner_name,
+    contactNumber: r.contact_number,
+    serviceableAreas: r.serviceable_areas,
+    district: r.district,
+    createdAt: r.created_at,
+  };
+}
+
+function mapPropertyListing(r: PropertyListingRow): PropertyListingRecord {
+  return {
+    id: r.id,
+    title: r.title,
+    listingType: r.listing_type as PropertyListingRecord["listingType"],
+    propertySubtype: r.property_subtype,
+    price: Number(r.price),
+    district: r.district,
+    area: r.area,
+    description: r.description,
+    published: r.published,
     createdAt: r.created_at,
   };
 }
@@ -338,23 +469,277 @@ export class SupabaseDataBackend implements IDataBackend {
   }
 
   async listUsers(): Promise<UserRecord[]> {
-    const { data, error } = await this.client.from("users").select("*").order("created_at", { ascending: false });
+    const { data, error } = await this.client
+      .from("users")
+      .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at")
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return ((data ?? []) as UserRow[]).map(mapUser);
   }
 
   async updateUser(
     id: string,
-    patch: Partial<{ status: UserStatus; name: string; phone: string | null; location: string | null }>
+    patch: Partial<{
+      status: UserStatus;
+      name: string;
+      phone: string | null;
+      email: string | null;
+      location: string | null;
+    }>
   ): Promise<UserRecord | null> {
     const row: Record<string, unknown> = {};
     if (patch.status !== undefined) row.status = patch.status;
     if (patch.name !== undefined) row.name = patch.name;
     if (patch.phone !== undefined) row.phone = patch.phone;
+    if (patch.email !== undefined) row.email = patch.email;
     if (patch.location !== undefined) row.location = patch.location;
-    const { data, error } = await this.client.from("users").update(row).eq("id", id).select().single();
+    const { data, error } = await this.client
+      .from("users")
+      .update(row)
+      .eq("id", id)
+      .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at")
+      .single();
     if (error) return null;
     return mapUser(data as UserRow);
+  }
+
+  async registerCustomerUser(row: { name: string; email: string; password: string }): Promise<UserRecord> {
+    const email = row.email.trim().toLowerCase();
+    const ph = hashPassword(row.password);
+    const { data, error } = await this.client
+      .from("users")
+      .insert({
+        name: row.name.trim(),
+        email,
+        password_hash: ph,
+        role: "customer",
+        status: "active",
+        phone: null,
+      })
+      .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at")
+      .single();
+    if (error) throw new Error(error.message);
+    const u = mapUser(data as UserRow);
+    try {
+      await this.insertAdminEvent("registration_user", "New app user registered", `${u.name} · ${email}`);
+    } catch (e) {
+      console.warn("[SupabaseDataBackend] admin event (user registration):", e instanceof Error ? e.message : e);
+    }
+    return u;
+  }
+
+  async registerPartnerUser(row: { name: string; email: string; password: string }): Promise<UserRecord> {
+    const email = row.email.trim().toLowerCase();
+    const ph = hashPassword(row.password);
+    const { data, error } = await this.client
+      .from("users")
+      .insert({
+        name: row.name.trim(),
+        email,
+        password_hash: ph,
+        role: "dealer",
+        status: "pending",
+        phone: null,
+      })
+      .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at")
+      .single();
+    if (error) throw new Error(error.message);
+    const u = mapUser(data as UserRow);
+    try {
+      await this.insertAdminEvent(
+        "registration_partner",
+        "New Kattadam partner registered",
+        `${u.name} · ${email} (pending approval)`
+      );
+    } catch (e) {
+      console.warn("[SupabaseDataBackend] admin event (partner registration):", e instanceof Error ? e.message : e);
+    }
+    return u;
+  }
+
+  async authenticateByEmail(email: string, password: string): Promise<UserRecord | null> {
+    const normalized = email.trim().toLowerCase();
+    const { data, error } = await this.client
+      .from("users")
+      .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at, password_hash")
+      .eq("email", normalized)
+      .maybeSingle();
+    if (error || !data) return null;
+    const row = data as UserRow & { password_hash: string | null };
+    if (!verifyPassword(password, row.password_hash)) return null;
+    return mapUser({
+      id: row.id,
+      name: row.name,
+      phone: row.phone,
+      email: row.email,
+      role: row.role,
+      status: row.status,
+      location: row.location,
+      lat: row.lat,
+      lng: row.lng,
+      kyc_status: row.kyc_status,
+      created_at: row.created_at,
+    });
+  }
+
+  async insertAdminEvent(kind: string, title: string, body: string): Promise<AdminEventRecord> {
+    const { data, error } = await this.client.from("admin_events").insert({ kind, title, body }).select().single();
+    if (error) throw new Error(error.message);
+    return mapAdminEvent(data as AdminEventRow);
+  }
+
+  async listAdminEvents(limit = 100): Promise<AdminEventRecord[]> {
+    const { data, error } = await this.client
+      .from("admin_events")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as AdminEventRow[]).map(mapAdminEvent);
+  }
+
+  async createAppSession(userId: string | null, email: string, userAgent?: string | null): Promise<AppSessionRecord> {
+    const { data, error } = await this.client
+      .from("app_sessions")
+      .insert({
+        user_id: userId,
+        email: email.trim().toLowerCase(),
+        user_agent: userAgent ?? null,
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return mapAppSession(data as AppSessionRow);
+  }
+
+  async touchAppSession(id: string): Promise<boolean> {
+    const { error } = await this.client
+      .from("app_sessions")
+      .update({ last_active_at: new Date().toISOString() })
+      .eq("id", id);
+    return !error;
+  }
+
+  async listAppSessions(limit = 200): Promise<AppSessionRecord[]> {
+    const { data, error } = await this.client
+      .from("app_sessions")
+      .select("*")
+      .order("started_at", { ascending: false })
+      .limit(limit);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as AppSessionRow[]).map(mapAppSession);
+  }
+
+  async insertKattadamExpert(row: {
+    expertType: ExpertType;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }): Promise<KattadamExpertRecord> {
+    const { data, error } = await this.client
+      .from("kattadam_experts")
+      .insert({
+        expert_type: row.expertType,
+        firm_name: row.firmName,
+        owner_name: row.ownerName,
+        contact_number: row.contactNumber,
+        serviceable_areas: row.serviceableAreas,
+        district: row.district,
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return mapExpert(data as ExpertRow);
+  }
+
+  async listKattadamExperts(): Promise<KattadamExpertRecord[]> {
+    const { data, error } = await this.client.from("kattadam_experts").select("*").order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as ExpertRow[]).map(mapExpert);
+  }
+
+  async insertHomeServiceProvider(row: {
+    serviceCategory: string;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }): Promise<HomeServiceProviderRecord> {
+    const { data, error } = await this.client
+      .from("home_service_providers")
+      .insert({
+        service_category: row.serviceCategory,
+        firm_name: row.firmName,
+        owner_name: row.ownerName,
+        contact_number: row.contactNumber,
+        serviceable_areas: row.serviceableAreas,
+        district: row.district,
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return mapHomeService(data as HomeServiceRow);
+  }
+
+  async listHomeServiceProviders(): Promise<HomeServiceProviderRecord[]> {
+    const { data, error } = await this.client
+      .from("home_service_providers")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as HomeServiceRow[]).map(mapHomeService);
+  }
+
+  async insertPropertyListing(row: {
+    title: string;
+    listingType: "SELL" | "RENT";
+    propertySubtype: string;
+    price: number;
+    district: string;
+    area: string;
+    description?: string | null;
+    published?: boolean;
+  }): Promise<PropertyListingRecord> {
+    const { data, error } = await this.client
+      .from("property_listings")
+      .insert({
+        title: row.title,
+        listing_type: row.listingType,
+        property_subtype: row.propertySubtype,
+        price: row.price,
+        district: row.district,
+        area: row.area,
+        description: row.description ?? null,
+        published: row.published ?? true,
+      })
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return mapPropertyListing(data as PropertyListingRow);
+  }
+
+  async listPropertyListings(): Promise<PropertyListingRecord[]> {
+    const { data, error } = await this.client.from("property_listings").select("*").order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as PropertyListingRow[]).map(mapPropertyListing);
+  }
+
+  async listPublicPropertyListings(): Promise<PropertyListingRecord[]> {
+    const { data, error } = await this.client
+      .from("property_listings")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as PropertyListingRow[]).map(mapPropertyListing);
+  }
+
+  async deletePropertyListing(id: string): Promise<boolean> {
+    const { error } = await this.client.from("property_listings").delete().eq("id", id);
+    return !error;
   }
 
   async listDealers(): Promise<DealerRecord[]> {

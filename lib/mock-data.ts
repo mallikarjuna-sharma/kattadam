@@ -277,7 +277,7 @@ export const BUILDERS = [
     id: "3",
     companyName: "AK Civil Works",
     ownerName: "Anand Krishnamurthy",
-    type: "Contractor",
+    type: "Engineer",
     district: "Coimbatore" as const,
     area: "Singanallur",
     experience: 8,
@@ -351,11 +351,14 @@ export const BUILDERS = [
   },
 ];
 
+export type PropertyListingSubtype = "Flat" | "Plot" | "Empty land";
+
 export const PROPERTIES = [
   {
     id: "1",
     title: "3BHK Apartment — Peelamedu",
     type: "SELL",
+    listingSubtype: "Flat" as PropertyListingSubtype,
     price: 6500000,
     area: 1450,
     bedrooms: 3,
@@ -370,6 +373,7 @@ export const PROPERTIES = [
     id: "2",
     title: "2BHK Flat for Rent — RS Puram",
     type: "RENT",
+    listingSubtype: "Flat" as PropertyListingSubtype,
     price: 14000,
     area: 1050,
     bedrooms: 2,
@@ -384,6 +388,7 @@ export const PROPERTIES = [
     id: "3",
     title: "Commercial Land — Sulur",
     type: "SELL",
+    listingSubtype: "Plot" as PropertyListingSubtype,
     price: 2200000,
     area: 3600,
     bedrooms: null,
@@ -398,6 +403,7 @@ export const PROPERTIES = [
     id: "4",
     title: "Independent House — Saibaba Colony",
     type: "SELL",
+    listingSubtype: "Flat" as PropertyListingSubtype,
     price: 9800000,
     area: 2200,
     bedrooms: 4,
@@ -410,14 +416,15 @@ export const PROPERTIES = [
   },
   {
     id: "5",
-    title: "1BHK Furnished Flat — Gandhipuram",
+    title: "Empty land for lease — Kinathukadavu corridor",
     type: "RENT",
-    price: 8500,
-    area: 650,
-    bedrooms: 1,
-    bathrooms: 1,
+    listingSubtype: "Empty land" as PropertyListingSubtype,
+    price: 45000,
+    area: 12000,
+    bedrooms: null,
+    bathrooms: null,
     district: "Coimbatore" as const,
-    location: "Gandhipuram, Coimbatore",
+    location: "Kinathukadavu, Coimbatore",
     postedBy: "Ravi T",
     daysAgo: 7,
     tag: null,
@@ -426,6 +433,7 @@ export const PROPERTIES = [
     id: "6",
     title: "Residential Plot — Kalapatti",
     type: "SELL",
+    listingSubtype: "Plot" as PropertyListingSubtype,
     price: 3500000,
     area: 2400,
     bedrooms: null,
@@ -440,6 +448,7 @@ export const PROPERTIES = [
     id: "7",
     title: "2BHK near Collectorate — Tirupur",
     type: "RENT",
+    listingSubtype: "Flat" as PropertyListingSubtype,
     price: 12000,
     area: 950,
     bedrooms: 2,
@@ -454,6 +463,7 @@ export const PROPERTIES = [
     id: "8",
     title: "Individual House — Perundurai Road",
     type: "SELL",
+    listingSubtype: "Flat" as PropertyListingSubtype,
     price: 7200000,
     area: 1800,
     bedrooms: 3,
@@ -468,6 +478,7 @@ export const PROPERTIES = [
     id: "9",
     title: "3BHK Apartment — Fairlands",
     type: "SELL",
+    listingSubtype: "Flat" as PropertyListingSubtype,
     price: 5800000,
     area: 1320,
     bedrooms: 3,
@@ -518,11 +529,12 @@ export function materialCategoryLabel(categoryKey: string): string {
 
 export const SERVICE_CATEGORY_FILTERS = [
   "All",
+  "Interiors",
+  "Renovations",
+  "Painting",
   "Electrical",
   "Plumbing",
-  "Interior",
-  "Painting",
-  "Civil",
+  "Masonry works",
 ] as const;
 
 export const SERVICES = [
@@ -557,7 +569,7 @@ export const SERVICES = [
   {
     id: "3",
     name: "Dream Interior Studio",
-    category: "Interior",
+    category: "Interiors",
     district: "Coimbatore" as const,
     area: "Peelamedu",
     rating: 4.8,
@@ -584,7 +596,7 @@ export const SERVICES = [
   {
     id: "5",
     name: "Ravi Civil & Masonry",
-    category: "Civil",
+    category: "Masonry works",
     district: "Coimbatore" as const,
     area: "Kalapatti",
     rating: 4.4,
@@ -606,6 +618,19 @@ export const SERVICES = [
     description: "CP fittings, overhead tanks, and industrial plumbing for textile units.",
     tags: ["CP Fittings", "Industrial", "Repairs"],
     priceFrom: "₹450/hr",
+  },
+  {
+    id: "10",
+    name: "Kovai Renovation Hub",
+    category: "Renovations",
+    district: "Coimbatore" as const,
+    area: "Saibaba Colony",
+    rating: 4.6,
+    reviewCount: 52,
+    isVerified: true,
+    description: "Structural repairs, bathroom remodelling, flooring upgrades, and full flat renovation packages.",
+    tags: ["Remodelling", "Structural", "Turnkey"],
+    priceFrom: "₹650/sq.ft",
   },
 ];
 

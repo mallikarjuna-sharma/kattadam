@@ -7,6 +7,10 @@ import {
   adminSetDealerZones,
   adminDeleteDealer,
   adminDeleteMaterial,
+  adminDeletePropertyListing,
+  adminInsertHomeServiceProvider,
+  adminInsertKattadamExpert,
+  adminInsertPropertyListing as dataInsertPropertyListing,
   adminUpdateDealer,
   adminUpdateEnquiry,
   adminUpdateReview,
@@ -167,4 +171,49 @@ export async function actionSetDealerZonesFromForm(formData: FormData) {
   if (!dealerId) return;
   await adminSetDealerZones(dealerId, zoneIds);
   A("/admin/zones");
+}
+
+export async function actionInsertExpert(formData: FormData) {
+  await adminInsertKattadamExpert({
+    expertType: String(formData.get("expertType") || "builder") as "builder" | "architect" | "engineer",
+    firmName: String(formData.get("firmName") || "").trim(),
+    ownerName: String(formData.get("ownerName") || "").trim(),
+    contactNumber: String(formData.get("contactNumber") || "").trim(),
+    serviceableAreas: String(formData.get("serviceableAreas") || "").trim(),
+    district: String(formData.get("district") || "").trim(),
+  });
+  A("/admin/experts");
+}
+
+export async function actionInsertHomeService(formData: FormData) {
+  await adminInsertHomeServiceProvider({
+    serviceCategory: String(formData.get("serviceCategory") || "").trim(),
+    firmName: String(formData.get("firmName") || "").trim(),
+    ownerName: String(formData.get("ownerName") || "").trim(),
+    contactNumber: String(formData.get("contactNumber") || "").trim(),
+    serviceableAreas: String(formData.get("serviceableAreas") || "").trim(),
+    district: String(formData.get("district") || "").trim(),
+  });
+  A("/admin/home-services");
+}
+
+export async function actionInsertPropertyListing(formData: FormData) {
+  const priceRaw = Number.parseFloat(String(formData.get("price") || ""));
+  const price = Number.isFinite(priceRaw) ? priceRaw : 0;
+  await dataInsertPropertyListing({
+    title: String(formData.get("title") || "").trim(),
+    listingType: String(formData.get("listingType") || "SELL") === "RENT" ? "RENT" : "SELL",
+    propertySubtype: String(formData.get("propertySubtype") || "").trim(),
+    price,
+    district: String(formData.get("district") || "").trim(),
+    area: String(formData.get("area") || "").trim(),
+    description: String(formData.get("description") || "").trim() || null,
+    published: String(formData.get("published") || "true") !== "false",
+  });
+  A("/admin/properties");
+}
+
+export async function actionDeletePropertyListing(id: string) {
+  await adminDeletePropertyListing(id);
+  A("/admin/properties");
 }

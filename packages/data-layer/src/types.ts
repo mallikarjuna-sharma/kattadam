@@ -14,12 +14,70 @@ export interface UserRecord {
   id: string;
   name: string;
   phone: string | null;
+  email: string | null;
   role: UserRole;
   status: UserStatus;
   location: string | null;
   lat: number | null;
   lng: number | null;
   kycStatus: string | null;
+  createdAt: string;
+}
+
+export interface AdminEventRecord {
+  id: string;
+  kind: string;
+  title: string;
+  body: string;
+  createdAt: string;
+}
+
+export interface AppSessionRecord {
+  id: string;
+  userId: string | null;
+  email: string | null;
+  startedAt: string;
+  lastActiveAt: string;
+  userAgent: string | null;
+  endedAt: string | null;
+}
+
+export type ExpertType = "builder" | "architect" | "engineer";
+
+export interface KattadamExpertRecord {
+  id: string;
+  expertType: ExpertType;
+  firmName: string;
+  ownerName: string;
+  contactNumber: string;
+  serviceableAreas: string;
+  district: string;
+  createdAt: string;
+}
+
+export interface HomeServiceProviderRecord {
+  id: string;
+  serviceCategory: string;
+  firmName: string;
+  ownerName: string;
+  contactNumber: string;
+  serviceableAreas: string;
+  district: string;
+  createdAt: string;
+}
+
+export type PropertyListingType = "SELL" | "RENT";
+
+export interface PropertyListingRecord {
+  id: string;
+  title: string;
+  listingType: PropertyListingType;
+  propertySubtype: string;
+  price: number;
+  district: string;
+  area: string;
+  description: string | null;
+  published: boolean;
   createdAt: string;
 }
 

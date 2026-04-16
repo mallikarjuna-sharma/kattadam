@@ -4,23 +4,25 @@ import { useState, type ReactNode } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
-import { MapPin, Star, Phone, CheckCircle, Wrench, Zap, Paintbrush, Hammer } from "lucide-react";
+import { MapPin, Star, Phone, CheckCircle, Wrench, Zap, Paintbrush, Hammer, LayoutTemplate } from "lucide-react";
 import { SERVICES, SERVICE_CATEGORY_FILTERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
 
 const categoryIcon: Record<string, ReactNode> = {
   Electrical: <Zap className="w-5 h-5 text-yellow-500" />,
   Plumbing: <Wrench className="w-5 h-5 text-blue-500" />,
-  Interior: <Paintbrush className="w-5 h-5 text-purple-500" />,
+  Interiors: <Paintbrush className="w-5 h-5 text-purple-500" />,
+  Renovations: <LayoutTemplate className="w-5 h-5 text-teal-600" />,
   Painting: <Paintbrush className="w-5 h-5 text-pink-500" />,
-  Civil: <Hammer className="w-5 h-5 text-orange-500" />,
+  "Masonry works": <Hammer className="w-5 h-5 text-orange-500" />,
 };
 
 const categoryBg: Record<string, string> = {
   Electrical: "bg-yellow-50",
   Plumbing: "bg-blue-50",
-  Interior: "bg-purple-50",
+  Interiors: "bg-purple-50",
+  Renovations: "bg-teal-50",
   Painting: "bg-pink-50",
-  Civil: "bg-orange-50",
+  "Masonry works": "bg-orange-50",
 };
 
 export default function ServicesPage() {
@@ -42,9 +44,9 @@ export default function ServicesPage() {
 
   return (
     <ListingPageShell
-      title="Services"
-      subtitle="Skilled professionals for every stage of your project"
-      searchPlaceholder="Search electrical, plumbing, interior…"
+      title="Home services"
+      subtitle="Interiors, renovations, painting, electrical, plumbing, masonry"
+      searchPlaceholder="Search painting, plumbing, interiors…"
       search={search}
       onSearchChange={setSearch}
     >

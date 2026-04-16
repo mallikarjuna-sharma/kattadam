@@ -22,6 +22,7 @@ export default async function UsersPage() {
               <thead>
                 <tr>
                   <th className="admin-th">Name</th>
+                  <th className="admin-th">Email</th>
                   <th className="admin-th">Phone</th>
                   <th className="admin-th">Role</th>
                   <th className="admin-th">Location</th>
@@ -33,6 +34,7 @@ export default async function UsersPage() {
                 {users.map((u) => (
                   <tr key={u.id}>
                     <td className="admin-td font-medium">{u.name}</td>
+                    <td className="admin-td text-cement-600 text-xs">{u.email ?? "—"}</td>
                     <td className="admin-td text-cement-600">{u.phone ?? "—"}</td>
                     <td className="admin-td capitalize">{u.role.replace(/_/g, " ")}</td>
                     <td className="admin-td text-cement-600">{u.location ?? "—"}</td>

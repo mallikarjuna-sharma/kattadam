@@ -7,7 +7,7 @@ import EnquiryModal from "@/components/ui/EnquiryModal";
 import { MapPin, Star, Phone, Briefcase, CheckCircle } from "lucide-react";
 import { BUILDERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
 
-const TYPES = ["All", "Builder", "Architect", "Contractor"];
+const TYPES = ["All", "Builder", "Architect", "Engineer"];
 
 export default function BuildersPage() {
   const [search, setSearch] = useState("");
@@ -28,7 +28,7 @@ export default function BuildersPage() {
 
   return (
     <ListingPageShell
-      title="Builders & Architects"
+      title="Kattadam Experts"
       searchPlaceholder="Search by name or company…"
       search={search}
       onSearchChange={setSearch}

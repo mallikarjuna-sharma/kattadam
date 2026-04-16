@@ -1,36 +1,114 @@
 "use client";
+
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Phone, Shield, ArrowRight, CheckCircle } from "lucide-react";
+import { Mail, Lock, ArrowRight, CheckCircle, UserPlus } from "lucide-react";
+
+type Tab = "signin" | "register" | "partner";
+
+const SESSION_KEY = "kattadam_session_id";
+const USER_KEY = "kattadam_user";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState<"phone" | "otp" | "done">("phone");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
+  const [tab, setTab] = useState<Tab>("signin");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const onSignIn = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? "Could not sign in.");
+        setLoading(false);
+        return;
+      }
+      if (data.sessionId) localStorage.setItem(SESSION_KEY, data.sessionId);
+      localStorage.setItem(USER_KEY, JSON.stringify(data.user));
+      router.push("/home");
+    } catch {
+      setError("Network error. Try again.");
+    }
+    setLoading(false);
+  };
+
+  const onRegister = async (mode: "user" | "partner") => {
+    setError(null);
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (!name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mode, name: name.trim(), email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? "Registration failed.");
+        setLoading(false);
+        return;
+      }
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const loginData = await loginRes.json();
+      if (loginRes.ok && loginData.ok) {
+        if (loginData.sessionId) localStorage.setItem(SESSION_KEY, loginData.sessionId);
+        localStorage.setItem(USER_KEY, JSON.stringify(loginData.user));
+      }
+      router.push("/home");
+    } catch {
+      setError("Network error. Try again.");
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-cement-50 flex">
       <div className="hidden lg:flex lg:w-1/2 bg-cement-900 flex-col justify-between p-12">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.jpeg" alt="" width={40} height={40} className="rounded-xl object-cover" />
-          <span className="font-display text-2xl font-bold text-white tracking-tight">KATTADAM</span>
+          <span className="font-display text-2xl font-bold text-white tracking-tight">Kattadam</span>
         </Link>
         <div>
           <h1 className="font-display text-5xl font-bold text-white leading-tight mb-6">
-            Construction Materials & Services
+            Build better, together — with email sign-in.
           </h1>
           <p className="text-cement-400 text-lg leading-relaxed mb-10">
-            Materials, builders, architects, and properties — everything you need to build.
+            Materials, Kattadam Experts, real estate, and home services — verified and local.
           </p>
           <div className="space-y-3">
             {[
-              "Verified dealers & builders",
+              "Verified dealers & Kattadam Experts",
               "Compare material prices",
-              "Hyper-local, covering Coimbatore",
-              "Free to use for buyers",
+              "Transparent enquiries",
+              "Free for buyers to get started",
             ].map((item) => (
               <div key={item} className="flex items-center gap-3">
                 <CheckCircle className="w-5 h-5 text-brand-400" />
@@ -39,94 +117,140 @@ export default function LoginPage() {
             ))}
           </div>
         </div>
-        <p className="text-cement-500 text-sm">© {new Date().getFullYear()} KATTADAM</p>
+        <p className="text-cement-500 text-sm">© {new Date().getFullYear()} Kattadam</p>
       </div>
 
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <Link href="/" className="flex items-center gap-2 mb-10 lg:hidden">
             <Image src="/logo.jpeg" alt="" width={32} height={32} className="rounded-lg object-cover" />
-            <span className="font-display text-xl font-bold text-cement-900 tracking-tight">KATTADAM</span>
+            <span className="font-display text-xl font-bold text-cement-900 tracking-tight">Kattadam</span>
           </Link>
 
+          <div className="flex gap-1 p-1 bg-cement-100 rounded-xl mb-6">
+            {(
+              [
+                ["signin", "Sign in"],
+                ["register", "New user"],
+                ["partner", "Kattadam partner"],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setTab(id);
+                  setError(null);
+                }}
+                className={`flex-1 text-xs sm:text-sm font-semibold py-2.5 rounded-lg transition-colors ${
+                  tab === id ? "bg-white text-cement-900 shadow-sm" : "text-cement-500 hover:text-cement-700"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           <div className="card p-8">
-            {step === "phone" && (
+            {tab === "signin" && (
               <>
                 <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center mb-5">
-                  <Phone className="w-6 h-6 text-brand-600" />
+                  <Mail className="w-6 h-6 text-brand-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-cement-900 mb-1">Enter Your Number</h2>
-                <p className="text-cement-500 text-sm mb-6">We&apos;ll send a 6-digit OTP to verify</p>
+                <h2 className="text-2xl font-bold text-cement-900 mb-1">Sign in with email</h2>
+                <p className="text-cement-500 text-sm mb-6">Use the email and password you registered with.</p>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Mobile Number</label>
-                    <div className="flex gap-2">
-                      <span className="flex items-center px-3 bg-cement-50 border border-cement-200 rounded-xl text-cement-600 text-sm font-medium">
-                        +91
-                      </span>
-                      <input
-                        className="input flex-1"
-                        placeholder="98765 43210"
-                        type="tel"
-                        maxLength={10}
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                      />
-                    </div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Email</label>
+                    <input
+                      className="input"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value.trim())}
+                      placeholder="you@example.com"
+                    />
                   </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Password</label>
+                    <input
+                      className="input"
+                      type="password"
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
                     type="button"
-                    onClick={() => phone.length === 10 && setStep("otp")}
-                    disabled={phone.length !== 10}
+                    onClick={() => void onSignIn()}
+                    disabled={loading || !email || !password}
                     className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Send OTP <ArrowRight className="w-4 h-4" />
+                    Continue <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </>
             )}
 
-            {step === "otp" && (
+            {(tab === "register" || tab === "partner") && (
               <>
                 <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center mb-5">
-                  <Shield className="w-6 h-6 text-brand-600" />
+                  <UserPlus className="w-6 h-6 text-brand-600" />
                 </div>
-                <h2 className="text-2xl font-bold text-cement-900 mb-1">Verify OTP</h2>
+                <h2 className="text-2xl font-bold text-cement-900 mb-1">
+                  {tab === "partner" ? "Kattadam partner" : "Create your account"}
+                </h2>
                 <p className="text-cement-500 text-sm mb-6">
-                  Sent to +91 {phone}{" "}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setStep("phone");
-                      setOtp("");
-                    }}
-                    className="text-brand-600 hover:underline"
-                  >
-                    Change
-                  </button>
+                  {tab === "partner"
+                    ? "Register your business. Our team will review and activate your listing."
+                    : "Join as a homeowner or buyer — free to get started."}
                 </p>
                 <div className="space-y-4">
-                  <input
-                    className="input text-center text-3xl tracking-[1rem] font-bold"
-                    placeholder="······"
-                    type="tel"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  />
+                  <div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Full name</label>
+                    <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Email</label>
+                    <input
+                      className="input"
+                      type="email"
+                      autoComplete="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value.trim())}
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Password</label>
+                    <input
+                      className="input"
+                      type="password"
+                      autoComplete="new-password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Confirm password</label>
+                    <input
+                      className="input"
+                      type="password"
+                      autoComplete="new-password"
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                    />
+                  </div>
+                  {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
                     type="button"
-                    onClick={() => otp.length === 6 && router.push("/home")}
-                    disabled={otp.length !== 6}
-                    className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed"
+                    onClick={() => void onRegister(tab === "partner" ? "partner" : "user")}
+                    disabled={loading}
+                    className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-40"
                   >
-                    Verify & Continue
-                  </button>
-                  <button
-                    type="button"
-                    className="w-full text-center text-sm text-cement-400 hover:text-brand-600 transition-colors"
-                  >
-                    Resend OTP
+                    <Lock className="w-4 h-4" /> Register & continue
                   </button>
                 </div>
               </>

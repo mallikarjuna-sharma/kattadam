@@ -2,17 +2,21 @@
  * Server-only entry: import this from Next.js Route Handlers, Server Actions, and Server Components.
  * Do not import from client components — keys are server-side.
  */
-import { createClient } from "@supabase/supabase-js";
 import { createBackendFromEnv } from "./internal/factory";
-import { readSupabaseServerConfig } from "./internal/env";
 import type { IDataBackend } from "./internal/ports";
 import type {
+  AdminEventRecord,
+  AppSessionRecord,
   DashboardSummary,
   DealerRecord,
   EnquiryRecord,
+  ExpertType,
+  HomeServiceProviderRecord,
+  KattadamExpertRecord,
   MaterialRecord,
   NotificationAudience,
   NotificationBroadcastRecord,
+  PropertyListingRecord,
   ReviewRecord,
   UserRecord,
   ZoneRecord,
@@ -91,11 +95,176 @@ export async function adminListUsers(): Promise<UserRecord[] | null> {
 
 export async function adminUpdateUser(
   id: string,
-  patch: Partial<{ status: UserStatus; name: string; phone: string | null; location: string | null }>
+  patch: Partial<{
+    status: UserStatus;
+    name: string;
+    phone: string | null;
+    email: string | null;
+    location: string | null;
+  }>
 ): Promise<UserRecord | null> {
   const b = getServerBackend();
   if (!b) return null;
   return b.updateUser(id, patch);
+}
+
+export async function authRegisterCustomer(row: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<UserRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.registerCustomerUser(row);
+  } catch (e) {
+    console.error("[@kattadam/data-layer] registerCustomerUser:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+export async function authRegisterPartner(row: {
+  name: string;
+  email: string;
+  password: string;
+}): Promise<UserRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.registerPartnerUser(row);
+  } catch (e) {
+    console.error("[@kattadam/data-layer] registerPartnerUser:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+export async function authLoginEmail(email: string, password: string): Promise<UserRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.authenticateByEmail(email, password);
+}
+
+export async function adminListAdminEvents(limit?: number): Promise<AdminEventRecord[] | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.listAdminEvents(limit);
+  } catch {
+    return null;
+  }
+}
+
+export async function adminListAppSessions(limit?: number): Promise<AppSessionRecord[] | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.listAppSessions(limit);
+  } catch {
+    return null;
+  }
+}
+
+export async function sessionCreate(userId: string | null, email: string, userAgent?: string | null) {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.createAppSession(userId, email, userAgent);
+  } catch {
+    return null;
+  }
+}
+
+export async function sessionTouch(id: string): Promise<boolean | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.touchAppSession(id);
+}
+
+export async function adminInsertKattadamExpert(row: {
+  expertType: ExpertType;
+  firmName: string;
+  ownerName: string;
+  contactNumber: string;
+  serviceableAreas: string;
+  district: string;
+}): Promise<KattadamExpertRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.insertKattadamExpert(row);
+  } catch {
+    return null;
+  }
+}
+
+export async function adminListKattadamExperts(): Promise<KattadamExpertRecord[] | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.listKattadamExperts();
+}
+
+export async function adminInsertHomeServiceProvider(row: {
+  serviceCategory: string;
+  firmName: string;
+  ownerName: string;
+  contactNumber: string;
+  serviceableAreas: string;
+  district: string;
+}): Promise<HomeServiceProviderRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.insertHomeServiceProvider(row);
+  } catch {
+    return null;
+  }
+}
+
+export async function adminListHomeServiceProviders(): Promise<HomeServiceProviderRecord[] | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.listHomeServiceProviders();
+}
+
+export async function adminInsertPropertyListing(row: {
+  title: string;
+  listingType: "SELL" | "RENT";
+  propertySubtype: string;
+  price: number;
+  district: string;
+  area: string;
+  description?: string | null;
+  published?: boolean;
+}): Promise<PropertyListingRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.insertPropertyListing(row);
+  } catch {
+    return null;
+  }
+}
+
+export async function adminListPropertyListings(): Promise<PropertyListingRecord[] | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.listPropertyListings();
+}
+
+export async function adminDeletePropertyListing(id: string): Promise<boolean | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.deletePropertyListing(id);
+}
+
+export async function catalogListPropertyListings(): Promise<PropertyListingRecord[] | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.listPublicPropertyListings();
+  } catch {
+    return null;
+  }
 }
 
 export async function adminListDealers(): Promise<DealerRecord[] | null> {
@@ -208,58 +377,5 @@ export async function adminListNotifications(): Promise<NotificationBroadcastRec
   return b.listNotificationBroadcasts();
 }
 
-let devStartupProbeDone = false;
-
-/**
- * Development only: one-time terminal message about env + Supabase reachability.
- * Does not print URLs, keys, or row data.
- */
-export async function probeDataLayerOnStartup(): Promise<void> {
-  if (process.env.NODE_ENV !== "development" || devStartupProbeDone) return;
-  devStartupProbeDone = true;
-
-  const tag = "[@kattadam/data-layer]";
-  const cfg = readSupabaseServerConfig();
-  if (!cfg) {
-    console.info(
-      `${tag} Database not configured — set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local (this app’s root).`
-    );
-    return;
-  }
-
-  console.info(`${tag} Env looks set; checking Supabase (no secrets logged)…`);
-  try {
-    const client = createClient(cfg.url, cfg.serviceRoleKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { error } = await client.from("users").select("id", { head: true });
-    if (error) {
-      console.warn(`${tag} Supabase returned an error: ${error.message}`);
-      const anyErr = error as { cause?: { message?: string; code?: string } };
-      if (anyErr.cause && (anyErr.cause.message || anyErr.cause.code)) {
-        console.warn(
-          `${tag} Underlying cause: ${anyErr.cause.code ?? ""} ${anyErr.cause.message ?? ""}`.trim()
-        );
-      }
-      if (/fetch failed/i.test(error.message)) {
-        console.warn(
-          `${tag} "fetch failed" in Node while curl works is often IPv6/DNS on macOS. Try restarting dev with:`
-        );
-        console.warn(`${tag}   export NODE_OPTIONS=--dns-result-order=ipv4first`);
-        console.warn(`${tag} Also check .env.local: URL has no trailing slash, key has no extra quotes/spaces.`);
-      } else {
-        console.warn(
-          `${tag} If you see "relation … does not exist", run packages/data-layer/supabase/migrations/001_initial.sql in Supabase SQL Editor.`
-        );
-      }
-    } else {
-      console.info(`${tag} Supabase OK — connected and \`users\` table is reachable.`);
-    }
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.warn(`${tag} Connection check threw: ${msg}`);
-    if (e instanceof Error && e.cause) {
-      console.warn(`${tag} Cause:`, e.cause);
-    }
-  }
-}
+/** @deprecated Import `@kattadam/data-layer/probe` from instrumentation instead. */
+export { probeDataLayerOnStartup } from "./probe";

@@ -1,12 +1,18 @@
 import type {
+  AdminEventRecord,
+  AppSessionRecord,
   DashboardSummary,
   DealerRecord,
   DealerStatus,
   EnquiryRecord,
   EnquiryStatus,
+  ExpertType,
+  HomeServiceProviderRecord,
+  KattadamExpertRecord,
   MaterialRecord,
   NotificationAudience,
   NotificationBroadcastRecord,
+  PropertyListingRecord,
   ReviewRecord,
   UserRecord,
   UserStatus,
@@ -22,8 +28,59 @@ export interface IDataBackend {
   listUsers(): Promise<UserRecord[]>;
   updateUser(
     id: string,
-    patch: Partial<{ status: UserStatus; name: string; phone: string | null; location: string | null }>
+    patch: Partial<{
+      status: UserStatus;
+      name: string;
+      phone: string | null;
+      email: string | null;
+      location: string | null;
+    }>
   ): Promise<UserRecord | null>;
+
+  registerCustomerUser(row: { name: string; email: string; password: string }): Promise<UserRecord>;
+  registerPartnerUser(row: { name: string; email: string; password: string }): Promise<UserRecord>;
+  authenticateByEmail(email: string, password: string): Promise<UserRecord | null>;
+
+  insertAdminEvent(kind: string, title: string, body: string): Promise<AdminEventRecord>;
+  listAdminEvents(limit?: number): Promise<AdminEventRecord[]>;
+
+  createAppSession(userId: string | null, email: string, userAgent?: string | null): Promise<AppSessionRecord>;
+  touchAppSession(id: string): Promise<boolean>;
+  listAppSessions(limit?: number): Promise<AppSessionRecord[]>;
+
+  insertKattadamExpert(row: {
+    expertType: ExpertType;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }): Promise<KattadamExpertRecord>;
+  listKattadamExperts(): Promise<KattadamExpertRecord[]>;
+
+  insertHomeServiceProvider(row: {
+    serviceCategory: string;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }): Promise<HomeServiceProviderRecord>;
+  listHomeServiceProviders(): Promise<HomeServiceProviderRecord[]>;
+
+  insertPropertyListing(row: {
+    title: string;
+    listingType: "SELL" | "RENT";
+    propertySubtype: string;
+    price: number;
+    district: string;
+    area: string;
+    description?: string | null;
+    published?: boolean;
+  }): Promise<PropertyListingRecord>;
+  listPropertyListings(): Promise<PropertyListingRecord[]>;
+  listPublicPropertyListings(): Promise<PropertyListingRecord[]>;
+  deletePropertyListing(id: string): Promise<boolean>;
 
   listDealers(): Promise<DealerRecord[]>;
   /** Customer-facing catalogue */

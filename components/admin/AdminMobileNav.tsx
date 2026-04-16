@@ -7,8 +7,12 @@ import Image from "next/image";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/activity", label: "Activity" },
   { href: "/admin/users", label: "Users" },
   { href: "/admin/dealers", label: "Dealers" },
+  { href: "/admin/experts", label: "Experts" },
+  { href: "/admin/home-services", label: "Home services" },
+  { href: "/admin/properties", label: "Real estate" },
   { href: "/admin/materials", label: "Materials" },
   { href: "/admin/enquiries", label: "Enquiries" },
   { href: "/admin/notifications", label: "Notifications" },
@@ -25,7 +29,7 @@ export default function AdminMobileNav() {
       <div className="flex items-center justify-between px-4 h-14">
         <Link href="/admin" className="flex items-center gap-2" onClick={() => setOpen(false)}>
           <Image src="/logo.jpeg" alt="" width={32} height={32} className="rounded-md object-cover" />
-          <span className="font-bold text-sm">KATTADAM</span>
+          <span className="font-bold text-sm">Kattadam</span>
         </Link>
         <button type="button" className="p-2" aria-label="Menu" onClick={() => setOpen(!open)}>
           {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

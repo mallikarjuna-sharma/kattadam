@@ -13,7 +13,7 @@ export default function AdminSettingsPage() {
           <div className="flex items-center gap-3">
             <Image src="/logo.jpeg" alt="" width={48} height={48} className="rounded-lg object-cover" />
             <div>
-              <p className="font-bold text-cement-900">KATTADAM</p>
+              <p className="font-bold text-cement-900">Kattadam</p>
               <p className="text-xs text-cement-500">கட்டடம் · Construction materials & services</p>
             </div>
           </div>

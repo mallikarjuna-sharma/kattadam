@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import AppShell from "@/components/providers/AppShell";
 
 export const metadata: Metadata = {
-  title: "KATTADAM — Construction Materials & Services",
+  title: "Kattadam — Construction marketplace",
   description:
-    "கட்டுமானப் பொருட்கள் & சேவைகள். Find materials, builders, architects, and properties.",
+    "கட்டடம் — materials, Kattadam Experts, real estate, and home services. Coimbatore, Tirupur, Erode, Namakkal, Salem.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="bg-cement-50 text-cement-900 font-sans antialiased">{children}</body>
+      <body className="bg-cement-50 text-cement-900 font-sans antialiased">
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

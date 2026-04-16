@@ -1,11 +1,18 @@
 # Customer app (KATTADAM) — Site 1 on Netlify
 # Link this repo, leave "Base directory" EMPTY, use this file as-is.
+#
+# publish MUST be `.next` (not `.` or empty resolving to repo root). If the Netlify UI sets
+# "Publish directory" to the site root, @netlify/plugin-nextjs fails with:
+# "Your publish directory cannot be the same as the base directory of your site".
 
 [build]
   command = "npm run build"
   publish = ".next"
+
 [build.environment]
   NODE_VERSION = "20"
+  # Reduces Node "fetch failed" to Supabase on networks where IPv6 DNS is broken.
+  NODE_OPTIONS = "--dns-result-order=ipv4first"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
