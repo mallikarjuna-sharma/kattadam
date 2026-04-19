@@ -10,6 +10,8 @@ import {
 } from "react";
 import { usePathname } from "next/navigation";
 import { Phone, X } from "lucide-react";
+import KD360CallButton from "@/components/ui/KD360CallButton";
+import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 const LANG_KEY = "kattadam_lang";
 const SESSION_KEY = "kattadam_session_id";
@@ -28,8 +30,8 @@ const DICT: Record<Lang, Record<string, string>> = {
     nav_register: "Register",
     lang_en: "English",
     lang_ta: "தமிழ்",
-    expert_popup_title: "Talk with a Kattadam expert",
-    expert_popup_body: "Dial our team for guidance on materials, experts, or listings.",
+    expert_popup_title: "KD360degree",
+    expert_popup_body: "Call our desk for materials, experts, real estate, or home services.",
     expert_popup_call: "Call now",
     expert_popup_later: "Maybe later",
   },
@@ -42,8 +44,8 @@ const DICT: Record<Lang, Record<string, string>> = {
     nav_register: "பதிவு",
     lang_en: "English",
     lang_ta: "தமிழ்",
-    expert_popup_title: "கட்டடம் நிபுணருடன் பேசுங்கள்",
-    expert_popup_body: "பொருட்கள், நிபுணர்கள், பட்டியல்கள் பற்றி வழிகாட்ட எங்கள் குழுவை அழைக்கவும்.",
+    expert_popup_title: "KD360degree",
+    expert_popup_body: "பொருட்கள், நிபுணர்கள், பட்டியல்கள், சேவைகள் — தொடர்புக்கு அழைக்கவும்.",
     expert_popup_call: "இப்போது அழைக்க",
     expert_popup_later: "பிறகு",
   },
@@ -89,6 +91,7 @@ function SessionPing() {
 
 function ExpertCallPopup() {
   const path = usePathname();
+  const { t } = useSiteLang();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -119,20 +122,24 @@ function ExpertCallPopup() {
           <X className="w-5 h-5" />
         </button>
         <p className="text-xs font-semibold text-brand-600 uppercase tracking-wider mb-2">Kattadam</p>
-        <h3 className="font-display text-xl font-bold text-cement-900 mb-2">Talk with Kattadam experts now</h3>
+        <h3 className="font-display text-xl font-bold text-cement-900 mb-2">{t("expert_popup_title")}</h3>
+        <p className="text-sm text-cement-600 mb-2 leading-relaxed">{t("expert_popup_body")}</p>
         <p className="text-sm text-cement-600 mb-4 leading-relaxed">
           <span className="line-through text-cement-400 mr-2">₹500</span>
           <span className="font-semibold text-brand-700">Free consultations</span> — get clarity before you build.
         </p>
+        <p className="text-center text-lg font-bold text-brand-700 tracking-wide mb-4">
+          +91 {KD360_PHONE_DISPLAY}
+        </p>
         <div className="flex flex-col sm:flex-row gap-2">
           <a
-            href="tel:+914222000000"
+            href={KD360_TEL_HREF}
             className="btn-primary inline-flex items-center justify-center gap-2 py-3 text-center"
           >
-            <Phone className="w-4 h-4" /> Dial Kattadam expert
+            <Phone className="w-4 h-4" /> {t("expert_popup_call")} · +91 {KD360_PHONE_DISPLAY}
           </a>
           <button type="button" className="btn-outline py-3" onClick={() => setOpen(false)}>
-            Maybe later
+            {t("expert_popup_later")}
           </button>
         </div>
         <p className="text-[10px] text-cement-400 mt-4 text-center">
@@ -167,6 +174,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <LangContext.Provider value={value}>
       <SessionPing />
+      <KD360CallButton />
       <ExpertCallPopup />
       {children}
     </LangContext.Provider>

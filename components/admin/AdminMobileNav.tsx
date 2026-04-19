@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Menu, X, LogOut } from "lucide-react";
 import Image from "next/image";
+import { clearAdminClientAuthed } from "@/lib/admin-auth-client";
 
 const LINKS = [
   { href: "/admin", label: "Dashboard" },
@@ -22,6 +24,7 @@ const LINKS = [
 ];
 
 export default function AdminMobileNav() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
 
   return (
@@ -47,6 +50,18 @@ export default function AdminMobileNav() {
               {l.label}
             </Link>
           ))}
+          <button
+            type="button"
+            className="flex items-center gap-2 w-full text-left px-3 py-2.5 rounded-lg text-sm text-cement-300 hover:bg-white/10"
+            onClick={() => {
+              clearAdminClientAuthed();
+              setOpen(false);
+              router.push("/admin/login");
+              router.refresh();
+            }}
+          >
+            <LogOut className="w-4 h-4" /> Sign out
+          </button>
         </div>
       )}
     </div>

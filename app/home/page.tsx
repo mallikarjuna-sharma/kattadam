@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Package, Building2, Home, Wrench, ArrowRight, Search, Bell, LogOut, Phone } from "lucide-react";
 import { MATERIAL_CATEGORIES } from "@/lib/mock-data";
+import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 export default function HomePage() {
   return (
@@ -61,12 +62,13 @@ export default function HomePage() {
               Explore Kattadam experts <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="tel:+914222000000"
+              href={KD360_TEL_HREF}
               className="inline-flex flex-col items-center justify-center rounded-xl border-2 border-brand-400 bg-brand-50 px-4 py-3 text-center text-xs font-semibold text-brand-900"
             >
               <span className="flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> Talk with Kattadam experts now
+                <Phone className="w-3.5 h-3.5" /> {KD360_NAME}
               </span>
+              <span className="mt-0.5 text-[11px] font-bold text-brand-800">+91 {KD360_PHONE_DISPLAY}</span>
               <span className="mt-1 font-normal text-earth-600">
                 <span className="line-through text-earth-400">₹500</span>{" "}
                 <span className="font-semibold text-brand-700">Free consultations</span>
@@ -103,12 +105,13 @@ export default function HomePage() {
               Explore home services <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="tel:+914222000000"
+              href={KD360_TEL_HREF}
               className="inline-flex flex-col items-center justify-center rounded-xl border-2 border-brand-400 bg-brand-50 px-4 py-3 text-center text-xs font-semibold text-brand-900"
             >
               <span className="flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> Talk with Kattadam experts now
+                <Phone className="w-3.5 h-3.5" /> {KD360_NAME}
               </span>
+              <span className="mt-0.5 text-[11px] font-bold text-brand-800">+91 {KD360_PHONE_DISPLAY}</span>
               <span className="mt-1 font-normal text-earth-600">
                 <span className="line-through text-earth-400">₹500</span>{" "}
                 <span className="font-semibold text-brand-700">Free consultations</span>

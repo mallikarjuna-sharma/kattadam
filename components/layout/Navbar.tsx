@@ -73,9 +73,6 @@ export default function Navbar() {
               TA
             </button>
           </div>
-          <Link href="/admin" className="text-sm text-cement-500 hover:text-brand-600 font-medium px-1">
-            Admin
-          </Link>
           <Link href="/auth/login" className="btn-outline text-sm px-3 py-2 whitespace-nowrap">
             {t("nav_login")}
           </Link>
@@ -117,13 +114,6 @@ export default function Navbar() {
               <n.icon className="w-4 h-4" /> {n.label}
             </Link>
           ))}
-          <Link
-            href="/admin"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-cement-700 hover:bg-cement-50"
-            onClick={() => setOpen(false)}
-          >
-            Admin panel
-          </Link>
           <div className="pt-2 flex gap-2">
             <Link href="/auth/login" className="flex-1 btn-outline text-sm py-2 text-center" onClick={() => setOpen(false)}>
               {t("nav_login")}

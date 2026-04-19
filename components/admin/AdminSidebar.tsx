@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { LogOut } from "lucide-react";
+import { clearAdminClientAuthed } from "@/lib/admin-auth-client";
 import {
   LayoutDashboard,
   Users,
@@ -37,6 +39,7 @@ const NAV = [
 
 export default function AdminSidebar() {
   const path = usePathname();
+  const router = useRouter();
 
   return (
     <aside className="hidden md:flex w-64 bg-cement-900 text-white flex-col flex-shrink-0">
@@ -69,8 +72,19 @@ export default function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="p-4 border-t border-white/10">
-        <Link href="/" className="text-xs text-cement-400 hover:text-white transition-colors">
+      <div className="p-4 border-t border-white/10 space-y-2">
+        <button
+          type="button"
+          onClick={() => {
+            clearAdminClientAuthed();
+            router.push("/admin/login");
+            router.refresh();
+          }}
+          className="flex items-center gap-2 w-full text-left text-xs text-cement-300 hover:text-white transition-colors py-1"
+        >
+          <LogOut className="w-3.5 h-3.5" /> Sign out
+        </button>
+        <Link href="/" className="block text-xs text-cement-400 hover:text-white transition-colors">
           ← Customer site
         </Link>
       </div>

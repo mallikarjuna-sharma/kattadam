@@ -13,14 +13,16 @@ import {
   Phone,
   CheckCircle,
 } from "lucide-react";
+import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 function ConsultLink() {
   return (
     <a
-      href="tel:+914222000000"
+      href={KD360_TEL_HREF}
       className="inline-flex flex-col items-center justify-center rounded-xl border-2 border-brand-400 bg-brand-50 px-4 py-3 text-center text-sm font-semibold text-brand-800 hover:bg-brand-100 transition-colors min-w-[160px]"
     >
-      <span>Talk with Kattadam experts now</span>
+      <span>{KD360_NAME}</span>
+      <span className="mt-0.5 text-xs font-bold text-brand-700 tracking-wide">+91 {KD360_PHONE_DISPLAY}</span>
       <span className="mt-1 text-xs font-normal text-cement-600">
         <span className="line-through text-cement-400">₹500</span>{" "}
         <span className="font-semibold text-brand-700">Free consultations</span>
@@ -318,16 +320,17 @@ export default function LandingPage() {
 
       <section className="py-20 bg-brand-600">
         <div className="page-container text-center text-white">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Dial a Kattadam expert</h2>
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-2">{KD360_NAME}</h2>
+          <p className="text-white font-semibold text-lg tracking-wide mb-4">+91 {KD360_PHONE_DISPLAY}</p>
           <p className="text-white/90 mb-8 max-w-lg mx-auto text-base leading-relaxed">
             Speak with our team for materials, experts, real estate, or services — we&apos;ll guide your next step.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="tel:+914222000000"
+              href={KD360_TEL_HREF}
               className="inline-flex items-center gap-2 bg-white text-brand-700 font-semibold px-8 py-4 rounded-xl hover:bg-cement-50 transition-colors shadow-lg text-base"
             >
-              <Phone className="w-4 h-4" /> Call now
+              <Phone className="w-4 h-4" /> Call +91 {KD360_PHONE_DISPLAY}
             </a>
             <Link
               href="/auth/login"
@@ -347,11 +350,15 @@ export default function LandingPage() {
           </div>
           <p>Construction marketplace © {new Date().getFullYear()}</p>
           <div className="flex gap-5">
-            {["Privacy", "Terms", "Contact"].map((l) => (
-              <Link key={l} href="#" className="hover:text-white transition-colors">
-                {l}
-              </Link>
-            ))}
+            <Link href="#" className="hover:text-white transition-colors">
+              Privacy
+            </Link>
+            <Link href="#" className="hover:text-white transition-colors">
+              Terms
+            </Link>
+            <a href={KD360_TEL_HREF} className="hover:text-white transition-colors">
+              Contact · +91 {KD360_PHONE_DISPLAY}
+            </a>
           </div>
         </div>
       </footer>
