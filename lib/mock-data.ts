@@ -492,15 +492,67 @@ export const PROPERTIES = [
 ];
 
 export const MATERIAL_CATEGORIES = [
-  { key: "CEMENT", label: "Cement", emoji: "🏗️" },
-  { key: "TMT_STEEL", label: "TMT Steel", emoji: "🔩" },
-  { key: "BRICKS", label: "Bricks", emoji: "🧱" },
-  { key: "SAND", label: "Sand", emoji: "⛱️" },
-  { key: "AGGREGATES", label: "Aggregates", emoji: "🪨" },
-  { key: "PAINT", label: "Paint", emoji: "🎨" },
-  { key: "TILES", label: "Tiles", emoji: "◼️" },
-  { key: "PLUMBING", label: "Plumbing", emoji: "🔧" },
-  { key: "ELECTRICAL", label: "Electrical", emoji: "⚡" },
+  {
+    key: "CEMENT",
+    label: "Cement",
+    emoji: "🏗️",
+    image:
+      "https://5.imimg.com/data5/SELLER/Default/2024/1/380017223/RL/IV/WF/147568731/cement-wholesale-all-brands-1000x1000.jpg",
+  },
+  {
+    key: "TMT_STEEL",
+    label: "TMT Steel",
+    emoji: "🔩",
+    image:
+      "https://5.imimg.com/data5/SELLER/Default/2025/12/570274755/DH/NH/EL/257733873/agni-steel-tmt-bar-fe-550-12mm-500x500.png",
+  },
+  {
+    key: "BRICKS",
+    label: "Bricks",
+    emoji: "🧱",
+    image: "https://sakshichemsciences.com/wp-content/uploads/2025/07/Clay-Bricks.webp",
+  },
+  {
+    key: "SAND",
+    label: "Sand",
+    emoji: "⛱️",
+    image:
+      "https://tiimg.tistatic.com/fp/1/008/350/moderate-heat-natural-m-sand-for-construction-work--392.jpg",
+  },
+  {
+    key: "AGGREGATES",
+    label: "Aggregates",
+    emoji: "🪨",
+    image:
+      "https://5.imimg.com/data5/SELLER/Default/2025/12/566163028/RS/CG/GM/257549343/ston-gitti1-png-1000x1000.png",
+  },
+  {
+    key: "PAINT",
+    label: "Paint",
+    emoji: "🎨",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXBFBoFgoaY4B5edJ7AIyowmRrOnd4t_3WIg&s",
+  },
+  {
+    key: "TILES",
+    label: "Tiles",
+    emoji: "◼️",
+    image:
+      "https://static.vecteezy.com/system/resources/thumbnails/047/457/871/small/floor-stone-marbles-or-tiles-design-isolated-on-transparent-background-cutout-png.png",
+  },
+  {
+    key: "PLUMBING",
+    label: "Plumbing",
+    emoji: "🔧",
+    image:
+      "https://www.pngitem.com/pimgs/m/119-1190540_since-car-dolphin-pipe-and-fittings-hd-png.png",
+  },
+  {
+    key: "ELECTRICAL",
+    label: "Electrical",
+    emoji: "⚡",
+    image: "https://i.pinimg.com/736x/1d/ee/39/1dee3930653c7b7ee93e98c818c4f8bb.jpg",
+  },
 ];
 
 /** Category keys that use a fixed subcategory dropdown in admin (others use free-text subcategory). */
