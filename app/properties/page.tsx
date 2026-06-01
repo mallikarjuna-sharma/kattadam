@@ -1,13 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import BannerCarousel from "@/components/ui/BannerCarousel";
 import {
-  ArrowLeft,
   MapPin,
   Phone,
   Home,
@@ -85,7 +83,7 @@ function PropertyTypeImage({
       decoding="async"
       onError={() => setFailed(true)}
       style={{ mixBlendMode: "multiply" }}
-      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+      className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
     />
   );
 }
@@ -187,17 +185,8 @@ export default function PropertiesPage() {
       hideSearch
       hideHeader
     >
-      <div className="page-container py-6">
-        <Link
-          href="/"
-          aria-label="Back"
-          className="inline-flex items-center gap-1.5 text-sm text-cement-600 hover:text-cement-900 transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-
-        <BannerCarousel slides={PROPERTY_BANNER_SLIDES} className="mb-6" />
+      <div className="page-container pt-0 pb-6">
+        <BannerCarousel slides={PROPERTY_BANNER_SLIDES} className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen mb-6" />
 
         <div className="mb-4 flex justify-end">
           <div className="relative w-full sm:max-w-md">
@@ -215,7 +204,7 @@ export default function PropertiesPage() {
 
         <div className="flex flex-col gap-4 mb-5">
           <div
-            className="flex flex-wrap justify-center gap-[15px]"
+            className="flex flex-wrap justify-center gap-2.5 sm:gap-[15px]"
             role="tablist"
             aria-label="Listing types"
           >
@@ -229,11 +218,14 @@ export default function PropertiesPage() {
                   role="tab"
                   aria-selected={active}
                   aria-label={`Filter by ${meta.label}`}
-                  onClick={() => setType(t)}
-                  className="group flex w-[120px] flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  onClick={() => {
+                    setType(t);
+                    setEnquiry(meta.label);
+                  }}
+                  className="group flex w-[90px] sm:w-[120px] flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <div
-                    className={`relative w-[120px] h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                    className={`relative w-[90px] h-[90px] sm:w-[120px] sm:h-[120px] overflow-hidden transition-all duration-300 ease-out ${
                       active
                         ? "bg-[#CFE3DD] scale-[1.02]"
                         : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
@@ -241,13 +233,13 @@ export default function PropertiesPage() {
                   >
                     <PropertyTypeImage src={meta.image} alt={meta.label} emoji={meta.emoji} />
                     {active && (
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
                       </div>
                     )}
                   </div>
                   <span
-                    className={`text-sm leading-tight text-center truncate w-full transition-colors ${
+                    className={`text-xs sm:text-sm leading-tight text-center truncate w-full transition-colors ${
                       active
                         ? "text-brand-700 font-semibold"
                         : "text-cement-700 font-medium group-hover:text-cement-900"
@@ -337,9 +329,9 @@ export default function PropertiesPage() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xl font-bold text-earth-900">{formatPrice(p.price, p.type)}</div>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-lg sm:text-xl font-bold text-earth-900">{formatPrice(p.price, p.type)}</div>
                     <div className="text-xs text-earth-400">
                       {p.daysAgo === 0 ? "Just listed" : p.daysAgo === 1 ? "1 day ago" : `${p.daysAgo} days ago`} ·{" "}
                       {p.postedBy}
@@ -348,7 +340,7 @@ export default function PropertiesPage() {
                   <button
                     type="button"
                     onClick={() => setEnquiry(p.title)}
-                    className="flex items-center gap-1.5 bg-brand-50 text-brand-600 border border-brand-200 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-brand-100 transition-colors"
+                    className="flex items-center gap-1.5 bg-brand-50 text-brand-600 border border-brand-200 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-brand-100 transition-colors flex-shrink-0"
                   >
                     <Phone className="w-3.5 h-3.5" /> Contact
                   </button>

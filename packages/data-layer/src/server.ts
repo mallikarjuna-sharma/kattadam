@@ -62,6 +62,9 @@ export async function catalogListMaterials(): Promise<MaterialRecord[] | null> {
 
 export async function catalogCreateEnquiry(row: {
   customerName: string;
+  phone?: string | null;
+  altPhone?: string | null;
+  email?: string | null;
   materialLabel?: string | null;
   materialId?: string | null;
   quantity?: number | null;

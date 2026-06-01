@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
+import EnquiryModal from "@/components/ui/EnquiryModal";
 import {
   Building2,
   Package,
@@ -66,6 +70,8 @@ function ExploreRow({
 }
 
 export default function LandingPage() {
+  const [enquiry, setEnquiry] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -202,7 +208,13 @@ export default function LandingPage() {
                 border: "hover:border-cement-300",
               },
             ].map((c) => (
-              <Link key={c.title} href={c.href} className={`card p-6 group ${c.border} transition-all`}>
+              <button
+                key={c.title}
+                type="button"
+                onClick={() => setEnquiry(c.title)}
+                aria-label={`Send enquiry about ${c.title}`}
+                className={`card p-6 group text-left w-full ${c.border} transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+              >
                 <div
                   className={`w-12 h-12 ${c.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
                 >
@@ -210,12 +222,19 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-semibold text-cement-900 text-lg mb-2">{c.title}</h3>
                 <p className="text-sm text-cement-500 leading-relaxed">{c.desc}</p>
-                <div
-                  className={`mt-4 flex items-center gap-1 text-sm font-medium ${c.color} opacity-0 group-hover:opacity-100 transition-opacity`}
-                >
-                  Browse <ArrowRight className="w-3.5 h-3.5" />
+                <div className="mt-4 flex items-center justify-between">
+                  <span className={`text-sm font-medium ${c.color} flex items-center gap-1`}>
+                    <Phone className="w-3.5 h-3.5" /> Send enquiry
+                  </span>
+                  <Link
+                    href={c.href}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-xs font-medium text-cement-500 hover:text-cement-900 inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                  >
+                    Browse <ArrowRight className="w-3 h-3" />
+                  </Link>
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -341,6 +360,8 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {enquiry && <EnquiryModal target={enquiry} onClose={() => setEnquiry(null)} />}
 
       <footer className="bg-cement-900 text-cement-400 py-10">
         <div className="page-container flex flex-col md:flex-row items-center justify-between gap-4 text-sm">

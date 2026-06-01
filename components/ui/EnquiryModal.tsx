@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { X, Phone, CheckCircle, AlertCircle } from "lucide-react";
+import { X, Phone, CheckCircle, AlertCircle, Mail } from "lucide-react";
 
 interface Props {
   target: string;
@@ -12,7 +12,13 @@ interface Props {
 }
 
 export default function EnquiryModal({ target, dealerId, materialId, onClose }: Props) {
-  const [form, setForm] = useState({ name: "", phone: "", message: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    altPhone: "",
+    email: "",
+    message: "",
+  });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -20,15 +26,31 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    if (form.phone.length !== 10) {
+      setError("Enter a valid 10-digit mobile number.");
+      return;
+    }
+    if (form.altPhone && form.altPhone.length !== 10) {
+      setError("Enter a valid 10-digit alternate mobile number.");
+      return;
+    }
+    if (form.altPhone && form.altPhone === form.phone) {
+      setError("Alternate mobile must be different from the primary mobile number.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const res = await fetch("/api/enquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: form.name,
+          customerName: form.name.trim(),
           phone: form.phone,
-          message: form.message,
+          altPhone: form.altPhone || undefined,
+          email: form.email.trim() || undefined,
+          message: form.message.trim(),
           target,
           ...(dealerId ? { dealerId } : {}),
           ...(materialId ? { materialId } : {}),
@@ -75,36 +97,89 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">Your Name</label>
+                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                  Full Name <span className="text-red-500">*</span>
+                </label>
                 <input
                   className="input"
                   placeholder="Eg: Karthik Kumar"
                   required
+                  autoComplete="name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="min-w-0">
+                  <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                    Mobile Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex gap-1.5">
+                    <span className="flex items-center px-2.5 bg-earth-50 border border-earth-200 rounded-xl text-earth-600 text-sm shrink-0">
+                      +91
+                    </span>
+                    <input
+                      className="input flex-1 min-w-0"
+                      placeholder="98765 43210"
+                      required
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      maxLength={10}
+                      value={form.phone}
+                      onChange={(e) =>
+                        setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })
+                      }
+                    />
+                  </div>
+                </div>
+                <div className="min-w-0">
+                  <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                    Alternate Mobile <span className="text-earth-400 font-normal">(optional)</span>
+                  </label>
+                  <div className="flex gap-1.5">
+                    <span className="flex items-center px-2.5 bg-earth-50 border border-earth-200 rounded-xl text-earth-600 text-sm shrink-0">
+                      +91
+                    </span>
+                    <input
+                      className="input flex-1 min-w-0"
+                      placeholder="Another number"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={10}
+                      value={form.altPhone}
+                      onChange={(e) =>
+                        setForm({ ...form, altPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">Mobile Number</label>
+                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                  Email <span className="text-earth-400 font-normal">(optional)</span>
+                </label>
                 <div className="flex gap-2">
-                  <span className="flex items-center px-3 bg-earth-50 border border-earth-200 rounded-xl text-earth-600 text-sm">
-                    +91
+                  <span className="flex items-center px-3 bg-earth-50 border border-earth-200 rounded-xl text-earth-500 shrink-0">
+                    <Mail className="w-4 h-4" />
                   </span>
                   <input
-                    className="input flex-1"
-                    placeholder="98765 43210"
-                    required
-                    type="tel"
-                    maxLength={10}
-                    value={form.phone}
-                    onChange={(e) =>
-                      setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })
-                    }
+                    className="input flex-1 min-w-0"
+                    placeholder="you@example.com"
+                    type="email"
+                    autoComplete="email"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value })}
                   />
                 </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">Requirement</label>
+                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                  Requirement <span className="text-red-500">*</span>
+                </label>
                 <textarea
                   className="input resize-none h-24"
                   placeholder="Describe what you need..."

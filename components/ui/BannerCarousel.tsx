@@ -32,7 +32,7 @@ export default function BannerCarousel({ slides, intervalMs = 3500, className = 
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl bg-cement-100 shadow-sm ${className}`}
+      className={`relative overflow-hidden bg-cement-100 shadow-sm ${className}`}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       aria-roledescription="carousel"
@@ -50,7 +50,7 @@ export default function BannerCarousel({ slides, intervalMs = 3500, className = 
               loading={i === 0 ? "eager" : "lazy"}
               decoding="async"
               draggable={false}
-              className="w-full h-auto block select-none"
+              className="w-full h-[130px] sm:h-auto block select-none"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
               }}

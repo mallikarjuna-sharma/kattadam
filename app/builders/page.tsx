@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import BannerCarousel from "@/components/ui/BannerCarousel";
 import {
-  ArrowLeft,
   MapPin,
   Star,
   Phone,
@@ -81,7 +79,7 @@ function ExpertImage({ src, alt, emoji }: { src: string; alt: string; emoji: str
       decoding="async"
       onError={() => setFailed(true)}
       style={{ mixBlendMode: "multiply" }}
-      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+      className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
     />
   );
 }
@@ -112,17 +110,8 @@ export default function BuildersPage() {
       hideSearch
       hideHeader
     >
-      <div className="page-container py-6">
-        <Link
-          href="/"
-          aria-label="Back"
-          className="inline-flex items-center gap-1.5 text-sm text-cement-600 hover:text-cement-900 transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-
-        <BannerCarousel slides={BUILDERS_BANNER_SLIDES} className="mb-6" />
+      <div className="page-container pt-0 pb-6">
+        <BannerCarousel slides={BUILDERS_BANNER_SLIDES} className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen mb-6" />
 
         <div className="mb-4 flex justify-end">
           <div className="relative w-full sm:max-w-md">
@@ -140,7 +129,7 @@ export default function BuildersPage() {
 
         <div className="mb-6">
           <div
-            className="flex flex-wrap justify-center gap-[15px]"
+            className="flex flex-wrap justify-center gap-2.5 sm:gap-[15px]"
             role="tablist"
             aria-label="Expert types"
           >
@@ -153,11 +142,14 @@ export default function BuildersPage() {
                   role="tab"
                   aria-selected={active}
                   aria-label={`Filter by ${t.label}`}
-                  onClick={() => setType(t.key)}
-                  className="group flex w-[120px] flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  onClick={() => {
+                    setType(t.key);
+                    setEnquiry(t.label);
+                  }}
+                  className="group flex w-[78px] sm:w-[120px] flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <div
-                    className={`relative w-[120px] h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                    className={`relative w-[78px] h-[78px] sm:w-[120px] sm:h-[120px] overflow-hidden transition-all duration-300 ease-out ${
                       active
                         ? "bg-[#CFE3DD] scale-[1.02]"
                         : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
@@ -167,19 +159,19 @@ export default function BuildersPage() {
                       <ExpertImage src={t.image} alt={t.label} emoji={t.emoji} />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
-                        <span className="text-5xl" aria-hidden="true">
+                        <span className="text-4xl sm:text-5xl" aria-hidden="true">
                           {t.emoji}
                         </span>
                       </div>
                     )}
                     {active && (
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
                       </div>
                     )}
                   </div>
                   <span
-                    className={`text-sm leading-tight text-center truncate w-full transition-colors ${
+                    className={`text-xs sm:text-sm leading-tight text-center truncate w-full transition-colors ${
                       active
                         ? "text-brand-700 font-semibold"
                         : "text-cement-700 font-medium group-hover:text-cement-900"
@@ -193,7 +185,7 @@ export default function BuildersPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
           <p className="text-sm text-earth-500">
             <span className="font-semibold text-earth-900">{filtered.length}</span> found
           </p>
@@ -207,12 +199,12 @@ export default function BuildersPage() {
 
         <div className="space-y-4">
           {filtered.map((b) => (
-            <div key={b.id} className="card p-5">
-              <div className="flex items-start gap-4 mb-4">
-                <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="w-7 h-7 text-blue-500" />
+            <div key={b.id} className="card p-4 sm:p-5">
+              <div className="flex items-start gap-3 sm:gap-4 mb-4">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" />
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-earth-900">{b.companyName}</h3>
                     {b.isVerified && (
@@ -223,17 +215,15 @@ export default function BuildersPage() {
                     <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{b.type}</span>
                   </div>
                   <p className="text-sm text-earth-500 mt-0.5">{b.ownerName}</p>
-                  <div className="flex items-center gap-3 mt-1.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                     <div className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                       <span className="text-sm font-semibold text-earth-800">{b.rating}</span>
                       <span className="text-xs text-earth-400">({b.reviewCount})</span>
                     </div>
-                    <span className="text-xs text-earth-400">·</span>
                     <div className="flex items-center gap-1 text-xs text-earth-500">
                       <MapPin className="w-3 h-3" /> {b.area}, {b.district}
                     </div>
-                    <span className="text-xs text-earth-400">·</span>
                     <span className="text-xs text-earth-500">{b.experience} yrs exp</span>
                   </div>
                 </div>

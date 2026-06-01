@@ -18,10 +18,11 @@ export default async function EnquiriesPage() {
           <p className="text-sm text-cement-500 admin-card p-6">No enquiries yet.</p>
         ) : (
           <div className="admin-table-wrap">
-            <table className="w-full min-w-[900px]">
+            <table className="w-full min-w-[1100px]">
               <thead>
                 <tr>
                   <th className="admin-th">Customer / material</th>
+                  <th className="admin-th">Contact</th>
                   <th className="admin-th">Qty</th>
                   <th className="admin-th">Location</th>
                   <th className="admin-th">Date</th>
@@ -40,6 +41,36 @@ export default async function EnquiriesPage() {
                           {e.notes}
                         </div>
                       ) : null}
+                    </td>
+                    <td className="admin-td max-w-[200px]">
+                      <div className="text-xs space-y-0.5">
+                        {e.phone ? (
+                          <div>
+                            <span className="text-cement-400">📞</span>{" "}
+                            <a href={`tel:+91${e.phone}`} className="text-cement-800 hover:underline">
+                              +91 {e.phone}
+                            </a>
+                          </div>
+                        ) : (
+                          <div className="text-cement-400">—</div>
+                        )}
+                        {e.altPhone ? (
+                          <div>
+                            <span className="text-cement-400">📱 alt:</span>{" "}
+                            <a href={`tel:+91${e.altPhone}`} className="text-cement-700 hover:underline">
+                              +91 {e.altPhone}
+                            </a>
+                          </div>
+                        ) : null}
+                        {e.email ? (
+                          <div className="break-all">
+                            <span className="text-cement-400">✉</span>{" "}
+                            <a href={`mailto:${e.email}`} className="text-cement-700 hover:underline">
+                              {e.email}
+                            </a>
+                          </div>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="admin-td">{e.quantity ?? "—"}</td>
                     <td className="admin-td text-cement-600">{e.location ?? "—"}</td>

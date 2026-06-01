@@ -120,6 +120,9 @@ export interface IDataBackend {
   listEnquiries(filters?: { status?: EnquiryStatus }): Promise<EnquiryRecord[]>;
   createEnquiry(row: {
     customerName: string;
+    phone?: string | null;
+    altPhone?: string | null;
+    email?: string | null;
     materialLabel?: string | null;
     materialId?: string | null;
     quantity?: number | null;
