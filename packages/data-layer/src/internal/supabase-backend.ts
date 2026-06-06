@@ -77,6 +77,9 @@ type EnquiryRow = {
   id: string;
   customer_id: string | null;
   customer_name: string | null;
+  phone: string | null;
+  alt_phone: string | null;
+  email: string | null;
   material_id: string | null;
   material_label: string | null;
   quantity: number | null;
@@ -289,6 +292,9 @@ function mapEnquiry(r: EnquiryRow): EnquiryRecord {
     id: r.id,
     customerId: r.customer_id,
     customerName: r.customer_name,
+    phone: r.phone,
+    altPhone: r.alt_phone,
+    email: r.email,
     materialId: r.material_id,
     materialLabel: r.material_label,
     quantity: r.quantity,
@@ -860,6 +866,9 @@ export class SupabaseDataBackend implements IDataBackend {
 
   async createEnquiry(row: {
     customerName: string;
+    phone?: string | null;
+    altPhone?: string | null;
+    email?: string | null;
     materialLabel?: string | null;
     materialId?: string | null;
     quantity?: number | null;
@@ -871,6 +880,9 @@ export class SupabaseDataBackend implements IDataBackend {
     const payload = {
       customer_id: row.customerId ?? null,
       customer_name: row.customerName,
+      phone: row.phone ?? null,
+      alt_phone: row.altPhone ?? null,
+      email: row.email ?? null,
       material_id: row.materialId ?? null,
       material_label: row.materialLabel ?? null,
       quantity: row.quantity ?? null,

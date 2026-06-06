@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Package, Building2, Home, Wrench, ArrowRight, Search, Bell, LogOut, Phone } from "lucide-react";
 import { MATERIAL_CATEGORIES } from "@/lib/mock-data";
 import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
+import EnquiryModal from "@/components/ui/EnquiryModal";
 
 export default function HomePage() {
+  const [enquiry, setEnquiry] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-earth-50 pb-24 md:pb-0">
       <header className="bg-earth-900 text-white">
@@ -129,14 +133,31 @@ export default function HomePage() {
               { icon: Home, title: "Real estate", sub: "Buy / rent", href: "/properties", color: "text-green-500", bg: "bg-green-50", count: "200+ listings" },
               { icon: Wrench, title: "Home services", sub: "Interiors, plumbing…", href: "/services", color: "text-purple-500", bg: "bg-purple-50", count: "Local pros" },
             ].map((c) => (
-              <Link key={c.title} href={c.href} className="card p-4 group">
+              <button
+                key={c.title}
+                type="button"
+                onClick={() => setEnquiry(c.title)}
+                aria-label={`Send enquiry about ${c.title}`}
+                className="card p-4 group text-left w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              >
                 <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
                   <c.icon className={`w-5 h-5 ${c.color}`} />
                 </div>
                 <h3 className="font-semibold text-earth-900 text-sm">{c.title}</h3>
                 <p className="text-earth-400 text-xs mt-0.5">{c.sub}</p>
-                <span className={`mt-2 text-xs font-medium ${c.color}`}>{c.count}</span>
-              </Link>
+                <div className="mt-2 flex items-center justify-between">
+                  <span className={`text-xs font-medium ${c.color} inline-flex items-center gap-1`}>
+                    <Phone className="w-3 h-3" /> Enquire
+                  </span>
+                  <Link
+                    href={c.href}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-[11px] font-medium text-earth-500 hover:text-earth-900 inline-flex items-center gap-0.5 underline-offset-2 hover:underline"
+                  >
+                    Browse <ArrowRight className="w-2.5 h-2.5" />
+                  </Link>
+                </div>
+              </button>
             ))}
           </div>
         </section>
@@ -174,6 +195,8 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      {enquiry && <EnquiryModal target={enquiry} onClose={() => setEnquiry(null)} />}
 
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-earth-200 md:hidden z-40">
         <div className="flex">

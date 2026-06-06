@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
+import BannerCarousel from "@/components/ui/BannerCarousel";
 import {
   MapPin,
   Star,
@@ -15,8 +16,28 @@ import {
   Hammer,
   LayoutTemplate,
   Check,
+  Search,
 } from "lucide-react";
 import { SERVICES, SERVICE_CATEGORY_FILTERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
+
+const SERVICES_BANNER_SLIDES = [
+  {
+    src: "/banners/banner-service-renovations.png",
+    alt: "Home renovations — transform your space — professional design, reliable service",
+  },
+  {
+    src: "/banners/banner-service-electrical.png",
+    alt: "Electrical services — empower your home — certified electricians",
+  },
+  {
+    src: "/banners/banner-service-painting.png",
+    alt: "Professional painting services — expert painters, color consultations",
+  },
+  {
+    src: "/banners/banner-service-plumbing.png",
+    alt: "Professional plumbing services — leak detection & pipe repair",
+  },
+];
 
 const categoryIcon: Record<string, ReactNode> = {
   Electrical: <Zap className="w-5 h-5 text-yellow-500" />,
@@ -99,7 +120,7 @@ function ServiceCategoryImage({
       decoding="async"
       onError={() => setFailed(true)}
       style={{ mixBlendMode: "multiply" }}
-      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+      className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
     />
   );
 }
@@ -128,11 +149,29 @@ export default function ServicesPage() {
       searchPlaceholder="Search painting, plumbing, interiors…"
       search={search}
       onSearchChange={setSearch}
+      hideSearch
+      hideHeader
     >
-      <div className="page-container py-6">
+      <div className="page-container pt-0 pb-6">
+        <BannerCarousel slides={SERVICES_BANNER_SLIDES} className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen mb-6" />
+
+        <div className="mb-4 flex justify-end">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search painting, plumbing, interiors…"
+              aria-label="Search services"
+              className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            />
+          </div>
+        </div>
+
         <div className="mb-6">
           <div
-            className="flex flex-wrap justify-center gap-[15px]"
+            className="flex flex-wrap justify-center gap-2.5 sm:gap-[15px]"
             role="tablist"
             aria-label="Service categories"
           >
@@ -146,11 +185,14 @@ export default function ServicesPage() {
                   role="tab"
                   aria-selected={active}
                   aria-label={`Filter by ${c}`}
-                  onClick={() => setCat(c)}
-                  className="group flex w-[120px] flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  onClick={() => {
+                    setCat(c);
+                    setEnquiry(c);
+                  }}
+                  className="group flex w-[88px] sm:w-[120px] flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <div
-                    className={`relative w-[120px] h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                    className={`relative w-[88px] h-[88px] sm:w-[120px] sm:h-[120px] overflow-hidden transition-all duration-300 ease-out ${
                       active
                         ? "bg-[#CFE3DD] scale-[1.02]"
                         : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
@@ -160,19 +202,19 @@ export default function ServicesPage() {
                       <ServiceCategoryImage src={meta.image} alt={c} emoji={meta.emoji} />
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
-                        <span className="text-5xl" aria-hidden="true">
+                        <span className="text-4xl sm:text-5xl" aria-hidden="true">
                           {meta.emoji}
                         </span>
                       </div>
                     )}
                     {active && (
-                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
-                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
                       </div>
                     )}
                   </div>
                   <span
-                    className={`text-xs sm:text-sm leading-tight text-center w-full px-1 transition-colors ${
+                    className={`text-[11px] sm:text-sm leading-tight text-center w-full px-1 transition-colors ${
                       active
                         ? "text-brand-700 font-semibold"
                         : "text-cement-700 font-medium group-hover:text-cement-900"
@@ -200,14 +242,14 @@ export default function ServicesPage() {
 
         <div className="space-y-4">
           {filtered.map((s) => (
-            <div key={s.id} className="card p-5">
-              <div className="flex items-start gap-4 mb-3">
+            <div key={s.id} className="card p-4 sm:p-5">
+              <div className="flex items-start gap-3 sm:gap-4 mb-3">
                 <div
                   className={`w-12 h-12 ${categoryBg[s.category] ?? "bg-earth-50"} rounded-xl flex items-center justify-center flex-shrink-0`}
                 >
                   {categoryIcon[s.category] ?? <Wrench className="w-5 h-5 text-earth-400" />}
                 </div>
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold text-earth-900">{s.name}</h3>
                     {s.isVerified && (
@@ -217,13 +259,12 @@ export default function ServicesPage() {
                     )}
                     <span className="text-xs bg-earth-100 text-earth-600 px-2 py-0.5 rounded-full">{s.category}</span>
                   </div>
-                  <div className="flex items-center gap-3 mt-1.5">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
                     <div className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
                       <span className="text-sm font-semibold text-earth-800">{s.rating}</span>
                       <span className="text-xs text-earth-400">({s.reviewCount})</span>
                     </div>
-                    <span className="text-xs text-earth-400">·</span>
                     <div className="flex items-center gap-1 text-xs text-earth-500">
                       <MapPin className="w-3 h-3" /> {s.area}, {s.district}
                     </div>

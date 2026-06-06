@@ -129,6 +129,9 @@ export interface EnquiryRecord {
   id: string;
   customerId: string | null;
   customerName: string | null;
+  phone: string | null;
+  altPhone: string | null;
+  email: string | null;
   materialId: string | null;
   materialLabel: string | null;
   quantity: number | null;

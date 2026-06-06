@@ -2,11 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
-import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
+import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import BannerCarousel from "@/components/ui/BannerCarousel";
-import Link from "next/link";
-import { MapPin, Phone, Package, Check, Search, ArrowLeft } from "lucide-react";
+import { MapPin, Phone, Package, Check, Search } from "lucide-react";
 import {
   MATERIAL_CATEGORIES,
   DISTRICT_FILTER_ALL,
@@ -57,7 +56,7 @@ function CategoryImage({ src, alt, emoji }: { src: string; alt: string; emoji: s
       decoding="async"
       onError={() => setFailed(true)}
       style={{ mixBlendMode: "multiply" }}
-      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+      className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
     />
   );
 }
@@ -83,7 +82,7 @@ export default function MaterialsPage() {
     materialId?: string;
   } | null>(null);
   const [catalogMaterials, setCatalogMaterials] = useState<ApiCatalogMaterial[]>([]);
-  const [listStatus, setListStatus] = useState<"loading" | "live" | "empty" | "unconfigured" | "error">("loading");
+  const [listStatus, setListStatus] = useState<"live" | "empty" | "error">("empty");
   const [errorHint, setErrorHint] = useState<string | null>(null);
 
   useEffect(() => {
@@ -107,7 +106,7 @@ export default function MaterialsPage() {
 
         if (!matJson?.configured) {
           setCatalogMaterials([]);
-          setListStatus("unconfigured");
+          setListStatus("empty");
           setErrorHint(null);
           return;
         }
@@ -163,17 +162,8 @@ export default function MaterialsPage() {
       hideSearch
       hideHeader
     >
-      <div className="page-container py-6">
-        <Link
-          href="/"
-          aria-label="Back"
-          className="inline-flex items-center gap-1.5 text-sm text-cement-600 hover:text-cement-900 transition-colors mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Link>
-
-        <BannerCarousel slides={MATERIALS_BANNER_SLIDES} className="mb-6" />
+      <div className="page-container pt-0 pb-6">
+        <BannerCarousel slides={MATERIALS_BANNER_SLIDES} className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen mb-6" />
 
         <div className="mb-4 flex justify-end">
           <div className="relative w-full sm:max-w-md">
@@ -191,12 +181,18 @@ export default function MaterialsPage() {
 
         <div className="mb-6">
           <div
-            className="grid grid-cols-10 gap-2 sm:gap-3 md:gap-[15px] w-full"
+            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3 md:gap-[15px] w-full"
             role="tablist"
             aria-label="Material categories"
           >
             {[
-              { key: "ALL", label: "All", emoji: "🏠", image: null as string | null },
+              {
+                key: "ALL",
+                label: "All",
+                emoji: "🏠",
+                image:
+                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvu9U6XYDX4wGGTYIfAtU3NLd6cXqtv7nDEg&s" as string | null,
+              },
               ...MATERIAL_CATEGORIES,
             ].map((c) => {
               const active = cat === c.key;
@@ -206,8 +202,17 @@ export default function MaterialsPage() {
                   type="button"
                   role="tab"
                   aria-selected={active}
-                  aria-label={`Filter by ${c.label}`}
-                  onClick={() => setCat(c.key)}
+                  aria-label={
+                    c.key === "ALL"
+                      ? "Show all materials"
+                      : `Send enquiry for ${c.label}`
+                  }
+                  onClick={() => {
+                    setCat(c.key);
+                    if (c.key !== "ALL") {
+                      setEnquiryOpen({ target: c.label });
+                    }
+                  }}
                   className="group flex w-full min-w-0 flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <div
@@ -247,19 +252,6 @@ export default function MaterialsPage() {
           </div>
         </div>
 
-        {listStatus === "loading" && (
-          <p className="text-sm text-cement-500 mb-6">Loading catalogue…</p>
-        )}
-
-        {listStatus === "unconfigured" && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-6">
-            Database is not connected for this environment. Set{" "}
-            <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-            <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">SUPABASE_SERVICE_ROLE_KEY</code> to load
-            materials from Admin.
-          </div>
-        )}
-
         {listStatus === "error" && (
           <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 mb-6">
             Could not load the catalogue.{errorHint ? ` ${errorHint}` : ""}
@@ -271,15 +263,13 @@ export default function MaterialsPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
               <p className="text-sm text-cement-500">
                 <span className="font-semibold text-cement-900">{filteredMaterials.length}</span>
-                {listStatus === "live" ? " materials match filters" : " materials (add items in Admin)"}
+                {listStatus === "live" ? " materials match filters" : " materials"}
               </p>
-              <DistrictAreaSelect
+              <DistrictAreaSearch
                 district={district}
                 onDistrictChange={setDistrict}
                 area={area}
                 onAreaChange={setArea}
-                className="flex flex-wrap items-stretch sm:justify-end gap-2"
-                selectClassName="text-sm border border-cement-200 rounded-lg px-3 py-1.5 bg-white text-cement-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 flex-1 sm:flex-none sm:min-w-[140px]"
               />
             </div>
 
@@ -290,7 +280,7 @@ export default function MaterialsPage() {
                 const priceLabel = formatMaterialPrice(m);
                 const catLabel = materialCategoryLabel(m.category);
                 return (
-                  <div key={m.id} className="card p-5">
+                  <div key={m.id} className="card p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="flex items-start gap-3 min-w-0">
                         <div className="w-12 h-12 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -347,7 +337,7 @@ export default function MaterialsPage() {
                 <div className="text-center py-14 card p-8">
                   <Package className="w-12 h-12 text-cement-300 mx-auto mb-3" />
                   <p className="text-cement-600 font-medium">No materials yet</p>
-                  <p className="text-sm text-cement-500 mt-1">Add your first row in Admin → Materials.</p>
+                  <p className="text-sm text-cement-500 mt-1">Materials will appear here once they are available.</p>
                 </div>
               )}
 
