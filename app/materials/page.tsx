@@ -4,12 +4,21 @@ import { useEffect, useMemo, useState } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
 import EnquiryModal from "@/components/ui/EnquiryModal";
-import { MapPin, Phone, Package } from "lucide-react";
+import BannerCarousel from "@/components/ui/BannerCarousel";
+import Link from "next/link";
+import { MapPin, Phone, Package, Check, Search, ArrowLeft } from "lucide-react";
 import {
   MATERIAL_CATEGORIES,
   DISTRICT_FILTER_ALL,
   materialCategoryLabel,
 } from "@/lib/mock-data";
+
+const MATERIALS_BANNER_SLIDES = [
+  { src: "/banners/banner-cement.png", alt: "Lowest prices on cement — best rates in your area" },
+  { src: "/banners/banner-tmt.png", alt: "Best prices on TMT — best rates in your area" },
+  { src: "/banners/banner-paint.png", alt: "Best prices on paint — best rates in your area" },
+  { src: "/banners/banner-bricks.png", alt: "Best prices on bricks — best rates in your area" },
+];
 
 type ApiCatalogMaterial = {
   id: string;
@@ -27,6 +36,30 @@ type ApiCatalogMaterial = {
 
 function normalizeCategoryKey(label: string): string {
   return label.trim().toUpperCase().replace(/\s+/g, "_");
+}
+
+function CategoryImage({ src, alt, emoji }: { src: string; alt: string; emoji: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-5xl" aria-hidden="true">
+          {emoji}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      style={{ mixBlendMode: "multiply" }}
+      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+    />
+  );
 }
 
 function formatMaterialPrice(m: ApiCatalogMaterial): string {
@@ -127,8 +160,93 @@ export default function MaterialsPage() {
       search={search}
       onSearchChange={setSearch}
       backHref="/"
+      hideSearch
+      hideHeader
     >
       <div className="page-container py-6">
+        <Link
+          href="/"
+          aria-label="Back"
+          className="inline-flex items-center gap-1.5 text-sm text-cement-600 hover:text-cement-900 transition-colors mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+
+        <BannerCarousel slides={MATERIALS_BANNER_SLIDES} className="mb-6" />
+
+        <div className="mb-4 flex justify-end">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, category, unit…"
+              aria-label="Search materials"
+              className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            />
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <div
+            className="grid grid-cols-10 gap-2 sm:gap-3 md:gap-[15px] w-full"
+            role="tablist"
+            aria-label="Material categories"
+          >
+            {[
+              { key: "ALL", label: "All", emoji: "🏠", image: null as string | null },
+              ...MATERIAL_CATEGORIES,
+            ].map((c) => {
+              const active = cat === c.key;
+              return (
+                <button
+                  key={c.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-label={`Filter by ${c.label}`}
+                  onClick={() => setCat(c.key)}
+                  className="group flex w-full min-w-0 flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <div
+                    className={`relative w-full aspect-square overflow-hidden transition-all duration-300 ease-out ${
+                      active
+                        ? "bg-[#CFE3DD] scale-[1.02]"
+                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
+                    }`}
+                  >
+                    {c.image ? (
+                      <CategoryImage src={c.image} alt={c.label} emoji={c.emoji} />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
+                        <span className="text-5xl" aria-hidden="true">
+                          {c.emoji}
+                        </span>
+                      </div>
+                    )}
+                    {active && (
+                      <div className="absolute top-1 right-1 sm:top-1.5 sm:right-1.5 w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                        <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5" strokeWidth={3} />
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-[10px] sm:text-xs md:text-sm leading-tight text-center truncate w-full transition-colors ${
+                      active
+                        ? "text-brand-700 font-semibold"
+                        : "text-cement-700 font-medium group-hover:text-cement-900"
+                    }`}
+                  >
+                    {c.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {listStatus === "loading" && (
           <p className="text-sm text-cement-500 mb-6">Loading catalogue…</p>
         )}
@@ -150,23 +268,6 @@ export default function MaterialsPage() {
 
         {(listStatus === "live" || listStatus === "empty") && (
           <>
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-4 -mx-4 px-4">
-              {[{ key: "ALL", label: "All", emoji: "🏠" }, ...MATERIAL_CATEGORIES].map((c) => (
-                <button
-                  key={c.key}
-                  type="button"
-                  onClick={() => setCat(c.key)}
-                  className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
-                    cat === c.key
-                      ? "bg-brand-600 text-white border-brand-600"
-                      : "bg-white text-cement-600 border-cement-200 hover:border-brand-300"
-                  }`}
-                >
-                  <span>{c.emoji}</span> {c.label}
-                </button>
-              ))}
-            </div>
-
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
               <p className="text-sm text-cement-500">
                 <span className="font-semibold text-cement-900">{filteredMaterials.length}</span>

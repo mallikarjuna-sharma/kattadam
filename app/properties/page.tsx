@@ -1,10 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import ListingPageShell from "@/components/layout/ListingPageShell";
-import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
+import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
-import { MapPin, Phone, Home, BedDouble, Bath, Maximize2 } from "lucide-react";
+import BannerCarousel from "@/components/ui/BannerCarousel";
+import {
+  ArrowLeft,
+  MapPin,
+  Phone,
+  Home,
+  BedDouble,
+  Bath,
+  Maximize2,
+  Search,
+  Check,
+} from "lucide-react";
 import {
   PROPERTIES,
   formatPrice,
@@ -13,9 +25,70 @@ import {
   type PropertyListingSubtype,
 } from "@/lib/mock-data";
 
+const PROPERTY_BANNER_SLIDES = [
+  {
+    src: "/banners/banner-property-home.png",
+    alt: "Home buy — secure your future — best price · safety house · peace of mind",
+  },
+];
+
 const TYPES = ["All", "SELL", "RENT"] as const;
+type TypeKey = (typeof TYPES)[number];
+const TYPE_META: Record<TypeKey, { label: string; emoji: string; image: string }> = {
+  All: {
+    label: "All",
+    emoji: "🏘️",
+    image:
+      "https://png.pngtree.com/png-clipart/20241005/original/pngtree-home-buyers-meet-and-negotiate-with-real-estate-agents-about-renting-png-image_16201107.png",
+  },
+  SELL: {
+    label: "Buy",
+    emoji: "🏷️",
+    image:
+      "https://png.pngtree.com/png-vector/20231116/ourmid/pngtree-real-estate-agent-transparent-background-png-image_10613803.png",
+  },
+  RENT: {
+    label: "Rent",
+    emoji: "🔑",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTldujQGIRWkzcCAv58yDSxlOvWggdW9eKV2A&s",
+  },
+};
+
 const BUY_SUB = ["All", "Flat", "Plot"] as const;
 const RENT_SUB = ["All", "Flat", "Empty land"] as const;
+
+function PropertyTypeImage({
+  src,
+  alt,
+  emoji,
+}: {
+  src: string;
+  alt: string;
+  emoji: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-5xl" aria-hidden="true">
+          {emoji}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      style={{ mixBlendMode: "multiply" }}
+      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+    />
+  );
+}
 
 type PropertyCard = Omit<(typeof PROPERTIES)[number], "district" | "listingSubtype"> & {
   district: District;
@@ -111,25 +184,82 @@ export default function PropertiesPage() {
       searchPlaceholder="Search by area, title…"
       search={search}
       onSearchChange={setSearch}
+      hideSearch
+      hideHeader
     >
       <div className="page-container py-6">
-        <div className="flex flex-col gap-4 mb-5">
-          <div className="flex flex-wrap gap-2">
-            {TYPES.map((t) => (
-              <button
-                key={t}
-                type="button"
-                onClick={() => setType(t)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                  type === t
-                    ? "bg-brand-500 text-white border-brand-500"
-                    : "bg-white text-earth-600 border-earth-200 hover:border-brand-300"
-                }`}
-              >
-                {t === "All" ? "All" : t === "SELL" ? "Buy" : "Rent"}
-              </button>
-            ))}
+        <Link
+          href="/"
+          aria-label="Back"
+          className="inline-flex items-center gap-1.5 text-sm text-cement-600 hover:text-cement-900 transition-colors mb-4"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Link>
+
+        <BannerCarousel slides={PROPERTY_BANNER_SLIDES} className="mb-6" />
+
+        <div className="mb-4 flex justify-end">
+          <div className="relative w-full sm:max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by area, title…"
+              aria-label="Search properties"
+              className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+            />
           </div>
+        </div>
+
+        <div className="flex flex-col gap-4 mb-5">
+          <div
+            className="flex flex-wrap justify-center gap-[15px]"
+            role="tablist"
+            aria-label="Listing types"
+          >
+            {TYPES.map((t) => {
+              const meta = TYPE_META[t];
+              const active = type === t;
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-label={`Filter by ${meta.label}`}
+                  onClick={() => setType(t)}
+                  className="group flex w-[120px] flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <div
+                    className={`relative w-[120px] h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                      active
+                        ? "bg-[#CFE3DD] scale-[1.02]"
+                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
+                    }`}
+                  >
+                    <PropertyTypeImage src={meta.image} alt={meta.label} emoji={meta.emoji} />
+                    {active && (
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-sm leading-tight text-center truncate w-full transition-colors ${
+                      active
+                        ? "text-brand-700 font-semibold"
+                        : "text-cement-700 font-medium group-hover:text-cement-900"
+                    }`}
+                  >
+                    {meta.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {subtypeOptions && type !== "All" && (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs font-semibold text-earth-500 uppercase tracking-wider w-full sm:w-auto">
@@ -152,12 +282,11 @@ export default function PropertiesPage() {
             </div>
           )}
           <div className="flex justify-end">
-            <DistrictAreaSelect
+            <DistrictAreaSearch
               district={district}
               onDistrictChange={setDistrict}
               area={area}
               onAreaChange={setArea}
-              selectClassName="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 sm:min-w-[130px]"
             />
           </div>
         </div>

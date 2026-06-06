@@ -2,9 +2,20 @@
 
 import { useState, type ReactNode } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
-import DistrictAreaSelect from "@/components/ui/DistrictAreaSelect";
+import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
-import { MapPin, Star, Phone, CheckCircle, Wrench, Zap, Paintbrush, Hammer, LayoutTemplate } from "lucide-react";
+import {
+  MapPin,
+  Star,
+  Phone,
+  CheckCircle,
+  Wrench,
+  Zap,
+  Paintbrush,
+  Hammer,
+  LayoutTemplate,
+  Check,
+} from "lucide-react";
 import { SERVICES, SERVICE_CATEGORY_FILTERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
 
 const categoryIcon: Record<string, ReactNode> = {
@@ -24,6 +35,74 @@ const categoryBg: Record<string, string> = {
   Painting: "bg-pink-50",
   "Masonry works": "bg-orange-50",
 };
+
+const SERVICE_CATEGORY_META: Record<string, { emoji: string; image: string | null }> = {
+  All: {
+    emoji: "🛠️",
+    image: "https://www.pngkey.com/png/full/55-556142_house-cleaning-services-cleaner.png",
+  },
+  Interiors: {
+    emoji: "🛋️",
+    image:
+      "https://static.vecteezy.com/system/resources/previews/010/880/101/non_2x/3d-interior-design-free-png.png",
+  },
+  Renovations: {
+    emoji: "🏠",
+    image:
+      "https://png.pngtree.com/png-vector/20240913/ourmid/pngtree-renovated-house-installers-png-image_13212913.png",
+  },
+  Painting: {
+    emoji: "🎨",
+    image:
+      "https://e7.pngegg.com/pngimages/62/703/png-clipart-house-painter-and-decorator-painting-interior-design-services-painting-building-service-thumbnail.png",
+  },
+  Electrical: {
+    emoji: "⚡",
+    image:
+      "https://png.pngtree.com/png-clipart/20250415/original/pngtree-electrician-connecting-wires-in-electrical-panel-isolated-on-transparent-background-png-image_20719215.png",
+  },
+  Plumbing: {
+    emoji: "🔧",
+    image:
+      "https://png.pngtree.com/png-clipart/20241009/original/pngtree-water-pipeline-plumbing-service-plumber-worker-png-image_16250329.png",
+  },
+  "Masonry works": {
+    emoji: "🧱",
+    image: "https://3.imimg.com/data3/XR/YB/GLADMIN-176439/masonry-service-250x250.png",
+  },
+};
+
+function ServiceCategoryImage({
+  src,
+  alt,
+  emoji,
+}: {
+  src: string;
+  alt: string;
+  emoji: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (failed) {
+    return (
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-5xl" aria-hidden="true">
+          {emoji}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+      style={{ mixBlendMode: "multiply" }}
+      className="absolute inset-0 w-full h-full object-contain p-3 transition-transform duration-500 ease-out group-hover:scale-105"
+    />
+  );
+}
 
 export default function ServicesPage() {
   const [search, setSearch] = useState("");
@@ -51,32 +130,71 @@ export default function ServicesPage() {
       onSearchChange={setSearch}
     >
       <div className="page-container py-6">
-        <div className="flex gap-2 overflow-x-auto pb-3 mb-5 -mx-4 px-4">
-          {SERVICE_CATEGORY_FILTERS.map((c) => (
-            <button
-              key={c}
-              onClick={() => setCat(c)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
-                cat === c
-                  ? "bg-brand-500 text-white border-brand-500"
-                  : "bg-white text-earth-600 border-earth-200 hover:border-brand-300"
-              }`}
-            >
-              {c}
-            </button>
-          ))}
+        <div className="mb-6">
+          <div
+            className="flex flex-wrap justify-center gap-[15px]"
+            role="tablist"
+            aria-label="Service categories"
+          >
+            {SERVICE_CATEGORY_FILTERS.map((c) => {
+              const meta = SERVICE_CATEGORY_META[c] ?? { emoji: "🛠️", image: null };
+              const active = cat === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-label={`Filter by ${c}`}
+                  onClick={() => setCat(c)}
+                  className="group flex w-[120px] flex-col items-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                >
+                  <div
+                    className={`relative w-[120px] h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                      active
+                        ? "bg-[#CFE3DD] scale-[1.02]"
+                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
+                    }`}
+                  >
+                    {meta.image ? (
+                      <ServiceCategoryImage src={meta.image} alt={c} emoji={meta.emoji} />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
+                        <span className="text-5xl" aria-hidden="true">
+                          {meta.emoji}
+                        </span>
+                      </div>
+                    )}
+                    {active && (
+                      <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
+                        <Check className="w-3.5 h-3.5" strokeWidth={3} />
+                      </div>
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs sm:text-sm leading-tight text-center w-full px-1 transition-colors ${
+                      active
+                        ? "text-brand-700 font-semibold"
+                        : "text-cement-700 font-medium group-hover:text-cement-900"
+                    }`}
+                  >
+                    {c}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
           <p className="text-sm text-earth-500">
             <span className="font-semibold text-earth-900">{filtered.length}</span> service providers found
           </p>
-          <DistrictAreaSelect
+          <DistrictAreaSearch
             district={district}
             onDistrictChange={setDistrict}
             area={area}
             onAreaChange={setArea}
-            selectClassName="text-sm border border-earth-200 rounded-lg px-3 py-1.5 bg-white text-earth-700 focus:outline-none focus:ring-2 focus:ring-brand-400 min-w-0 sm:min-w-[130px]"
           />
         </div>
 

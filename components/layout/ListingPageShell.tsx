@@ -11,6 +11,8 @@ type Props = {
   search: string;
   onSearchChange: (value: string) => void;
   backHref?: string;
+  hideSearch?: boolean;
+  hideHeader?: boolean;
   children: React.ReactNode;
 };
 
@@ -21,34 +23,42 @@ export default function ListingPageShell({
   search,
   onSearchChange,
   backHref,
+  hideSearch,
+  hideHeader,
   children,
 }: Props) {
   return (
     <div className="min-h-screen bg-cement-50">
       <Navbar />
-      <div className="bg-cement-900 text-white">
-        <div className="page-container py-8">
-          {backHref ? (
-            <Link
-              href={backHref}
-              className="text-cement-400 text-sm hover:text-white transition-colors mb-3 inline-block"
-            >
-              ← Back
-            </Link>
-          ) : null}
-          <h1 className={`font-display text-3xl font-bold ${subtitle ? "mb-1" : "mb-4"}`}>{title}</h1>
-          {subtitle ? <p className="text-cement-400 text-sm mb-4">{subtitle}</p> : null}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
-            <input
-              className="w-full bg-white/10 border border-white/20 text-white placeholder-cement-400 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
-              placeholder={searchPlaceholder}
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-            />
+      {hideHeader ? null : (
+        <div className="bg-cement-900 text-white">
+          <div className="page-container py-8">
+            {backHref ? (
+              <Link
+                href={backHref}
+                className="text-cement-400 text-sm hover:text-white transition-colors mb-3 inline-block"
+              >
+                ← Back
+              </Link>
+            ) : null}
+            <h1 className={`font-display text-3xl font-bold ${subtitle ? "mb-1" : hideSearch ? "" : "mb-4"}`}>
+              {title}
+            </h1>
+            {subtitle ? <p className="text-cement-400 text-sm mb-4">{subtitle}</p> : null}
+            {hideSearch ? null : (
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
+                <input
+                  className="w-full bg-white/10 border border-white/20 text-white placeholder-cement-400 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
+                  placeholder={searchPlaceholder}
+                  value={search}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                />
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
       {children}
     </div>
   );
