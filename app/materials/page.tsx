@@ -181,7 +181,7 @@ export default function MaterialsPage() {
 
         <div className="mb-6">
           <div
-            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3 md:gap-[15px] w-full"
+            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-[repeat(13,minmax(0,1fr))] gap-2 sm:gap-3 md:gap-[15px] w-full"
             role="tablist"
             aria-label="Material categories"
           >

@@ -14,6 +14,8 @@ export type MaterialCategory =
   | "TILES"
   | "PLUMBING"
   | "ELECTRICAL"
+  | "DOORS_PLYWOOD"
+  | "SANITARY_WARE"
   | "GLASS"
   | "WOOD"
   | "OTHER";
@@ -185,6 +187,8 @@ export const MATERIAL_CATEGORIES: Record<MaterialCategory, { label: string; icon
   TILES: { label: "Tiles", icon: "◼️" },
   PLUMBING: { label: "Plumbing", icon: "🔧" },
   ELECTRICAL: { label: "Electrical", icon: "⚡" },
+  DOORS_PLYWOOD: { label: "Doors & Plywood", icon: "🚪" },
+  SANITARY_WARE: { label: "Sanitary Ware", icon: "🚿" },
   GLASS: { label: "Glass", icon: "🪟" },
   WOOD: { label: "Wood", icon: "🪵" },
   OTHER: { label: "Other", icon: "📦" },

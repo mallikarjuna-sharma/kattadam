@@ -1,14 +1,15 @@
-import { isDataLayerConfigured } from "@kattadam/data-layer";
+import { getDataLayerConfigError, isDataLayerConfigured } from "@kattadam/data-layer";
 
 export default function AdminConfigBanner() {
   if (isDataLayerConfigured()) return null;
+  const configError = getDataLayerConfigError();
   return (
     <div className="bg-amber-50 border-b border-amber-200 text-amber-950 px-4 py-3 text-sm">
-      <strong className="font-semibold">Database not configured.</strong> Set{" "}
-      <code className="bg-amber-100/80 px-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-      <code className="bg-amber-100/80 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code> in{" "}
-      <code className="bg-amber-100/80 px-1 rounded">.env.local</code> at the project root. Run the SQL migration in{" "}
-      <code className="bg-amber-100/80 px-1 rounded">packages/data-layer/supabase/migrations</code>.
+      <strong className="font-semibold">Database not configured.</strong>{" "}
+      {configError ?? "Set Supabase env vars in .env.local."} See{" "}
+      <code className="bg-amber-100/80 px-1 rounded">.env.example</code>. Run SQL migrations in{" "}
+      <code className="bg-amber-100/80 px-1 rounded">packages/data-layer/supabase/migrations</code>{" "}
+      (001 → 005), then <code className="bg-amber-100/80 px-1 rounded">npm run verify:supabase</code>.
     </div>
   );
 }

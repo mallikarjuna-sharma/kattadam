@@ -553,6 +553,20 @@ export const MATERIAL_CATEGORIES = [
     emoji: "⚡",
     image: "https://i.pinimg.com/736x/1d/ee/39/1dee3930653c7b7ee93e98c818c4f8bb.jpg",
   },
+  {
+    key: "DOORS_PLYWOOD",
+    label: "Doors & Plywood",
+    emoji: "🚪",
+    image:
+      "https://fairwell-gpc.in/wp-content/uploads/2024/07/door-wooden-plywood-hyderabad-1.png",
+  },
+  {
+    key: "SANITARY_WARE",
+    label: "Sanitary Ware",
+    emoji: "🚿",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6VAljnZcSjod_zeXjGoM3MGoYJ3F8TxNePA&s",
+  },
 ];
 
 /** Category keys that use a fixed subcategory dropdown in admin (others use free-text subcategory). */
