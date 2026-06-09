@@ -56,9 +56,26 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
           ...(materialId ? { materialId } : {}),
         }),
       });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        code?: string;
+        detail?: string;
+        hint?: string;
+      };
       if (!res.ok || !data.ok) {
-        setError(data.error ?? "Something went wrong. Please try again.");
+        console.error("[EnquiryModal] Submit failed:", {
+          status: res.status,
+          code: data.code,
+          error: data.error,
+          detail: data.detail,
+          hint: data.hint,
+        });
+        const devDetail =
+          process.env.NODE_ENV === "development" && data.detail && data.detail !== data.error
+            ? ` (${data.detail})`
+            : "";
+        setError((data.error ?? "Something went wrong. Please try again.") + devDetail);
         return;
       }
       setSubmitted(true);

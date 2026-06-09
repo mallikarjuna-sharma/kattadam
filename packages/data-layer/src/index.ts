@@ -1,2 +1,2 @@
 export * from "./types";
-export { isDataLayerConfigured } from "./configured";
+export { isDataLayerConfigured, getDataLayerConfigError } from "./configured";

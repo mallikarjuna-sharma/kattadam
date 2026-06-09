@@ -3,6 +3,7 @@
  * Do not import from client components — keys are server-side.
  */
 import { createBackendFromEnv } from "./internal/factory";
+import { getDataLayerConfigError } from "./configured";
 import type { IDataBackend } from "./internal/ports";
 import type {
   AdminEventRecord,
@@ -60,6 +61,10 @@ export async function catalogListMaterials(): Promise<MaterialRecord[] | null> {
   return b.listPublicMaterials();
 }
 
+export type CreateEnquiryResult =
+  | { ok: true; record: EnquiryRecord }
+  | { ok: false; code: "NOT_CONFIGURED" | "DB_ERROR"; message: string };
+
 export async function catalogCreateEnquiry(row: {
   customerName: string;
   phone?: string | null;
@@ -72,15 +77,21 @@ export async function catalogCreateEnquiry(row: {
   notes?: string | null;
   assignedDealerId?: string | null;
   customerId?: string | null;
-}): Promise<EnquiryRecord | null> {
+}): Promise<CreateEnquiryResult> {
   const b = getServerBackend();
-  if (!b) return null;
+  if (!b) {
+    const configError = getDataLayerConfigError() ?? "Supabase is not configured.";
+    console.error("[@kattadam/data-layer] createEnquiry blocked:", configError);
+    return { ok: false, code: "NOT_CONFIGURED", message: configError };
+  }
   try {
-    return await b.createEnquiry(row);
+    const record = await b.createEnquiry(row);
+    return { ok: true, record };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     console.error("[@kattadam/data-layer] createEnquiry failed:", msg);
-    return null;
+    if (e instanceof Error && e.cause) console.error("[@kattadam/data-layer] createEnquiry cause:", e.cause);
+    return { ok: false, code: "DB_ERROR", message: msg };
   }
 }
 

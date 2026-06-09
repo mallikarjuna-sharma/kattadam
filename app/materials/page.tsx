@@ -9,8 +9,10 @@ import { MapPin, Phone, Package, Check, Search } from "lucide-react";
 import {
   MATERIAL_CATEGORIES,
   DISTRICT_FILTER_ALL,
+  formatAreaWithPin,
   materialCategoryLabel,
 } from "@/lib/mock-data";
+import { matchesAreaFilter, matchesLocationSearch } from "@/lib/location-filters";
 
 const MATERIALS_BANNER_SLIDES = [
   { src: "/banners/banner-cement.png", alt: "Lowest prices on cement — best rates in your area" },
@@ -137,17 +139,17 @@ export default function MaterialsPage() {
   }, []);
 
   const filteredMaterials = useMemo(() => {
-    const q = search.toLowerCase().trim();
     return catalogMaterials.filter((m) => {
       const matchCat = cat === "ALL" || normalizeCategoryKey(m.category) === cat;
       const matchDistrict = district === DISTRICT_FILTER_ALL || (m.district ?? "") === district;
-      const matchArea = area === "All Areas" || (m.area ?? "") === area;
-      const matchSearch =
-        !q ||
-        m.name.toLowerCase().includes(q) ||
-        m.category.toLowerCase().includes(q) ||
-        (m.subcategory ?? "").toLowerCase().includes(q) ||
-        (m.unit ?? "").toLowerCase().includes(q);
+      const matchArea = matchesAreaFilter(area, m.area);
+      const matchSearch = matchesLocationSearch(search, m.area, [
+        m.name,
+        m.category,
+        m.subcategory ?? "",
+        m.unit ?? "",
+        m.district ?? "",
+      ]);
       return matchCat && matchDistrict && matchArea && matchSearch;
     });
   }, [catalogMaterials, search, cat, district, area]);
@@ -155,7 +157,7 @@ export default function MaterialsPage() {
   return (
     <ListingPageShell
       title="Materials catalogue"
-      searchPlaceholder="Search by name, category, unit…"
+      searchPlaceholder="Search by name, area, PIN…"
       search={search}
       onSearchChange={setSearch}
       backHref="/"
@@ -172,7 +174,7 @@ export default function MaterialsPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, category, unit…"
+              placeholder="Search by name, area, PIN…"
               aria-label="Search materials"
               className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
@@ -181,7 +183,7 @@ export default function MaterialsPage() {
 
         <div className="mb-6">
           <div
-            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-10 gap-2 sm:gap-3 md:gap-[15px] w-full"
+            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-[repeat(13,minmax(0,1fr))] gap-2 sm:gap-3 md:gap-[15px] w-full"
             role="tablist"
             aria-label="Material categories"
           >
@@ -290,7 +292,7 @@ export default function MaterialsPage() {
                           <h3 className="font-semibold text-cement-900 text-lg leading-snug">{m.name}</h3>
                           <div className="flex items-center gap-1 text-cement-500 text-xs mt-1">
                             <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                            {m.area || "—"}, {m.district || "—"}
+                            {formatAreaWithPin(m.area)}, {m.district || "—"}
                           </div>
                         </div>
                       </div>

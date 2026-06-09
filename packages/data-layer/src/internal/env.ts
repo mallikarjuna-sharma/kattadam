@@ -12,6 +12,13 @@ function stripOuterQuotes(s: string): string {
   return t;
 }
 
+export function missingSupabaseEnvVars(): string[] {
+  const missing: string[] = [];
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()) missing.push("NEXT_PUBLIC_SUPABASE_URL");
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY?.trim()) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  return missing;
+}
+
 export function readSupabaseServerConfig(): { url: string; serviceRoleKey: string } | null {
   let url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   let serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();

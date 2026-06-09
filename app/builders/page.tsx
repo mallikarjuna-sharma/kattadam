@@ -14,7 +14,8 @@ import {
   Search,
   Check,
 } from "lucide-react";
-import { BUILDERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
+import { BUILDERS, DISTRICT_FILTER_ALL, formatLocationLine } from "@/lib/mock-data";
+import { matchesAreaFilter, matchesLocationSearch } from "@/lib/location-filters";
 
 type ExpertType = {
   key: string;
@@ -104,7 +105,7 @@ export default function BuildersPage() {
   return (
     <ListingPageShell
       title="Kattadam Experts"
-      searchPlaceholder="Search by name or company…"
+      searchPlaceholder="Search name, area, PIN…"
       search={search}
       onSearchChange={setSearch}
       hideSearch
@@ -120,7 +121,7 @@ export default function BuildersPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name or company…"
+              placeholder="Search name, area, PIN…"
               aria-label="Search experts"
               className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
@@ -222,7 +223,7 @@ export default function BuildersPage() {
                       <span className="text-xs text-earth-400">({b.reviewCount})</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-earth-500">
-                      <MapPin className="w-3 h-3" /> {b.area}, {b.district}
+                      <MapPin className="w-3 h-3" /> {formatLocationLine(b.area, b.district)}
                     </div>
                     <span className="text-xs text-earth-500">{b.experience} yrs exp</span>
                   </div>

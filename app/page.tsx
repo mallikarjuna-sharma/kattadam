@@ -5,67 +5,114 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import EnquiryModal from "@/components/ui/EnquiryModal";
-import {
-  Building2,
-  Package,
-  Home,
-  Wrench,
-  ArrowRight,
-  MapPin,
-  Star,
-  Shield,
-  Phone,
-  CheckCircle,
-} from "lucide-react";
-import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
+import { ArrowRight, MapPin, Star, Shield, Phone, CheckCircle } from "lucide-react";
+import KD360Logo from "@/components/ui/KD360Logo";
+import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
-function ConsultLink() {
-  return (
-    <a
-      href={KD360_TEL_HREF}
-      className="inline-flex flex-col items-center justify-center rounded-xl border-2 border-brand-400 bg-brand-50 px-4 py-3 text-center text-sm font-semibold text-brand-800 hover:bg-brand-100 transition-colors min-w-[160px]"
-    >
-      <span>{KD360_NAME}</span>
-      <span className="mt-0.5 text-xs font-bold text-brand-700 tracking-wide">+91 {KD360_PHONE_DISPLAY}</span>
-      <span className="mt-1 text-xs font-normal text-cement-600">
-        <span className="line-through text-cement-400">₹500</span>{" "}
-        <span className="font-semibold text-brand-700">Free consultations</span>
-      </span>
-    </a>
-  );
-}
+const HERO_PILLS = ["Centralized", "Priced", "Scale", "Revolution", "Safety"] as const;
 
-function ExploreRow({
+const SHOWCASE_CARDS = [
+  {
+    image: "/images/landing/card-materials.png",
+    title: "Explore Materials",
+    desc: "Cement, TMT steel, bricks, paint and more from verified local dealers across our districts.",
+    primaryHref: "/materials",
+    primaryLabel: "Browse materials",
+    secondaryHref: "/builders",
+    secondaryLabel: "Kattadam experts",
+    enquiryTarget: "Materials",
+  },
+  {
+    image: "/images/landing/card-experts.png",
+    title: "Kattadam Experts",
+    desc: "Engineers, architects, and builders — verified professionals to plan and deliver your project.",
+    primaryHref: "/builders",
+    primaryLabel: "Find experts",
+    secondaryHref: "/builders",
+    secondaryLabel: "View projects",
+    enquiryTarget: "Kattadam Experts",
+  },
+  {
+    image: "/images/landing/card-realestate.png",
+    title: "Explore Real Estate",
+    desc: "Buy, sell, or rent plots, flats, and land — clear listings from verified sellers.",
+    primaryHref: "/properties",
+    primaryLabel: "Browse listings",
+    secondaryHref: "/properties",
+    secondaryLabel: "Browse projects",
+    enquiryTarget: "Real estate",
+  },
+  {
+    image: "/images/landing/card-homeservices.png",
+    title: "Explore Home Services",
+    desc: "Interiors, renovations, painting, electrical, plumbing, and masonry — skilled verified workers.",
+    primaryHref: "/services",
+    primaryLabel: "Browse services",
+    secondaryHref: "/services",
+    secondaryLabel: "Book online",
+    enquiryTarget: "Home services",
+  },
+] as const;
+
+function ServiceShowcaseCard({
+  image,
+  title,
+  desc,
   primaryHref,
   primaryLabel,
   secondaryHref,
   secondaryLabel,
+  onSendEnquiry,
 }: {
+  image: string;
+  title: string;
+  desc: string;
   primaryHref: string;
   primaryLabel: string;
   secondaryHref: string;
   secondaryLabel: string;
+  onSendEnquiry: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-cement-200 bg-white p-6 shadow-sm">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-        <div className="flex flex-wrap gap-3">
+    <article className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#1e1e1e] shadow-xl">
+      <div className="relative aspect-[16/10] w-full overflow-hidden">
+        <Image src={image} alt="" fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1e1e1e] via-transparent to-transparent" />
+      </div>
+      <div className="flex flex-1 flex-col p-5 md:p-6">
+        <h3 className="font-display text-xl font-bold text-white">{title}</h3>
+        <p className="mt-2 flex-1 text-sm leading-relaxed text-cement-300">{desc}</p>
+        <div className="mt-5 flex flex-wrap gap-2">
           <Link
             href={primaryHref}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-600 text-white px-5 py-3 text-sm font-semibold hover:bg-brand-700 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-full bg-[#4CAF50] px-4 py-2 text-sm font-semibold text-[#0d1f0f] transition-colors hover:bg-[#5ee06a]"
           >
-            {primaryLabel} <ArrowRight className="w-4 h-4" />
+            {primaryLabel} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
           <Link
             href={secondaryHref}
-            className="inline-flex items-center gap-2 rounded-xl border border-cement-200 bg-cement-50 px-5 py-3 text-sm font-semibold text-cement-800 hover:border-brand-300 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-transparent px-4 py-2 text-sm font-semibold text-white transition-colors hover:border-white/50 hover:bg-white/5"
           >
-            {secondaryLabel} <ArrowRight className="w-4 h-4" />
+            {secondaryLabel} <ArrowRight className="h-3.5 w-3.5" />
           </Link>
+          <button
+            type="button"
+            onClick={onSendEnquiry}
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-4 py-2 text-sm font-medium text-cement-400 transition-colors hover:border-[#4CAF50]/50 hover:text-[#4CAF50]"
+          >
+            <Phone className="h-3.5 w-3.5" /> Send enquiry
+          </button>
         </div>
-        <ConsultLink />
       </div>
-    </div>
+      <div className="flex items-center justify-end border-t border-white/10 bg-[#141414] px-4 py-3">
+        <a
+          href={KD360_TEL_HREF}
+          className="inline-flex items-center gap-2 rounded-full bg-[#4CAF50] px-4 py-2 text-sm font-bold text-[#0d1f0f] transition-colors hover:bg-[#5ee06a]"
+        >
+          <Phone className="h-4 w-4" /> Call now
+        </a>
+      </div>
+    </article>
   );
 }
 
@@ -73,182 +120,84 @@ export default function LandingPage() {
   const [enquiry, setEnquiry] = useState<string | null>(null);
 
   return (
-    <div className="min-h-screen">
-      <Navbar />
+    <div className="min-h-screen bg-[#121212]">
+      <Navbar variant="dark" />
 
-      <section className="bg-cement-900 text-white relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, #4caf50 1px, transparent 0)",
-            backgroundSize: "40px 40px",
-          }}
-        />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-brand-500/15 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl" />
+      <section className="relative overflow-hidden text-white">
+        <div className="absolute inset-0">
+          <Image
+            src="/images/landing/hero-construction.png"
+            alt=""
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#121212]/85 via-[#121212]/70 to-[#121212]" />
+        </div>
 
-        <div className="page-container py-20 md:py-28 relative">
-          <div className="max-w-3xl space-y-8">
-            <div className="flex flex-wrap items-start gap-6">
-              <Image
-                src="/logo.jpeg"
-                alt=""
-                width={72}
-                height={72}
-                className="rounded-2xl object-cover border border-white/10 shadow-lg"
-                priority
-              />
-              <div>
-                <p className="font-display text-3xl md:text-4xl font-bold text-white tracking-tight">கட்டடம்</p>
-                <p className="text-brand-100/90 text-sm md:text-base mt-2 leading-relaxed max-w-md">
-                  Build Better. Together.
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.12] text-white">
-                Construction made simple, transparent, and local.
-              </h1>
-              <p className="text-cement-200 text-lg md:text-xl leading-relaxed mt-6 max-w-2xl">
-                From materials to Kattadam experts — everything you need, verified in one place.
-              </p>
-            </div>
-
-            <p className="text-brand-100 text-base md:text-lg flex flex-wrap items-center gap-2">
-              <span className="text-xl" aria-hidden>
-                📍
-              </span>
-              <span>Coimbatore · Tirupur · Erode · Namakkal · Salem</span>
+        <div className="page-container relative py-14 md:py-20">
+          <div className="max-w-3xl">
+            <h1 className="font-display text-4xl font-bold leading-[1.1] tracking-tight md:text-5xl lg:text-6xl">
+              Construction made{" "}
+              <span className="text-[#4CAF50]">simple</span>,{" "}
+              <span className="text-[#4CAF50]">transparent</span>, and{" "}
+              <span className="text-[#4CAF50]">local</span>.
+            </h1>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-cement-200 md:text-lg">
+              From materials to Kattadam experts — everything you need, verified in one place.
             </p>
-
-            <p className="text-cement-200 text-lg font-medium max-w-xl">
-              No middlemen. No confusion. Just trusted connections.
-            </p>
-
-            <hr className="border-white/15 max-w-md" />
-
-            <div className="space-y-6">
-              <ExploreRow
-                primaryHref="/materials"
-                primaryLabel="Explore materials"
-                secondaryHref="/builders"
-                secondaryLabel="Explore Kattadam experts"
-              />
-              <ExploreRow
-                primaryHref="/properties"
-                primaryLabel="Explore real estate"
-                secondaryHref="/services"
-                secondaryLabel="Explore home services"
-              />
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-cement-300">
+              {HERO_PILLS.map((pill) => (
+                <span key={pill} className="inline-flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[#4CAF50]" aria-hidden />
+                  {pill}
+                </span>
+              ))}
             </div>
+            <p className="mt-5 flex flex-wrap items-center gap-2 text-sm text-cement-300 md:text-base">
+              <MapPin className="h-4 w-4 text-[#4CAF50]" aria-hidden />
+              Coimbatore · Tirupur · Erode · Namakkal · Salem · Chennai
+            </p>
+          </div>
+
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            {SHOWCASE_CARDS.map((card) => (
+              <ServiceShowcaseCard
+                key={card.title}
+                {...card}
+                onSendEnquiry={() => setEnquiry(card.enquiryTarget)}
+              />
+            ))}
           </div>
         </div>
 
-        <div className="border-t border-white/10">
-          <div className="page-container py-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+        <div className="relative border-t border-white/10">
+          <div className="page-container grid grid-cols-2 gap-6 py-8 text-center md:grid-cols-4">
             {[
               { v: "50+", l: "Verified dealers" },
               { v: "30+", l: "Kattadam Experts" },
               { v: "200+", l: "Real estate listings" },
-              { v: "5", l: "District service area" },
+              { v: "6", l: "District service area" },
             ].map((s) => (
               <div key={s.l}>
-                <div className="text-2xl font-bold text-brand-400">{s.v}</div>
-                <div className="text-sm text-cement-400">{s.l}</div>
+                <div className="text-2xl font-bold text-[#4CAF50] md:text-3xl">{s.v}</div>
+                <div className="mt-1 text-sm text-cement-400">{s.l}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-cement-50">
-        <div className="page-container">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-4xl font-bold text-cement-900 mb-3">Everything to build with</h2>
-            <p className="text-cement-500 max-w-lg mx-auto">
-              One place for materials, experts, real estate, and home services across our districts.
-            </p>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              {
-                icon: Package,
-                title: "Materials",
-                desc: "Cement, TMT steel, bricks, paint and more from verified local dealers",
-                href: "/materials",
-                color: "text-brand-600",
-                bg: "bg-brand-50",
-                border: "hover:border-brand-200",
-              },
-              {
-                icon: Building2,
-                title: "Kattadam Experts",
-                desc: "Engineers, architects, and builders — verified professionals",
-                href: "/builders",
-                color: "text-cement-600",
-                bg: "bg-cement-100",
-                border: "hover:border-cement-300",
-              },
-              {
-                icon: Home,
-                title: "Real estate",
-                desc: "Buy, sell, or rent with clear plot, flat, and land options",
-                href: "/properties",
-                color: "text-brand-700",
-                bg: "bg-brand-50",
-                border: "hover:border-brand-200",
-              },
-              {
-                icon: Wrench,
-                title: "Home services",
-                desc: "Interiors, renovations, painting, electrical, plumbing, masonry",
-                href: "/services",
-                color: "text-cement-600",
-                bg: "bg-cement-100",
-                border: "hover:border-cement-300",
-              },
-            ].map((c) => (
-              <button
-                key={c.title}
-                type="button"
-                onClick={() => setEnquiry(c.title)}
-                aria-label={`Send enquiry about ${c.title}`}
-                className={`card p-6 group text-left w-full ${c.border} transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
-              >
-                <div
-                  className={`w-12 h-12 ${c.bg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}
-                >
-                  <c.icon className={`w-6 h-6 ${c.color}`} />
-                </div>
-                <h3 className="font-semibold text-cement-900 text-lg mb-2">{c.title}</h3>
-                <p className="text-sm text-cement-500 leading-relaxed">{c.desc}</p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className={`text-sm font-medium ${c.color} flex items-center gap-1`}>
-                    <Phone className="w-3.5 h-3.5" /> Send enquiry
-                  </span>
-                  <Link
-                    href={c.href}
-                    onClick={(e) => e.stopPropagation()}
-                    className="text-xs font-medium text-cement-500 hover:text-cement-900 inline-flex items-center gap-1 underline-offset-2 hover:underline"
-                  >
-                    Browse <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="py-20 md:py-24 bg-white">
+      <section className="border-t border-white/10 py-20">
         <div className="page-container max-w-3xl mx-auto text-center">
           <p className="text-2xl mb-3" aria-hidden>
             🔶
           </p>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-cement-900 mb-8 tracking-tight">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-8 tracking-tight">
             Why Kattadam?
           </h2>
-          <p className="text-cement-600 text-lg leading-relaxed mb-10">
+          <p className="text-cement-300 text-lg leading-relaxed mb-10">
             Because construction shouldn&apos;t be confusing, risky, or overpriced. We&apos;re building a trusted
             ecosystem for regional construction — solving real problems like hidden pricing, unreliable contractors, and
             scattered information.
@@ -277,59 +226,72 @@ export default function LandingPage() {
               },
             ].map((item) => (
               <div key={item.title} className="flex gap-4">
-                <div className="w-11 h-11 bg-brand-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <item.icon className="w-5 h-5 text-brand-600" />
+                <div className="w-11 h-11 bg-[#4CAF50]/15 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <item.icon className="w-5 h-5 text-[#4CAF50]" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-cement-900 text-lg mb-2">
+                  <h4 className="font-semibold text-white text-lg mb-2">
                     <span className="mr-2" aria-hidden>
                       {item.emoji}
                     </span>
                     {item.title}
                   </h4>
-                  <p className="text-sm text-cement-600 leading-relaxed">{item.body}</p>
+                  <p className="text-sm text-cement-400 leading-relaxed">{item.body}</p>
                 </div>
               </div>
             ))}
           </div>
-          <div className="rounded-3xl bg-gradient-to-br from-cement-900 to-cement-800 text-white p-8 md:p-10 shadow-xl space-y-5">
-            <h3 className="font-display text-2xl md:text-3xl font-bold leading-snug">
-              Kattadam — You dream. We build. End-to-end construction ecosystem.
-            </h3>
-            <p className="text-cement-300 text-sm md:text-base leading-relaxed">
-              From land — raw materials — final handover, Kattadam integrates every stage of construction into a single
-              intelligent system.
-            </p>
+          <div className="relative overflow-hidden rounded-3xl border border-white/10 shadow-xl">
+            <Image
+              src="/images/kd360-truck-hero.png"
+              alt=""
+              fill
+              className="object-cover object-center"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#052010]/95 via-[#052010]/85 to-[#052010]/70" />
+            <div className="relative space-y-5 p-8 text-white md:p-10">
+              <h3 className="font-display text-2xl font-bold leading-snug md:text-3xl">
+                Kattadam — You dream. We build. End-to-end construction ecosystem.
+              </h3>
+              <p className="text-sm leading-relaxed text-cement-200 md:text-base">
+                From land — raw materials — final handover, Kattadam integrates every stage of construction into a single
+                intelligent system.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-cement-50 border-y border-cement-100">
+      <section className="py-20 border-t border-white/10">
         <div className="page-container grid lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h3 className="font-display text-2xl font-bold text-cement-900 mb-2">Kattadam partners</h3>
-            <p className="text-cement-500 text-sm mb-6 leading-relaxed">
-              List your firm and reach serious buyers across Coimbatore, Tirupur, Erode, Namakkal, and Salem.
+            <h3 className="font-display text-2xl font-bold text-white mb-2">Kattadam partners</h3>
+            <p className="text-cement-400 text-sm mb-6 leading-relaxed">
+              List your firm and reach serious buyers across Coimbatore, Tirupur, Erode, Namakkal, Salem, and Chennai.
             </p>
             <ul className="space-y-3 mb-8">
               {[
-                "Qualified leads with context",
+                "We pay you, you deliver the order.",
                 "Showcase projects and credentials",
-                "Manage enquiries in one place",
+                "Receive orders and projects in one place",
                 "Verified badge builds trust",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">
-                  <CheckCircle className="w-4 h-4 text-brand-500 flex-shrink-0" />
-                  <span className="text-cement-600 text-sm">{item}</span>
+                  <CheckCircle className="w-4 h-4 text-[#4CAF50] flex-shrink-0" />
+                  <span className="text-cement-300 text-sm">{item}</span>
                 </div>
               ))}
             </ul>
-            <Link href="/auth/login" className="btn-primary inline-block text-center px-8 py-3">
+            <Link
+              href="/auth/login"
+              className="inline-flex items-center justify-center rounded-full bg-[#4CAF50] px-8 py-3 text-sm font-semibold text-[#0d1f0f] transition-colors hover:bg-[#5ee06a]"
+            >
               Register as Kattadam partner
             </Link>
           </div>
-          <div className="card p-8 bg-white">
-            <p className="text-sm text-cement-600 leading-relaxed">
+          <div className="rounded-2xl border border-white/10 bg-[#1e1e1e] p-8">
+            <p className="text-sm text-cement-300 leading-relaxed">
               Whether you supply materials, offer home services, or are a Kattadam Expert, partner onboarding is handled
               through the same trusted flow — so homeowners see one consistent, professional experience.
             </p>
@@ -337,23 +299,25 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 bg-brand-600">
-        <div className="page-container text-center text-white">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-2">{KD360_NAME}</h2>
-          <p className="text-white font-semibold text-lg tracking-wide mb-4">+91 {KD360_PHONE_DISPLAY}</p>
-          <p className="text-white/90 mb-8 max-w-lg mx-auto text-base leading-relaxed">
+      <section className="py-20 bg-[#4CAF50]">
+        <div className="page-container text-center text-[#0d1f0f]">
+          <h2 className="mb-2 flex justify-center">
+            <KD360Logo size="xl" className="text-[#0d1f0f]" />
+          </h2>
+          <p className="font-semibold text-lg tracking-wide mb-4">+91 {KD360_PHONE_DISPLAY}</p>
+          <p className="mb-8 max-w-lg mx-auto text-base leading-relaxed opacity-90">
             Speak with our team for materials, experts, real estate, or services — we&apos;ll guide your next step.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
               href={KD360_TEL_HREF}
-              className="inline-flex items-center gap-2 bg-white text-brand-700 font-semibold px-8 py-4 rounded-xl hover:bg-cement-50 transition-colors shadow-lg text-base"
+              className="inline-flex items-center gap-2 bg-[#121212] text-white font-semibold px-8 py-4 rounded-full hover:bg-[#1e1e1e] transition-colors shadow-lg text-base"
             >
               <Phone className="w-4 h-4" /> Call +91 {KD360_PHONE_DISPLAY}
             </a>
             <Link
               href="/auth/login"
-              className="inline-flex items-center gap-2 border border-white/40 text-white font-semibold px-8 py-4 rounded-xl hover:bg-white/10 transition-colors text-base"
+              className="inline-flex items-center gap-2 border-2 border-[#0d1f0f]/30 text-[#0d1f0f] font-semibold px-8 py-4 rounded-full hover:bg-[#0d1f0f]/10 transition-colors text-base"
             >
               Get started free <ArrowRight className="w-4 h-4" />
             </Link>
@@ -363,7 +327,7 @@ export default function LandingPage() {
 
       {enquiry && <EnquiryModal target={enquiry} onClose={() => setEnquiry(null)} />}
 
-      <footer className="bg-cement-900 text-cement-400 py-10">
+      <footer className="bg-[#0a0a0a] text-cement-400 py-10 border-t border-white/10">
         <div className="page-container flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
           <div className="flex items-center gap-2">
             <Image src="/logo.jpeg" alt="" width={28} height={28} className="rounded-md object-cover" />

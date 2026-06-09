@@ -18,10 +18,15 @@ import {
 import {
   PROPERTIES,
   formatPrice,
+  formatLocationLine,
+  normalizeAreaName,
+  parseLocationToAreaDistrict,
+  DISTRICTS,
   DISTRICT_FILTER_ALL,
   type District,
   type PropertyListingSubtype,
 } from "@/lib/mock-data";
+import { matchesAreaFilter, matchesLocationSearch } from "@/lib/location-filters";
 
 const PROPERTY_BANNER_SLIDES = [
   {
@@ -102,7 +107,7 @@ function mapApiListing(p: {
   district: string;
   area: string;
 }): PropertyCard {
-  const d = (["Coimbatore", "Tirupur", "Erode", "Namakkal", "Salem"] as const).includes(p.district as District)
+  const d = (DISTRICTS as readonly string[]).includes(p.district)
     ? (p.district as District)
     : "Coimbatore";
   return {
@@ -115,7 +120,7 @@ function mapApiListing(p: {
     bedrooms: null,
     bathrooms: null,
     district: d,
-    location: `${p.area}, ${p.district}`,
+    location: formatLocationLine(p.area, p.district),
     postedBy: "Kattadam listing",
     daysAgo: 0,
     tag: "Listed",
@@ -166,11 +171,11 @@ export default function PropertiesPage() {
   const subtypeOptions = type === "RENT" ? RENT_SUB : type === "SELL" ? BUY_SUB : null;
 
   const filtered = allListings.filter((p) => {
-    const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
+    const locality = normalizeAreaName(parseLocationToAreaDistrict(p.location).area);
+    const matchSearch = matchesLocationSearch(search, locality, [p.title, p.location, p.district]);
     const matchType = type === "All" || p.type === type;
     const matchDistrict = district === DISTRICT_FILTER_ALL || p.district === district;
-    const locality = p.location.split(",")[0]?.trim() ?? "";
-    const matchArea = area === "All Areas" || locality === area;
+    const matchArea = matchesAreaFilter(area, locality);
     const matchSubtype =
       !subtypeOptions || subtype === "All" || p.listingSubtype === subtype || type === "All";
     return matchSearch && matchType && matchDistrict && matchArea && matchSubtype;
@@ -179,7 +184,7 @@ export default function PropertiesPage() {
   return (
     <ListingPageShell
       title="Real estate"
-      searchPlaceholder="Search by area, title…"
+      searchPlaceholder="Search by area, PIN, title…"
       search={search}
       onSearchChange={setSearch}
       hideSearch
@@ -195,7 +200,7 @@ export default function PropertiesPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by area, title…"
+              placeholder="Search by area, PIN, title…"
               aria-label="Search properties"
               className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
@@ -306,7 +311,11 @@ export default function PropertiesPage() {
               <div className="p-4">
                 <h3 className="font-semibold text-earth-900 mb-1 leading-snug">{p.title}</h3>
                 <div className="flex items-center gap-1 text-earth-500 text-xs mb-3">
-                  <MapPin className="w-3 h-3" /> {p.location}
+                  <MapPin className="w-3 h-3" />{" "}
+                  {formatLocationLine(
+                    normalizeAreaName(parseLocationToAreaDistrict(p.location).area),
+                    p.district
+                  )}
                 </div>
 
                 {(p.bedrooms || p.area) && (

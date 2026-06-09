@@ -18,7 +18,13 @@ import {
   Check,
   Search,
 } from "lucide-react";
-import { SERVICES, SERVICE_CATEGORY_FILTERS, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
+import {
+  SERVICES,
+  SERVICE_CATEGORY_FILTERS,
+  DISTRICT_FILTER_ALL,
+  formatLocationLine,
+} from "@/lib/mock-data";
+import { matchesAreaFilter, matchesLocationSearch } from "@/lib/location-filters";
 
 const SERVICES_BANNER_SLIDES = [
   {
@@ -133,12 +139,10 @@ export default function ServicesPage() {
   const [enquiry, setEnquiry] = useState<string | null>(null);
 
   const filtered = SERVICES.filter((s) => {
-    const matchSearch =
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.description.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = matchesLocationSearch(search, s.area, [s.name, s.description, s.district]);
     const matchCat = cat === "All" || s.category === cat;
     const matchDistrict = district === DISTRICT_FILTER_ALL || s.district === district;
-    const matchArea = area === "All Areas" || s.area === area;
+    const matchArea = matchesAreaFilter(area, s.area);
     return matchSearch && matchCat && matchDistrict && matchArea;
   });
 
@@ -162,7 +166,7 @@ export default function ServicesPage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search painting, plumbing, interiors…"
+              placeholder="Search service, area, PIN…"
               aria-label="Search services"
               className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
             />
@@ -266,7 +270,7 @@ export default function ServicesPage() {
                       <span className="text-xs text-earth-400">({s.reviewCount})</span>
                     </div>
                     <div className="flex items-center gap-1 text-xs text-earth-500">
-                      <MapPin className="w-3 h-3" /> {s.area}, {s.district}
+                      <MapPin className="w-3 h-3" /> {formatLocationLine(s.area, s.district)}
                     </div>
                   </div>
                 </div>

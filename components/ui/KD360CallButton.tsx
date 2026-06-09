@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Phone, X } from "lucide-react";
+import KD360Logo from "@/components/ui/KD360Logo";
 import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 /**
@@ -39,7 +40,7 @@ export default function KD360CallButton() {
           aria-label={`${KD360_NAME} contact`}
         >
           <div className="flex items-start justify-between gap-2 mb-2">
-            <p className="font-display font-bold text-cement-900 text-sm">{KD360_NAME}</p>
+            <KD360Logo size="sm" className="text-cement-900" />
             <button
               type="button"
               className="p-1 rounded-lg text-cement-400 hover:bg-cement-100 hover:text-cement-700"

@@ -1,8 +1,42 @@
 import { adminListDealers, adminListEnquiries } from "@kattadam/data-layer/server";
-import type { EnquiryStatus } from "@kattadam/data-layer";
+import type { EnquiryRecord, EnquiryStatus } from "@kattadam/data-layer";
 import { actionSetEnquiryStatus, actionAssignEnquiry } from "@/app/admin/actions";
 
 const STATUSES: EnquiryStatus[] = ["pending", "assigned", "accepted", "delivered", "cancelled"];
+
+function parseLegacyPhone(notes: string | null): string | null {
+  const m = notes?.match(/^Phone:\s*\+?91?\s*(\d{10})/m);
+  return m ? m[1] : null;
+}
+
+function parseLegacyAltPhone(notes: string | null): string | null {
+  const m = notes?.match(/^Alt phone:\s*\+?91?\s*(\d{10})/m);
+  return m ? m[1] : null;
+}
+
+function parseLegacyEmail(notes: string | null): string | null {
+  const m = notes?.match(/^Email:\s*(\S+@\S+)/m);
+  return m ? m[1] : null;
+}
+
+function displayRequirement(notes: string | null): string | null {
+  if (!notes) return null;
+  let text = notes
+    .replace(/^Phone:\s*\+?91?\s*\d{10}\s*\n?/m, "")
+    .replace(/^Alt phone:\s*\+?91?\s*\d{10}\s*\n?/m, "")
+    .replace(/^Email:\s*.+\s*\n?/m, "");
+  const regarding = text.match(/^Regarding:\s*.+\n\n([\s\S]*)$/);
+  if (regarding) return regarding[1].trim() || null;
+  return text.trim() || null;
+}
+
+function contactForEnquiry(e: EnquiryRecord) {
+  return {
+    phone: e.phone ?? parseLegacyPhone(e.notes),
+    altPhone: e.altPhone ?? parseLegacyAltPhone(e.notes),
+    email: e.email ?? parseLegacyEmail(e.notes),
+  };
+}
 
 export default async function EnquiriesPage() {
   const [enquiries, dealers] = await Promise.all([adminListEnquiries(), adminListDealers()]);
@@ -31,42 +65,46 @@ export default async function EnquiriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {enquiries.map((e) => (
+                {enquiries.map((e) => {
+                  const contact = contactForEnquiry(e);
+                  const requirement = displayRequirement(e.notes);
+                  return (
                   <tr key={e.id}>
                     <td className="admin-td max-w-[280px]">
                       <div className="font-medium">{e.customerName ?? "—"}</div>
                       <div className="text-xs text-cement-500">{e.materialLabel ?? e.materialId ?? "—"}</div>
-                      {e.notes ? (
+                      {requirement ? (
                         <div className="text-[11px] text-cement-600 mt-1 whitespace-pre-wrap break-words border-t border-cement-100 pt-1">
-                          {e.notes}
+                          <span className="text-cement-400 font-medium">Requirement: </span>
+                          {requirement}
                         </div>
                       ) : null}
                     </td>
                     <td className="admin-td max-w-[200px]">
                       <div className="text-xs space-y-0.5">
-                        {e.phone ? (
+                        {contact.phone ? (
                           <div>
                             <span className="text-cement-400">📞</span>{" "}
-                            <a href={`tel:+91${e.phone}`} className="text-cement-800 hover:underline">
-                              +91 {e.phone}
+                            <a href={`tel:+91${contact.phone}`} className="text-cement-800 hover:underline">
+                              +91 {contact.phone}
                             </a>
                           </div>
                         ) : (
                           <div className="text-cement-400">—</div>
                         )}
-                        {e.altPhone ? (
+                        {contact.altPhone ? (
                           <div>
                             <span className="text-cement-400">📱 alt:</span>{" "}
-                            <a href={`tel:+91${e.altPhone}`} className="text-cement-700 hover:underline">
-                              +91 {e.altPhone}
+                            <a href={`tel:+91${contact.altPhone}`} className="text-cement-700 hover:underline">
+                              +91 {contact.altPhone}
                             </a>
                           </div>
                         ) : null}
-                        {e.email ? (
+                        {contact.email ? (
                           <div className="break-all">
                             <span className="text-cement-400">✉</span>{" "}
-                            <a href={`mailto:${e.email}`} className="text-cement-700 hover:underline">
-                              {e.email}
+                            <a href={`mailto:${contact.email}`} className="text-cement-700 hover:underline">
+                              {contact.email}
                             </a>
                           </div>
                         ) : null}
@@ -116,7 +154,8 @@ export default async function EnquiriesPage() {
                       </form>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
