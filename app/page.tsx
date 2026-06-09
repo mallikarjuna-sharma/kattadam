@@ -157,7 +157,7 @@ export default function LandingPage() {
             </div>
             <p className="mt-5 flex flex-wrap items-center gap-2 text-sm text-cement-300 md:text-base">
               <MapPin className="h-4 w-4 text-[#4CAF50]" aria-hidden />
-              Coimbatore · Tirupur · Erode · Namakkal · Salem
+              Coimbatore · Tirupur · Erode · Namakkal · Salem · Chennai
             </p>
           </div>
 
@@ -178,7 +178,7 @@ export default function LandingPage() {
               { v: "50+", l: "Verified dealers" },
               { v: "30+", l: "Kattadam Experts" },
               { v: "200+", l: "Real estate listings" },
-              { v: "5", l: "District service area" },
+              { v: "6", l: "District service area" },
             ].map((s) => (
               <div key={s.l}>
                 <div className="text-2xl font-bold text-[#4CAF50] md:text-3xl">{s.v}</div>
@@ -268,13 +268,13 @@ export default function LandingPage() {
           <div>
             <h3 className="font-display text-2xl font-bold text-white mb-2">Kattadam partners</h3>
             <p className="text-cement-400 text-sm mb-6 leading-relaxed">
-              List your firm and reach serious buyers across Coimbatore, Tirupur, Erode, Namakkal, and Salem.
+              List your firm and reach serious buyers across Coimbatore, Tirupur, Erode, Namakkal, Salem, and Chennai.
             </p>
             <ul className="space-y-3 mb-8">
               {[
-                "Qualified leads with context",
+                "We pay you, you deliver the order.",
                 "Showcase projects and credentials",
-                "Manage enquiries in one place",
+                "Receive orders and projects in one place",
                 "Verified badge builds trust",
               ].map((item) => (
                 <div key={item} className="flex items-center gap-3">

@@ -25,7 +25,7 @@ export default function HomePage() {
               </p>
               <p className="text-earth-200 text-sm flex flex-wrap items-center gap-2 pt-1">
                 <span aria-hidden>📍</span>
-                <span>Coimbatore · Tirupur · Erode · Namakkal · Salem</span>
+                <span>Coimbatore · Tirupur · Erode · Namakkal · Salem · Chennai</span>
               </p>
               <p className="text-earth-100 text-sm font-medium pt-2 border-t border-white/10 mt-4 max-w-lg">
                 No middlemen. No confusion. Just trusted connections.
@@ -86,7 +86,7 @@ export default function HomePage() {
               ["50+", "Dealers"],
               ["30+", "Experts"],
               ["200+", "Listings"],
-              ["5", "Districts"],
+              ["6", "Districts"],
             ].map(([v, l]) => (
               <div key={l} className="py-2">
                 <div className="text-lg font-bold text-brand-600">{v}</div>

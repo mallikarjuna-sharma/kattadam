@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, Search } from "lucide-react";
-import { DISTRICTS, DISTRICT_FILTER_ALL, areaOptionsForDistrict } from "@/lib/mock-data";
+import {
+  DISTRICTS,
+  DISTRICT_FILTER_ALL,
+  areaOptionsForDistrict,
+  type AreaSearchOption,
+} from "@/lib/mock-data";
 
 type Props = {
   district: string;
@@ -20,7 +25,7 @@ export default function DistrictAreaSearch({
   className = "flex flex-col sm:flex-row gap-2",
 }: Props) {
   const areaOptions = areaOptionsForDistrict(district);
-  const areaDisabled = district === DISTRICT_FILTER_ALL;
+  const selectedArea = areaOptions.find((o) => o.value === area) ?? areaOptions[0]!;
 
   return (
     <div className={className}>
@@ -30,18 +35,21 @@ export default function DistrictAreaSearch({
           onDistrictChange(v);
           onAreaChange("All Areas");
         }}
-        options={[DISTRICT_FILTER_ALL, ...DISTRICTS]}
+        options={[DISTRICT_FILTER_ALL, ...DISTRICTS].map((d) => ({
+          value: d,
+          label: d,
+          searchText: d.toLowerCase(),
+        }))}
         placeholder="Search district…"
         ariaLabel="District"
       />
       <SearchSelect
-        value={areaOptions.includes(area) ? area : "All Areas"}
+        value={selectedArea.value}
+        displayLabel={selectedArea.label}
         onChange={onAreaChange}
         options={areaOptions}
-        placeholder="Search area…"
-        disabled={areaDisabled}
-        disabledTitle="Choose a district first"
-        ariaLabel="Area"
+        placeholder="Search area or PIN…"
+        ariaLabel="Area or PIN code"
       />
     </div>
   );
@@ -49,8 +57,9 @@ export default function DistrictAreaSearch({
 
 type SearchSelectProps = {
   value: string;
+  displayLabel?: string;
   onChange: (next: string) => void;
-  options: readonly string[];
+  options: readonly AreaSearchOption[];
   placeholder: string;
   disabled?: boolean;
   disabledTitle?: string;
@@ -59,6 +68,7 @@ type SearchSelectProps = {
 
 function SearchSelect({
   value,
+  displayLabel,
   onChange,
   options,
   placeholder,
@@ -69,6 +79,7 @@ function SearchSelect({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const wrapRef = useRef<HTMLDivElement>(null);
+  const shownLabel = displayLabel ?? options.find((o) => o.value === value)?.label ?? value;
 
   useEffect(() => {
     if (!open) return;
@@ -83,10 +94,12 @@ function SearchSelect({
   }, [open]);
 
   const q = query.toLowerCase().trim();
-  const filtered = q ? options.filter((o) => o.toLowerCase().includes(q)) : options;
+  const filtered = q
+    ? options.filter((o) => o.searchText.includes(q) || o.label.toLowerCase().includes(q))
+    : options;
 
   return (
-    <div ref={wrapRef} className="relative min-w-0 sm:min-w-[180px]">
+    <div ref={wrapRef} className="relative min-w-0 sm:min-w-[200px]">
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
         <input
@@ -94,7 +107,7 @@ function SearchSelect({
           role="combobox"
           aria-expanded={open}
           aria-label={ariaLabel}
-          value={open ? query : value}
+          value={open ? query : shownLabel}
           placeholder={placeholder}
           disabled={disabled}
           title={disabled ? disabledTitle : undefined}
@@ -144,15 +157,15 @@ function SearchSelect({
             <div className="px-3 py-2 text-sm text-cement-500">No matches</div>
           ) : (
             filtered.map((opt) => {
-              const selected = value === opt;
+              const selected = value === opt.value;
               return (
                 <button
-                  key={opt}
+                  key={opt.value}
                   type="button"
                   role="option"
                   aria-selected={selected}
                   onClick={() => {
-                    onChange(opt);
+                    onChange(opt.value);
                     setOpen(false);
                     setQuery("");
                   }}
@@ -162,7 +175,7 @@ function SearchSelect({
                       : "text-cement-700 hover:bg-cement-50"
                   }`}
                 >
-                  {opt}
+                  {opt.label}
                 </button>
               );
             })
