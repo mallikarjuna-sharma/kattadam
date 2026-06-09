@@ -6,7 +6,8 @@ import Image from "next/image";
 import Navbar from "@/components/layout/Navbar";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 import { ArrowRight, MapPin, Star, Shield, Phone, CheckCircle } from "lucide-react";
-import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
+import KD360Logo from "@/components/ui/KD360Logo";
+import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 const HERO_PILLS = ["Centralized", "Priced", "Scale", "Revolution", "Safety"] as const;
 
@@ -300,7 +301,9 @@ export default function LandingPage() {
 
       <section className="py-20 bg-[#4CAF50]">
         <div className="page-container text-center text-[#0d1f0f]">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-2">{KD360_NAME}</h2>
+          <h2 className="mb-2 flex justify-center">
+            <KD360Logo size="xl" className="text-[#0d1f0f]" />
+          </h2>
           <p className="font-semibold text-lg tracking-wide mb-4">+91 {KD360_PHONE_DISPLAY}</p>
           <p className="mb-8 max-w-lg mx-auto text-base leading-relaxed opacity-90">
             Speak with our team for materials, experts, real estate, or services — we&apos;ll guide your next step.

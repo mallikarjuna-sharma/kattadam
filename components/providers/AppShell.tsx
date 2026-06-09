@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 import { Building2, Check, Hammer, Home, Phone, Shield, UserCheck, X } from "lucide-react";
 import KD360CallButton from "@/components/ui/KD360CallButton";
+import KD360Logo from "@/components/ui/KD360Logo";
 import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 const LANG_KEY = "kattadam_lang";
@@ -33,7 +34,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     lang_ta: "தமிழ்",
     expert_popup_heading_free: "FREE",
     expert_popup_heading_consultation: "CONSULTATION",
-    expert_popup_subtitle: "KD 360° · Get clarity before you build!",
+    expert_popup_subtitle: "Get clarity before you build!",
     expert_popup_materials: "Materials",
     expert_popup_experts: "Experts",
     expert_popup_homeservices: "Home Services",
@@ -54,7 +55,7 @@ const DICT: Record<Lang, Record<string, string>> = {
     lang_ta: "தமிழ்",
     expert_popup_heading_free: "இலவச",
     expert_popup_heading_consultation: "ஆலோசனை",
-    expert_popup_subtitle: "KD 360° · கட்டுவதற்கு முன் தெளிவு பெறுங்கள்!",
+    expert_popup_subtitle: "கட்டுவதற்கு முன் தெளிவு பெறுங்கள்!",
     expert_popup_materials: "பொருட்கள்",
     expert_popup_experts: "நிபுணர்கள்",
     expert_popup_homeservices: "வீட்டு சேவைகள்",
@@ -167,8 +168,9 @@ function ExpertCallPopup() {
             <br />
             {t("expert_popup_heading_consultation")}
           </h2>
-          <p className="mt-1.5 text-center text-sm font-medium text-[#50D890]">
-            {t("expert_popup_subtitle")}
+          <p className="mt-1.5 flex flex-wrap items-center justify-center gap-1.5 text-center text-sm font-medium text-[#50D890]">
+            <KD360Logo size="sm" variant="light" />
+            <span>· {t("expert_popup_subtitle")}</span>
           </p>
 
           <div className="mt-4 grid grid-cols-3 gap-2">

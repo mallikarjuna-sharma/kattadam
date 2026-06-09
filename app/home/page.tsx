@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Package, Building2, Home, Wrench, ArrowRight, Search, Bell, LogOut, Phone } from "lucide-react";
 import { MATERIAL_CATEGORIES } from "@/lib/mock-data";
-import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
+import KD360Logo from "@/components/ui/KD360Logo";
+import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 import EnquiryModal from "@/components/ui/EnquiryModal";
 
 export default function HomePage() {
@@ -69,8 +70,9 @@ export default function HomePage() {
               href={KD360_TEL_HREF}
               className="inline-flex flex-col items-center justify-center rounded-xl border-2 border-brand-400 bg-brand-50 px-4 py-3 text-center text-xs font-semibold text-brand-900"
             >
-              <span className="flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> {KD360_NAME}
+              <span className="flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 shrink-0" />
+                <KD360Logo size="xs" className="text-brand-900" />
               </span>
               <span className="mt-0.5 text-[11px] font-bold text-brand-800">+91 {KD360_PHONE_DISPLAY}</span>
               <span className="mt-1 font-normal text-earth-600">
@@ -112,8 +114,9 @@ export default function HomePage() {
               href={KD360_TEL_HREF}
               className="inline-flex flex-col items-center justify-center rounded-xl border-2 border-brand-400 bg-brand-50 px-4 py-3 text-center text-xs font-semibold text-brand-900"
             >
-              <span className="flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> {KD360_NAME}
+              <span className="flex items-center gap-1.5">
+                <Phone className="w-3.5 h-3.5 shrink-0" />
+                <KD360Logo size="xs" className="text-brand-900" />
               </span>
               <span className="mt-0.5 text-[11px] font-bold text-brand-800">+91 {KD360_PHONE_DISPLAY}</span>
               <span className="mt-1 font-normal text-earth-600">
