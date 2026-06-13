@@ -1,4 +1,12 @@
-import { areasForPinQuery, pinCodeForArea } from "@/lib/mock-data";
+import { areasForPinQuery, pinCodeForArea, DISTRICT_FILTER_ALL } from "@/lib/mock-data";
+
+export function matchesDistrictFilter(
+  selectedDistrict: string,
+  itemDistrict: string | null | undefined
+): boolean {
+  if (selectedDistrict === DISTRICT_FILTER_ALL) return true;
+  return (itemDistrict ?? "") === selectedDistrict;
+}
 
 export function matchesAreaFilter(selectedArea: string, itemArea: string | null | undefined): boolean {
   if (selectedArea === "All Areas") return true;
@@ -29,4 +37,16 @@ export function matchesLocationSearch(
   }
 
   return false;
+}
+
+/** Match free-text filter against the stored location line (area, district, PIN). */
+export function matchesDealerLocationFilter(
+  query: string,
+  location: string | null | undefined,
+  area: string | null | undefined,
+  district: string | null | undefined
+): boolean {
+  const q = query.trim();
+  if (!q) return true;
+  return matchesLocationSearch(q, area, [location ?? "", district ?? ""]);
 }

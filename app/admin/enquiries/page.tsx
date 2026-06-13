@@ -111,7 +111,26 @@ export default async function EnquiriesPage() {
                       </div>
                     </td>
                     <td className="admin-td">{e.quantity ?? "—"}</td>
-                    <td className="admin-td text-cement-600">{e.location ?? "—"}</td>
+                    <td className="admin-td text-cement-600 max-w-[220px]">
+                      {e.location || e.deliveryAddress ? (
+                        <div className="text-xs space-y-1">
+                          {e.location ? (
+                            <p className="whitespace-pre-wrap break-words">
+                              <span className="text-cement-400 font-medium">Current: </span>
+                              {e.location}
+                            </p>
+                          ) : null}
+                          {e.deliveryAddress ? (
+                            <p className="whitespace-pre-wrap break-words">
+                              <span className="text-cement-400 font-medium">Delivery: </span>
+                              {e.deliveryAddress}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="admin-td text-xs text-cement-500">
                       {new Date(e.createdAt).toLocaleString()}
                     </td>

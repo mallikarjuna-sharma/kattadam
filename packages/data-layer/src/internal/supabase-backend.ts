@@ -44,6 +44,8 @@ type DealerRow = {
   location: string | null;
   district: string | null;
   area: string | null;
+  residential_address: string | null;
+  delivery_address: string | null;
   lat: number | null;
   lng: number | null;
   rating: number;
@@ -84,6 +86,7 @@ type EnquiryRow = {
   material_label: string | null;
   quantity: number | null;
   location: string | null;
+  delivery_address: string | null;
   lat: number | null;
   lng: number | null;
   status: string;
@@ -252,6 +255,8 @@ function mapDealer(r: DealerRow): DealerRecord {
     location: r.location,
     district,
     area,
+    residentialAddress: r.residential_address?.trim() || null,
+    deliveryAddress: r.delivery_address?.trim() || null,
     lat: r.lat,
     lng: r.lng,
     rating: Number(r.rating),
@@ -299,6 +304,7 @@ function mapEnquiry(r: EnquiryRow): EnquiryRecord {
     materialLabel: r.material_label,
     quantity: r.quantity,
     location: r.location,
+    deliveryAddress: r.delivery_address?.trim() || null,
     lat: r.lat,
     lng: r.lng,
     status: r.status as EnquiryStatus,
@@ -371,6 +377,22 @@ async function listMaterialsWithNetworkRetry(client: SupabaseClient): Promise<Ma
     throw new Error(formatSupabaseClientError(res.error as { message: string; cause?: unknown }));
   }
   return ((res.data ?? []) as MaterialRow[]).map(mapMaterial);
+}
+
+async function fetchAllDealersOrdered(client: SupabaseClient) {
+  return client.from("dealers").select("*").order("created_at", { ascending: false });
+}
+
+async function listDealersWithNetworkRetry(client: SupabaseClient): Promise<DealerRecord[]> {
+  let res = await fetchAllDealersOrdered(client);
+  if (res.error && isLikelyTransientNetworkError(res.error.message)) {
+    await new Promise((r) => setTimeout(r, 700));
+    res = await fetchAllDealersOrdered(client);
+  }
+  if (res.error) {
+    throw new Error(formatSupabaseClientError(res.error as { message: string; cause?: unknown }));
+  }
+  return ((res.data ?? []) as DealerRow[]).map(mapDealer);
 }
 
 export class SupabaseDataBackend implements IDataBackend {
@@ -727,20 +749,29 @@ export class SupabaseDataBackend implements IDataBackend {
   }
 
   async listDealers(): Promise<DealerRecord[]> {
-    const { data, error } = await this.client.from("dealers").select("*").order("created_at", { ascending: false });
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as DealerRow[]).map(mapDealer);
+    return listDealersWithNetworkRetry(this.client);
   }
 
   async listPublicDealers(): Promise<DealerRecord[]> {
-    const { data, error } = await this.client
+    let res = await this.client
       .from("dealers")
       .select("*")
       .eq("enabled", true)
       .eq("status", "approved")
       .order("rating", { ascending: false });
-    if (error) throw new Error(error.message);
-    return ((data ?? []) as DealerRow[]).map(mapDealer);
+    if (res.error && isLikelyTransientNetworkError(res.error.message)) {
+      await new Promise((r) => setTimeout(r, 700));
+      res = await this.client
+        .from("dealers")
+        .select("*")
+        .eq("enabled", true)
+        .eq("status", "approved")
+        .order("rating", { ascending: false });
+    }
+    if (res.error) {
+      throw new Error(formatSupabaseClientError(res.error as { message: string; cause?: unknown }));
+    }
+    return ((res.data ?? []) as DealerRow[]).map(mapDealer);
   }
 
   async listPublicMaterials(): Promise<MaterialRecord[]> {
@@ -762,6 +793,8 @@ export class SupabaseDataBackend implements IDataBackend {
       location,
       district,
       area,
+      residential_address: row.residentialAddress?.trim() || null,
+      delivery_address: row.deliveryAddress?.trim() || null,
       lat: row.lat ?? null,
       lng: row.lng ?? null,
       user_id: row.userId ?? null,
@@ -791,6 +824,8 @@ export class SupabaseDataBackend implements IDataBackend {
     if (patch.location !== undefined) row.location = patch.location;
     if (patch.district !== undefined) row.district = patch.district;
     if (patch.area !== undefined) row.area = patch.area;
+    if (patch.residentialAddress !== undefined) row.residential_address = patch.residentialAddress;
+    if (patch.deliveryAddress !== undefined) row.delivery_address = patch.deliveryAddress;
     if (patch.district !== undefined || patch.area !== undefined) {
       const { data: cur } = await this.client.from("dealers").select("district,area").eq("id", id).maybeSingle();
       const curRow = cur as { district?: string | null; area?: string | null } | null;
@@ -873,6 +908,7 @@ export class SupabaseDataBackend implements IDataBackend {
     materialId?: string | null;
     quantity?: number | null;
     location?: string | null;
+    deliveryAddress?: string | null;
     notes?: string | null;
     assignedDealerId?: string | null;
     customerId?: string | null;
@@ -886,7 +922,8 @@ export class SupabaseDataBackend implements IDataBackend {
       material_id: row.materialId ?? null,
       material_label: row.materialLabel ?? null,
       quantity: row.quantity ?? null,
-      location: row.location ?? null,
+      location: row.location?.trim() || null,
+      delivery_address: row.deliveryAddress?.trim() || null,
       notes: row.notes ?? null,
       assigned_dealer_id: row.assignedDealerId ?? null,
       status: "pending" as const,

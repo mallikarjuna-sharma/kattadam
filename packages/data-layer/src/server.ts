@@ -32,6 +32,8 @@ type DealerUpdatePatch = Partial<{
   location: string | null;
   district: string;
   area: string;
+  residentialAddress: string | null;
+  deliveryAddress: string | null;
   lat: number | null;
   lng: number | null;
   verified: boolean;
@@ -52,7 +54,12 @@ export function getServerBackend(): IDataBackend | null {
 export async function catalogListDealers(): Promise<DealerRecord[] | null> {
   const b = getServerBackend();
   if (!b) return null;
-  return b.listPublicDealers();
+  try {
+    return await b.listPublicDealers();
+  } catch (e) {
+    console.error("[catalogListDealers]", e);
+    return null;
+  }
 }
 
 export async function catalogListMaterials(): Promise<MaterialRecord[] | null> {
@@ -74,6 +81,7 @@ export async function catalogCreateEnquiry(row: {
   materialId?: string | null;
   quantity?: number | null;
   location?: string | null;
+  deliveryAddress?: string | null;
   notes?: string | null;
   assignedDealerId?: string | null;
   customerId?: string | null;
@@ -284,7 +292,12 @@ export async function catalogListPropertyListings(): Promise<PropertyListingReco
 export async function adminListDealers(): Promise<DealerRecord[] | null> {
   const b = getServerBackend();
   if (!b) return null;
-  return b.listDealers();
+  try {
+    return await b.listDealers();
+  } catch (e) {
+    console.error("[adminListDealers]", e);
+    return null;
+  }
 }
 
 export async function adminUpsertDealer(row: Partial<DealerRecord> & { shopName: string }): Promise<DealerRecord | null> {

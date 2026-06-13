@@ -13,14 +13,14 @@ const HERO_PILLS = ["Centralized", "Priced", "Scale", "Revolution", "Safety"] as
 
 const SHOWCASE_CARDS = [
   {
-    image: "/images/landing/card-materials.png",
-    title: "Explore Materials",
-    desc: "Cement, TMT steel, bricks, paint and more from verified local dealers across our districts.",
-    primaryHref: "/materials",
-    primaryLabel: "Browse materials",
-    secondaryHref: "/builders",
-    secondaryLabel: "Kattadam experts",
-    enquiryTarget: "Materials",
+    image: "/images/landing/card-homeservices.png",
+    title: "Explore Home Services",
+    desc: "Interiors, renovations, painting, electrical, plumbing, and masonry — skilled verified workers.",
+    primaryHref: "/services",
+    primaryLabel: "Browse services",
+    secondaryHref: "/services",
+    secondaryLabel: "Book online",
+    enquiryTarget: "Home services",
   },
   {
     image: "/images/landing/card-experts.png",
@@ -33,6 +33,16 @@ const SHOWCASE_CARDS = [
     enquiryTarget: "Kattadam Experts",
   },
   {
+    image: "/images/landing/card-materials.png",
+    title: "Explore Materials",
+    desc: "Cement, TMT steel, bricks, paint and more from verified local dealers across our districts.",
+    primaryHref: "/materials",
+    primaryLabel: "Browse materials",
+    secondaryHref: "/builders",
+    secondaryLabel: "Kattadam experts",
+    enquiryTarget: "Materials",
+  },
+  {
     image: "/images/landing/card-realestate.png",
     title: "Explore Real Estate",
     desc: "Buy, sell, or rent plots, flats, and land — clear listings from verified sellers.",
@@ -41,16 +51,6 @@ const SHOWCASE_CARDS = [
     secondaryHref: "/properties",
     secondaryLabel: "Browse projects",
     enquiryTarget: "Real estate",
-  },
-  {
-    image: "/images/landing/card-homeservices.png",
-    title: "Explore Home Services",
-    desc: "Interiors, renovations, painting, electrical, plumbing, and masonry — skilled verified workers.",
-    primaryHref: "/services",
-    primaryLabel: "Browse services",
-    secondaryHref: "/services",
-    secondaryLabel: "Book online",
-    enquiryTarget: "Home services",
   },
 ] as const;
 
@@ -272,7 +272,7 @@ export default function LandingPage() {
             </p>
             <ul className="space-y-3 mb-8">
               {[
-                "We pay you, you deliver the order.",
+                "We pay you,you deliver the order.",
                 "Showcase projects and credentials",
                 "Receive orders and projects in one place",
                 "Verified badge builds trust",
@@ -292,8 +292,8 @@ export default function LandingPage() {
           </div>
           <div className="rounded-2xl border border-white/10 bg-[#1e1e1e] p-8">
             <p className="text-sm text-cement-300 leading-relaxed">
-              Whether you supply materials, offer home services, or are a Kattadam Expert, partner onboarding is handled
-              through the same trusted flow — so homeowners see one consistent, professional experience.
+              Whether you supply materials, offer home services,or are a Kattadam Expert, partner onboarding is handled
+              through the same trusted flow — so home owners see one consistent, professional experience.
             </p>
           </div>
         </div>
@@ -306,7 +306,7 @@ export default function LandingPage() {
           </h2>
           <p className="font-semibold text-lg tracking-wide mb-4">+91 {KD360_PHONE_DISPLAY}</p>
           <p className="mb-8 max-w-lg mx-auto text-base leading-relaxed opacity-90">
-            Speak with our team for materials, experts, real estate, or services — we&apos;ll guide your next step.
+            Speak with our team for materials, experts, real estate,or services — we&apos;ll guide your next step.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a

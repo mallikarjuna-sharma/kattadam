@@ -33,18 +33,18 @@ const TYPES: ExpertType[] = [
       "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6-tAqxu6dU86-vBN7I8HXfs-EUMFRcNOAWA&s",
   },
   {
-    key: "Builder",
-    label: "Builder",
-    emoji: "👷",
-    image:
-      "https://img.magnific.com/free-photo/workman-with-his-arms-crossed-white-background_1368-5759.jpg?semt=ais_hybrid&w=740&q=80",
-  },
-  {
     key: "Architect",
     label: "Architect",
     emoji: "📐",
     image:
       "https://img.magnific.com/free-photo/young-engineer-smiling-holding-white-safety-hat-by-hand_7502-5405.jpg",
+  },
+  {
+    key: "Builder",
+    label: "Builder",
+    emoji: "👷",
+    image:
+      "https://img.magnific.com/free-photo/workman-with-his-arms-crossed-white-background_1368-5759.jpg?semt=ais_hybrid&w=740&q=80",
   },
   {
     key: "Engineer",

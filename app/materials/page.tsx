@@ -183,7 +183,7 @@ export default function MaterialsPage() {
 
         <div className="mb-6">
           <div
-            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-[repeat(13,minmax(0,1fr))] gap-2 sm:gap-3 md:gap-[15px] w-full"
+            className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-[repeat(14,minmax(0,1fr))] gap-2 sm:gap-3 md:gap-[15px] w-full"
             role="tablist"
             aria-label="Material categories"
           >
@@ -218,10 +218,10 @@ export default function MaterialsPage() {
                   className="group flex w-full min-w-0 flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <div
-                    className={`relative w-full aspect-square overflow-hidden transition-all duration-300 ease-out ${
+                    className={`relative w-full aspect-square overflow-hidden rounded-lg transition-all duration-300 ease-out border-2 ${
                       active
-                        ? "bg-[#CFE3DD] scale-[1.02]"
-                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
+                        ? "bg-[#CFE3DD] scale-[1.02] border-brand-600 ring-2 ring-brand-500/40"
+                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC] border-transparent"
                     }`}
                   >
                     {c.image ? (

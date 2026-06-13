@@ -19,8 +19,11 @@ import {
   adminUpsertMaterial,
 } from "@kattadam/data-layer/server";
 import type { EnquiryStatus, NotificationAudience, UserStatus } from "@kattadam/data-layer";
+import { defaultLocationLine, validateDealerForm } from "@/lib/dealer-validation";
 
 const A = (path: string) => revalidatePath(path);
+
+export type AdminActionResult = { ok: true } | { ok: false; error: string };
 
 export async function actionSetUserStatus(id: string, status: UserStatus) {
   await adminUpdateUser(id, { status });
@@ -31,30 +34,61 @@ function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s.trim());
 }
 
-export async function actionUpsertDealer(formData: FormData) {
+export async function actionUpsertDealer(formData: FormData): Promise<AdminActionResult> {
   const idRaw = formData.get("id");
   const id = typeof idRaw === "string" && idRaw.length > 0 ? idRaw : undefined;
   const categories = formData.getAll("categories").map((x) => String(x).trim()).filter(Boolean);
   const status =
     (String(formData.get("status") || "approved") as "pending" | "approved" | "rejected") || "approved";
-  const district = String(formData.get("district") || "").trim() || "Coimbatore";
+  const district = String(formData.get("district") || "").trim();
   const area = String(formData.get("area") || "").trim();
-  const isApproved = status === "approved";
-  await adminUpsertDealer({
-    id,
-    shopName: String(formData.get("shopName") || "").trim() || "Unnamed shop",
-    ownerName: String(formData.get("ownerName") || "").trim() || null,
-    phone: String(formData.get("phone") || "").trim() || null,
+  const locationInput = String(formData.get("location") || "").trim();
+  const residentialAddress = String(formData.get("residentialAddress") || "").trim();
+  const deliveryAddress = String(formData.get("deliveryAddress") || "").trim();
+
+  const validation = validateDealerForm({
+    shopName: String(formData.get("shopName") || ""),
+    ownerName: String(formData.get("ownerName") || ""),
+    phone: String(formData.get("phone") || ""),
     district,
     area,
-    location: area ? `${area}, ${district}` : district,
-    materials: categories,
-    status,
-    verified: isApproved,
-    enabled: true,
+    location: locationInput,
+    residentialAddress,
+    deliveryAddress,
+    categories,
   });
+  if (!validation.ok) return validation;
+
+  const location = locationInput || defaultLocationLine(area, district);
+  const isApproved = status === "approved";
+  const enabledRaw = formData.get("enabled");
+  const enabled =
+    typeof enabledRaw === "string" ? enabledRaw === "true" : id ? undefined : true;
+
+  try {
+    await adminUpsertDealer({
+      id,
+      shopName: String(formData.get("shopName") || "").trim(),
+      ownerName: String(formData.get("ownerName") || "").trim() || null,
+      phone: String(formData.get("phone") || "").trim() || null,
+      district,
+      area,
+      location,
+      residentialAddress: residentialAddress || null,
+      deliveryAddress: deliveryAddress || null,
+      materials: categories,
+      status,
+      verified: isApproved,
+      ...(enabled !== undefined ? { enabled } : {}),
+    });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Failed to save dealer.";
+    return { ok: false, error: message };
+  }
+
   A("/admin/dealers");
   A("/admin/materials");
+  return { ok: true };
 }
 
 export async function actionDeleteDealer(id: string) {

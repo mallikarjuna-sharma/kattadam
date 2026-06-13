@@ -20,10 +20,10 @@ export default function Navbar({ variant = "light" }: { variant?: "light" | "dar
   const dark = variant === "dark";
 
   const NAV = [
-    { label: t("nav_materials"), href: HREF.materials, icon: Package },
-    { label: t("nav_experts"), href: HREF.experts, icon: Building2 },
-    { label: t("nav_realestate"), href: HREF.realestate, icon: Home },
     { label: t("nav_homeservices"), href: HREF.homeservices, icon: Wrench },
+    { label: t("nav_experts"), href: HREF.experts, icon: Building2 },
+    { label: t("nav_materials"), href: HREF.materials, icon: Package },
+    { label: t("nav_realestate"), href: HREF.realestate, icon: Home },
   ];
 
   return (

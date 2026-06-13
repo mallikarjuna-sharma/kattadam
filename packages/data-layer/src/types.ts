@@ -91,6 +91,8 @@ export interface DealerRecord {
   location: string | null;
   district: string;
   area: string;
+  residentialAddress: string | null;
+  deliveryAddress: string | null;
   lat: number | null;
   lng: number | null;
   rating: number;
@@ -136,6 +138,7 @@ export interface EnquiryRecord {
   materialLabel: string | null;
   quantity: number | null;
   location: string | null;
+  deliveryAddress: string | null;
   lat: number | null;
   lng: number | null;
   status: EnquiryStatus;

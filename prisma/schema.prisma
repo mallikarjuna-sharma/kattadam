@@ -77,14 +77,18 @@ model User {
 // ─── DEALERS (Material Sellers) ───────────────────────────
 
 model Dealer {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  shopName     String
-  description  String?
-  address      String
-  city         String   @default("Coimbatore")
-  area         String   // e.g., RS Puram, Gandhipuram
-  phone        String
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  shopName            String
+  description         String?
+  address             String
+  city                String   @default("Coimbatore")
+  district            String   @default("Coimbatore")
+  area                String   // e.g., RS Puram, Gandhipuram
+  location            String?
+  residentialAddress  String?
+  deliveryAddress     String?
+  phone               String
   whatsapp     String?
   isVerified   Boolean  @default(false)
   isActive     Boolean  @default(true)

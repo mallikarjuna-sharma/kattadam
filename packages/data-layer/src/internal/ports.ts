@@ -99,6 +99,8 @@ export interface IDataBackend {
       location: string | null;
       district: string;
       area: string;
+      residentialAddress: string | null;
+      deliveryAddress: string | null;
       lat: number | null;
       lng: number | null;
       verified: boolean;
@@ -127,6 +129,7 @@ export interface IDataBackend {
     materialId?: string | null;
     quantity?: number | null;
     location?: string | null;
+    deliveryAddress?: string | null;
     notes?: string | null;
     assignedDealerId?: string | null;
     customerId?: string | null;
