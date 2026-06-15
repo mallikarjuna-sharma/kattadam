@@ -1,26 +1,66 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
-import { actionInsertPropertyListing } from "@/app/admin/actions";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import type { PropertyListingRecord } from "@kattadam/data-layer";
+import { actionUpsertPropertyListing } from "@/app/admin/actions";
 import { DISTRICTS, DISTRICT_AREAS } from "@/lib/mock-data";
 import type { District } from "@/lib/mock-data";
 
-const initial = {
-  title: "",
-  listingType: "SELL" as "SELL" | "RENT",
-  propertySubtype: "",
-  price: "",
-  district: "" as string,
-  area: "" as string,
-  description: "",
-  published: true,
+type FormFields = {
+  title: string;
+  listingType: "SELL" | "RENT";
+  propertySubtype: string;
+  price: string;
+  district: string;
+  area: string;
+  description: string;
+  published: boolean;
 };
 
-export default function AddPropertyListingForm() {
+const emptyFields = (): FormFields => ({
+  title: "",
+  listingType: "SELL",
+  propertySubtype: "",
+  price: "",
+  district: "",
+  area: "",
+  description: "",
+  published: true,
+});
+
+function fieldsFromListing(listing: PropertyListingRecord): FormFields {
+  return {
+    title: listing.title,
+    listingType: listing.listingType,
+    propertySubtype: listing.propertySubtype,
+    price: String(listing.price),
+    district: listing.district,
+    area: listing.area,
+    description: listing.description ?? "",
+    published: listing.published,
+  };
+}
+
+type Props = {
+  listing?: PropertyListingRecord | null;
+  onCancel?: () => void;
+  onSaved?: () => void;
+};
+
+export default function AddPropertyListingForm({ listing, onCancel, onSaved }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [fields, setFields] = useState(initial);
+  const [fields, setFields] = useState<FormFields>(() =>
+    listing ? fieldsFromListing(listing) : emptyFields()
+  );
+  const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(listing?.id);
+
+  useEffect(() => {
+    setFields(listing ? fieldsFromListing(listing) : emptyFields());
+    setError(null);
+  }, [listing]);
 
   const subtypeOptions = useMemo(() => {
     if (fields.listingType === "SELL") return ["Flat", "Plot"] as const;
@@ -44,6 +84,7 @@ export default function AddPropertyListingForm() {
       e.preventDefault();
       if (!canSave || isPending) return;
       const fd = new FormData();
+      if (listing?.id) fd.set("id", listing.id);
       fd.set("title", fields.title.trim());
       fd.set("listingType", fields.listingType);
       fd.set("propertySubtype", fields.propertySubtype);
@@ -53,16 +94,27 @@ export default function AddPropertyListingForm() {
       fd.set("description", fields.description.trim());
       fd.set("published", fields.published ? "true" : "false");
       startTransition(async () => {
-        await actionInsertPropertyListing(fd);
-        setFields(initial);
+        const result = await actionUpsertPropertyListing(fd);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        setError(null);
+        if (!isEdit) setFields(emptyFields());
+        onSaved?.();
         router.refresh();
       });
     },
-    [canSave, fields, isPending, router]
+    [canSave, fields, isEdit, isPending, listing?.id, onSaved, router]
   );
 
   return (
     <form onSubmit={onSubmit} className="grid sm:grid-cols-2 gap-3">
+      {error ? (
+        <div role="alert" className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
       <div className="sm:col-span-2">
         <label className="text-xs text-cement-500 block mb-1">Title *</label>
         <input
@@ -169,10 +221,15 @@ export default function AddPropertyListingForm() {
           Published (visible on site)
         </label>
       </div>
-      <div className="sm:col-span-2">
+      <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
         <button type="submit" className="admin-btn" disabled={!canSave || isPending}>
-          {isPending ? "Saving…" : "Save listing"}
+          {isPending ? "Saving…" : isEdit ? "Update listing" : "Save listing"}
         </button>
+        {isEdit ? (
+          <button type="button" className="admin-btn-outline" onClick={onCancel} disabled={isPending}>
+            Cancel edit
+          </button>
+        ) : null}
       </div>
     </form>
   );

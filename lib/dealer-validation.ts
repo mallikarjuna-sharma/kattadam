@@ -1,6 +1,5 @@
 import { DISTRICTS } from "@/lib/mock-data";
 
-const MAX_ADDRESS_LEN = 500;
 const MAX_LOCATION_LEN = 200;
 const MAX_SHOP_NAME_LEN = 120;
 const MAX_NAME_LEN = 80;
@@ -12,8 +11,6 @@ export type DealerFormValues = {
   district: string;
   area: string;
   location: string;
-  residentialAddress: string;
-  deliveryAddress: string;
   categories: string[];
 };
 
@@ -48,16 +45,6 @@ export function validateDealerForm(values: DealerFormValues): DealerValidationRe
   const location = values.location.trim();
   if (location.length > MAX_LOCATION_LEN) {
     return { ok: false, error: `Location must be at most ${MAX_LOCATION_LEN} characters.` };
-  }
-
-  const residentialAddress = values.residentialAddress.trim();
-  if (residentialAddress.length > MAX_ADDRESS_LEN) {
-    return { ok: false, error: `Residential address must be at most ${MAX_ADDRESS_LEN} characters.` };
-  }
-
-  const deliveryAddress = values.deliveryAddress.trim();
-  if (deliveryAddress.length > MAX_ADDRESS_LEN) {
-    return { ok: false, error: `Delivery address must be at most ${MAX_ADDRESS_LEN} characters.` };
   }
 
   if (values.categories.length === 0) {

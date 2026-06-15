@@ -11,6 +11,9 @@ import {
   adminInsertHomeServiceProvider,
   adminInsertKattadamExpert,
   adminInsertPropertyListing as dataInsertPropertyListing,
+  adminUpdateHomeServiceProvider,
+  adminUpdateKattadamExpert,
+  adminUpdatePropertyListing,
   adminUpdateDealer,
   adminUpdateEnquiry,
   adminUpdateReview,
@@ -43,8 +46,6 @@ export async function actionUpsertDealer(formData: FormData): Promise<AdminActio
   const district = String(formData.get("district") || "").trim();
   const area = String(formData.get("area") || "").trim();
   const locationInput = String(formData.get("location") || "").trim();
-  const residentialAddress = String(formData.get("residentialAddress") || "").trim();
-  const deliveryAddress = String(formData.get("deliveryAddress") || "").trim();
 
   const validation = validateDealerForm({
     shopName: String(formData.get("shopName") || ""),
@@ -53,8 +54,6 @@ export async function actionUpsertDealer(formData: FormData): Promise<AdminActio
     district,
     area,
     location: locationInput,
-    residentialAddress,
-    deliveryAddress,
     categories,
   });
   if (!validation.ok) return validation;
@@ -74,8 +73,6 @@ export async function actionUpsertDealer(formData: FormData): Promise<AdminActio
       district,
       area,
       location,
-      residentialAddress: residentialAddress || null,
-      deliveryAddress: deliveryAddress || null,
       materials: categories,
       status,
       verified: isApproved,
@@ -207,44 +204,95 @@ export async function actionSetDealerZonesFromForm(formData: FormData) {
   A("/admin/zones");
 }
 
-export async function actionInsertExpert(formData: FormData) {
-  await adminInsertKattadamExpert({
+export async function actionUpsertExpert(formData: FormData): Promise<AdminActionResult> {
+  const idRaw = formData.get("id");
+  const id = typeof idRaw === "string" && idRaw.length > 0 ? idRaw : undefined;
+  const row = {
     expertType: String(formData.get("expertType") || "builder") as "builder" | "architect" | "engineer",
     firmName: String(formData.get("firmName") || "").trim(),
     ownerName: String(formData.get("ownerName") || "").trim(),
     contactNumber: String(formData.get("contactNumber") || "").trim(),
     serviceableAreas: String(formData.get("serviceableAreas") || "").trim(),
     district: String(formData.get("district") || "").trim(),
-  });
+  };
+  if (!row.firmName || !row.ownerName || !row.contactNumber || !row.serviceableAreas || !row.district) {
+    return { ok: false, error: "All required fields must be filled." };
+  }
+  if (id) {
+    const updated = await adminUpdateKattadamExpert(id, row);
+    if (!updated) return { ok: false, error: "Failed to update expert." };
+  } else {
+    await adminInsertKattadamExpert(row);
+  }
   A("/admin/experts");
+  return { ok: true };
 }
 
-export async function actionInsertHomeService(formData: FormData) {
-  await adminInsertHomeServiceProvider({
+/** @deprecated Use actionUpsertExpert */
+export async function actionInsertExpert(formData: FormData) {
+  await actionUpsertExpert(formData);
+}
+
+export async function actionUpsertHomeService(formData: FormData): Promise<AdminActionResult> {
+  const idRaw = formData.get("id");
+  const id = typeof idRaw === "string" && idRaw.length > 0 ? idRaw : undefined;
+  const row = {
     serviceCategory: String(formData.get("serviceCategory") || "").trim(),
     firmName: String(formData.get("firmName") || "").trim(),
     ownerName: String(formData.get("ownerName") || "").trim(),
     contactNumber: String(formData.get("contactNumber") || "").trim(),
     serviceableAreas: String(formData.get("serviceableAreas") || "").trim(),
     district: String(formData.get("district") || "").trim(),
-  });
+  };
+  if (!row.firmName || !row.ownerName || !row.contactNumber || !row.serviceableAreas || !row.district) {
+    return { ok: false, error: "All required fields must be filled." };
+  }
+  if (id) {
+    const updated = await adminUpdateHomeServiceProvider(id, row);
+    if (!updated) return { ok: false, error: "Failed to update provider." };
+  } else {
+    await adminInsertHomeServiceProvider(row);
+  }
   A("/admin/home-services");
+  return { ok: true };
 }
 
-export async function actionInsertPropertyListing(formData: FormData) {
+/** @deprecated Use actionUpsertHomeService */
+export async function actionInsertHomeService(formData: FormData) {
+  await actionUpsertHomeService(formData);
+}
+
+export async function actionUpsertPropertyListing(formData: FormData): Promise<AdminActionResult> {
+  const idRaw = formData.get("id");
+  const id = typeof idRaw === "string" && idRaw.length > 0 ? idRaw : undefined;
   const priceRaw = Number.parseFloat(String(formData.get("price") || ""));
   const price = Number.isFinite(priceRaw) ? priceRaw : 0;
-  await dataInsertPropertyListing({
+  const row = {
     title: String(formData.get("title") || "").trim(),
-    listingType: String(formData.get("listingType") || "SELL") === "RENT" ? "RENT" : "SELL",
+    listingType: String(formData.get("listingType") || "SELL") === "RENT" ? ("RENT" as const) : ("SELL" as const),
     propertySubtype: String(formData.get("propertySubtype") || "").trim(),
     price,
     district: String(formData.get("district") || "").trim(),
     area: String(formData.get("area") || "").trim(),
     description: String(formData.get("description") || "").trim() || null,
     published: String(formData.get("published") || "true") !== "false",
-  });
+  };
+  if (!row.title || !row.propertySubtype || !row.district || !row.area || price <= 0) {
+    return { ok: false, error: "All required fields must be filled." };
+  }
+  if (id) {
+    const updated = await adminUpdatePropertyListing(id, row);
+    if (!updated) return { ok: false, error: "Failed to update listing." };
+  } else {
+    await dataInsertPropertyListing(row);
+  }
   A("/admin/properties");
+  return { ok: true };
+}
+
+/** @deprecated Use actionUpsertPropertyListing */
+export async function actionInsertPropertyListing(formData: FormData) {
+  await actionUpsertPropertyListing(formData);
 }
 
 export async function actionDeletePropertyListing(id: string) {

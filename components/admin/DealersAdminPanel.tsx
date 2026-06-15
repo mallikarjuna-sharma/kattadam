@@ -40,7 +40,7 @@ export default function DealersAdminPanel({ dealers }: Props) {
         </h2>
         {editingDealer ? (
           <p className="text-xs text-cement-500 mb-3">
-            Update location, addresses, and categories. Changes are saved to the database immediately.
+            Update location and categories. Changes are saved to the database immediately.
           </p>
         ) : (
           <p className="text-xs text-cement-500 mb-3">
@@ -103,7 +103,7 @@ export default function DealersAdminPanel({ dealers }: Props) {
           </div>
 
           <div className="admin-table-wrap">
-            <table className="w-full min-w-[1200px]">
+            <table className="w-full min-w-[1000px]">
               <thead>
                 <tr>
                   <th className="admin-th">Shop</th>
@@ -112,7 +112,6 @@ export default function DealersAdminPanel({ dealers }: Props) {
                   <th className="admin-th">District</th>
                   <th className="admin-th">Area</th>
                   <th className="admin-th">Location</th>
-                  <th className="admin-th min-w-[140px]">Addresses</th>
                   <th className="admin-th min-w-[200px]">Categories</th>
                   <th className="admin-th">Rating</th>
                   <th className="admin-th">Status</th>
@@ -123,7 +122,7 @@ export default function DealersAdminPanel({ dealers }: Props) {
               <tbody>
                 {filteredDealers.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="admin-td text-center text-cement-500 py-8">
+                    <td colSpan={11} className="admin-td text-center text-cement-500 py-8">
                       No dealers match the current filters.
                     </td>
                   </tr>
@@ -136,24 +135,6 @@ export default function DealersAdminPanel({ dealers }: Props) {
                       <td className="admin-td text-xs">{d.district}</td>
                       <td className="admin-td text-xs">{d.area}</td>
                       <td className="admin-td text-xs text-cement-600">{d.location ?? "—"}</td>
-                      <td className="admin-td text-xs text-cement-600 max-w-[180px]">
-                        {d.residentialAddress || d.deliveryAddress ? (
-                          <div className="space-y-1">
-                            {d.residentialAddress ? (
-                              <p className="truncate" title={d.residentialAddress}>
-                                <span className="text-cement-400">R:</span> {d.residentialAddress}
-                              </p>
-                            ) : null}
-                            {d.deliveryAddress ? (
-                              <p className="truncate" title={d.deliveryAddress}>
-                                <span className="text-cement-400">D:</span> {d.deliveryAddress}
-                              </p>
-                            ) : null}
-                          </div>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
                       <td className="admin-td">
                         <div className="flex flex-wrap gap-1">
                           {(d.materials ?? []).map((key) => (

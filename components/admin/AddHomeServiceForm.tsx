@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
-import { actionInsertHomeService } from "@/app/admin/actions";
+import { useCallback, useEffect, useState, useTransition } from "react";
+import type { HomeServiceProviderRecord } from "@kattadam/data-layer";
+import { actionUpsertHomeService } from "@/app/admin/actions";
 import { DISTRICTS } from "@/lib/mock-data";
 
 const CATEGORIES = [
@@ -14,19 +15,57 @@ const CATEGORIES = [
   "Masonry works",
 ] as const;
 
-const initial = {
-  serviceCategory: "Interiors" as (typeof CATEGORIES)[number],
+type FormFields = {
+  serviceCategory: (typeof CATEGORIES)[number];
+  firmName: string;
+  ownerName: string;
+  contactNumber: string;
+  serviceableAreas: string;
+  district: string;
+};
+
+const emptyFields = (): FormFields => ({
+  serviceCategory: "Interiors",
   firmName: "",
   ownerName: "",
   contactNumber: "",
   serviceableAreas: "",
-  district: "" as string,
+  district: "",
+});
+
+function fieldsFromProvider(provider: HomeServiceProviderRecord): FormFields {
+  const category = CATEGORIES.includes(provider.serviceCategory as (typeof CATEGORIES)[number])
+    ? (provider.serviceCategory as (typeof CATEGORIES)[number])
+    : "Interiors";
+  return {
+    serviceCategory: category,
+    firmName: provider.firmName,
+    ownerName: provider.ownerName,
+    contactNumber: provider.contactNumber,
+    serviceableAreas: provider.serviceableAreas,
+    district: provider.district,
+  };
+}
+
+type Props = {
+  provider?: HomeServiceProviderRecord | null;
+  onCancel?: () => void;
+  onSaved?: () => void;
 };
 
-export default function AddHomeServiceForm() {
+export default function AddHomeServiceForm({ provider, onCancel, onSaved }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [fields, setFields] = useState(initial);
+  const [fields, setFields] = useState<FormFields>(() =>
+    provider ? fieldsFromProvider(provider) : emptyFields()
+  );
+  const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(provider?.id);
+
+  useEffect(() => {
+    setFields(provider ? fieldsFromProvider(provider) : emptyFields());
+    setError(null);
+  }, [provider]);
 
   const canSave =
     fields.firmName.trim().length > 0 &&
@@ -40,6 +79,7 @@ export default function AddHomeServiceForm() {
       e.preventDefault();
       if (!canSave || isPending) return;
       const fd = new FormData();
+      if (provider?.id) fd.set("id", provider.id);
       fd.set("serviceCategory", fields.serviceCategory);
       fd.set("firmName", fields.firmName.trim());
       fd.set("ownerName", fields.ownerName.trim());
@@ -47,16 +87,27 @@ export default function AddHomeServiceForm() {
       fd.set("serviceableAreas", fields.serviceableAreas.trim());
       fd.set("district", fields.district.trim());
       startTransition(async () => {
-        await actionInsertHomeService(fd);
-        setFields(initial);
+        const result = await actionUpsertHomeService(fd);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        setError(null);
+        if (!isEdit) setFields(emptyFields());
+        onSaved?.();
         router.refresh();
       });
     },
-    [canSave, fields, isPending, router]
+    [canSave, fields, isEdit, isPending, onSaved, provider?.id, router]
   );
 
   return (
     <form onSubmit={onSubmit} className="grid sm:grid-cols-2 gap-3">
+      {error ? (
+        <div role="alert" className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
       <div>
         <label className="text-xs text-cement-500 block mb-1">Category *</label>
         <select
@@ -129,10 +180,15 @@ export default function AddHomeServiceForm() {
           required
         />
       </div>
-      <div className="sm:col-span-2">
+      <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
         <button type="submit" className="admin-btn" disabled={!canSave || isPending}>
-          {isPending ? "Saving…" : "Save provider"}
+          {isPending ? "Saving…" : isEdit ? "Update provider" : "Save provider"}
         </button>
+        {isEdit ? (
+          <button type="button" className="admin-btn-outline" onClick={onCancel} disabled={isPending}>
+            Cancel edit
+          </button>
+        ) : null}
       </div>
     </form>
   );

@@ -341,6 +341,33 @@ function mapNotif(r: NotifRow): NotificationBroadcastRecord {
   };
 }
 
+function isMissingColumnError(message: string): boolean {
+  return /could not find the .* column|column.*does not exist|schema cache/i.test(message);
+}
+
+function buildLegacyEnquiryNotes(row: {
+  phone?: string | null;
+  altPhone?: string | null;
+  email?: string | null;
+  deliveryAddress?: string | null;
+  materialLabel?: string | null;
+  notes?: string | null;
+}): string {
+  const header: string[] = [];
+  if (row.phone) header.push(`Phone: +91 ${row.phone}`);
+  if (row.altPhone) header.push(`Alt phone: +91 ${row.altPhone}`);
+  if (row.email) header.push(`Email: ${row.email}`);
+  if (row.deliveryAddress?.trim()) header.push(`Delivery: ${row.deliveryAddress.trim()}`);
+
+  let body = row.notes?.trim() ?? "";
+  if (row.materialLabel?.trim()) {
+    body = `Regarding: ${row.materialLabel.trim()}\n\n${body}`;
+  }
+
+  if (header.length === 0) return body;
+  return header.join("\n") + (body ? `\n\n${body}` : "");
+}
+
 function isLikelyTransientNetworkError(message: string): boolean {
   return /fetch failed|failed to fetch|networkerror|econnreset|etimedout|socket|enotfound|eafnosupport/i.test(
     message
@@ -666,6 +693,29 @@ export class SupabaseDataBackend implements IDataBackend {
     return ((data ?? []) as ExpertRow[]).map(mapExpert);
   }
 
+  async updateKattadamExpert(
+    id: string,
+    patch: Partial<{
+      expertType: ExpertType;
+      firmName: string;
+      ownerName: string;
+      contactNumber: string;
+      serviceableAreas: string;
+      district: string;
+    }>
+  ): Promise<KattadamExpertRecord | null> {
+    const row: Record<string, unknown> = {};
+    if (patch.expertType !== undefined) row.expert_type = patch.expertType;
+    if (patch.firmName !== undefined) row.firm_name = patch.firmName;
+    if (patch.ownerName !== undefined) row.owner_name = patch.ownerName;
+    if (patch.contactNumber !== undefined) row.contact_number = patch.contactNumber;
+    if (patch.serviceableAreas !== undefined) row.serviceable_areas = patch.serviceableAreas;
+    if (patch.district !== undefined) row.district = patch.district;
+    const { data, error } = await this.client.from("kattadam_experts").update(row).eq("id", id).select("*").single();
+    if (error) return null;
+    return mapExpert(data as ExpertRow);
+  }
+
   async insertHomeServiceProvider(row: {
     serviceCategory: string;
     firmName: string;
@@ -697,6 +747,34 @@ export class SupabaseDataBackend implements IDataBackend {
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return ((data ?? []) as HomeServiceRow[]).map(mapHomeService);
+  }
+
+  async updateHomeServiceProvider(
+    id: string,
+    patch: Partial<{
+      serviceCategory: string;
+      firmName: string;
+      ownerName: string;
+      contactNumber: string;
+      serviceableAreas: string;
+      district: string;
+    }>
+  ): Promise<HomeServiceProviderRecord | null> {
+    const row: Record<string, unknown> = {};
+    if (patch.serviceCategory !== undefined) row.service_category = patch.serviceCategory;
+    if (patch.firmName !== undefined) row.firm_name = patch.firmName;
+    if (patch.ownerName !== undefined) row.owner_name = patch.ownerName;
+    if (patch.contactNumber !== undefined) row.contact_number = patch.contactNumber;
+    if (patch.serviceableAreas !== undefined) row.serviceable_areas = patch.serviceableAreas;
+    if (patch.district !== undefined) row.district = patch.district;
+    const { data, error } = await this.client
+      .from("home_service_providers")
+      .update(row)
+      .eq("id", id)
+      .select("*")
+      .single();
+    if (error) return null;
+    return mapHomeService(data as HomeServiceRow);
   }
 
   async insertPropertyListing(row: {
@@ -741,6 +819,33 @@ export class SupabaseDataBackend implements IDataBackend {
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return ((data ?? []) as PropertyListingRow[]).map(mapPropertyListing);
+  }
+
+  async updatePropertyListing(
+    id: string,
+    patch: Partial<{
+      title: string;
+      listingType: "SELL" | "RENT";
+      propertySubtype: string;
+      price: number;
+      district: string;
+      area: string;
+      description: string | null;
+      published: boolean;
+    }>
+  ): Promise<PropertyListingRecord | null> {
+    const row: Record<string, unknown> = {};
+    if (patch.title !== undefined) row.title = patch.title;
+    if (patch.listingType !== undefined) row.listing_type = patch.listingType;
+    if (patch.propertySubtype !== undefined) row.property_subtype = patch.propertySubtype;
+    if (patch.price !== undefined) row.price = patch.price;
+    if (patch.district !== undefined) row.district = patch.district;
+    if (patch.area !== undefined) row.area = patch.area;
+    if (patch.description !== undefined) row.description = patch.description;
+    if (patch.published !== undefined) row.published = patch.published;
+    const { data, error } = await this.client.from("property_listings").update(row).eq("id", id).select("*").single();
+    if (error) return null;
+    return mapPropertyListing(data as PropertyListingRow);
   }
 
   async deletePropertyListing(id: string): Promise<boolean> {
@@ -793,8 +898,6 @@ export class SupabaseDataBackend implements IDataBackend {
       location,
       district,
       area,
-      residential_address: row.residentialAddress?.trim() || null,
-      delivery_address: row.deliveryAddress?.trim() || null,
       lat: row.lat ?? null,
       lng: row.lng ?? null,
       user_id: row.userId ?? null,
@@ -824,8 +927,6 @@ export class SupabaseDataBackend implements IDataBackend {
     if (patch.location !== undefined) row.location = patch.location;
     if (patch.district !== undefined) row.district = patch.district;
     if (patch.area !== undefined) row.area = patch.area;
-    if (patch.residentialAddress !== undefined) row.residential_address = patch.residentialAddress;
-    if (patch.deliveryAddress !== undefined) row.delivery_address = patch.deliveryAddress;
     if (patch.district !== undefined || patch.area !== undefined) {
       const { data: cur } = await this.client.from("dealers").select("district,area").eq("id", id).maybeSingle();
       const curRow = cur as { district?: string | null; area?: string | null } | null;
@@ -913,7 +1014,7 @@ export class SupabaseDataBackend implements IDataBackend {
     assignedDealerId?: string | null;
     customerId?: string | null;
   }): Promise<EnquiryRecord> {
-    const payload = {
+    const fullPayload = {
       customer_id: row.customerId ?? null,
       customer_name: row.customerName,
       phone: row.phone ?? null,
@@ -928,9 +1029,26 @@ export class SupabaseDataBackend implements IDataBackend {
       assigned_dealer_id: row.assignedDealerId ?? null,
       status: "pending" as const,
     };
-    const { data, error } = await this.client.from("enquiries").insert(payload).select().single();
-    if (error) throw new Error(error.message);
-    return mapEnquiry(data as EnquiryRow);
+
+    let res = await this.client.from("enquiries").insert(fullPayload).select().single();
+
+    if (res.error && isMissingColumnError(res.error.message)) {
+      const legacyPayload = {
+        customer_id: row.customerId ?? null,
+        customer_name: row.customerName,
+        material_id: row.materialId ?? null,
+        material_label: row.materialLabel ?? null,
+        quantity: row.quantity ?? null,
+        location: row.location?.trim() || null,
+        notes: buildLegacyEnquiryNotes(row),
+        assigned_dealer_id: row.assignedDealerId ?? null,
+        status: "pending" as const,
+      };
+      res = await this.client.from("enquiries").insert(legacyPayload).select().single();
+    }
+
+    if (res.error) throw new Error(res.error.message);
+    return mapEnquiry(res.data as EnquiryRow);
   }
 
   async updateEnquiry(

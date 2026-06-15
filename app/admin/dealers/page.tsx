@@ -13,11 +13,7 @@ export default async function DealersPage() {
       <header className="bg-white border-b border-cement-200 px-4 md:px-6 py-4">
         <h1 className="font-semibold text-lg text-cement-900">Dealer management</h1>
         <p className="text-xs text-cement-500">
-          Add and edit dealers with district, area, and location. Filter the list below. Run{" "}
-          <code className="rounded bg-cement-100 px-1 py-0.5 text-[10px]">
-            006_dealers_address_fields.sql
-          </code>{" "}
-          in Supabase if residential/delivery address columns are missing.
+          Add and edit dealers with district, area, and location. Filter the list below.
         </p>
       </header>
       <div className="p-4 md:p-6 space-y-4">

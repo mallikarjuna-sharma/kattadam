@@ -15,8 +15,6 @@ type FormFields = {
   district: string;
   area: string;
   location: string;
-  residentialAddress: string;
-  deliveryAddress: string;
   status: "pending" | "approved" | "rejected";
   categories: string[];
   enabled: boolean;
@@ -29,8 +27,6 @@ const emptyFields = (): FormFields => ({
   district: "",
   area: "",
   location: "",
-  residentialAddress: "",
-  deliveryAddress: "",
   status: "approved",
   categories: [],
   enabled: true,
@@ -44,8 +40,6 @@ function fieldsFromDealer(dealer: DealerRecord): FormFields {
     district: dealer.district,
     area: dealer.area === "—" ? "" : dealer.area,
     location: dealer.location ?? defaultLocationLine(dealer.area, dealer.district),
-    residentialAddress: dealer.residentialAddress ?? "",
-    deliveryAddress: dealer.deliveryAddress ?? "",
     status: dealer.status,
     categories: dealer.materials ?? [],
     enabled: dealer.enabled,
@@ -113,8 +107,6 @@ export default function DealerForm({ dealer, onCancel, onSaved }: Props) {
       fd.set("district", fields.district.trim());
       fd.set("area", fields.area.trim());
       fd.set("location", fields.location.trim());
-      fd.set("residentialAddress", fields.residentialAddress.trim());
-      fd.set("deliveryAddress", fields.deliveryAddress.trim());
       fd.set("status", fields.status);
       fd.set("enabled", fields.enabled ? "true" : "false");
       for (const k of fields.categories) {
@@ -269,32 +261,6 @@ export default function DealerForm({ dealer, onCancel, onSaved }: Props) {
         <p className="text-[11px] text-cement-400 mt-1">
           Auto-filled from area and district; edit to override the display location.
         </p>
-      </div>
-      <div className="sm:col-span-2">
-        <label className="text-xs text-cement-500 block mb-1" htmlFor="dealer-residential-address">
-          Residential address
-        </label>
-        <textarea
-          id="dealer-residential-address"
-          className="admin-input min-h-[72px] resize-y"
-          value={fields.residentialAddress}
-          onChange={(e) => setFields((f) => ({ ...f, residentialAddress: e.target.value }))}
-          placeholder="Shop / office address"
-          rows={2}
-        />
-      </div>
-      <div className="sm:col-span-2">
-        <label className="text-xs text-cement-500 block mb-1" htmlFor="dealer-delivery-address">
-          Delivery address
-        </label>
-        <textarea
-          id="dealer-delivery-address"
-          className="admin-input min-h-[72px] resize-y"
-          value={fields.deliveryAddress}
-          onChange={(e) => setFields((f) => ({ ...f, deliveryAddress: e.target.value }))}
-          placeholder="Dispatch / delivery address (if different)"
-          rows={2}
-        />
       </div>
       <div className="sm:col-span-2">
         <label className="text-xs text-cement-500 block mb-2">Material categories * (multi-select)</label>

@@ -225,6 +225,22 @@ export async function adminListKattadamExperts(): Promise<KattadamExpertRecord[]
   return b.listKattadamExperts();
 }
 
+export async function adminUpdateKattadamExpert(
+  id: string,
+  patch: Partial<{
+    expertType: ExpertType;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }>
+): Promise<KattadamExpertRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.updateKattadamExpert(id, patch);
+}
+
 export async function adminInsertHomeServiceProvider(row: {
   serviceCategory: string;
   firmName: string;
@@ -246,6 +262,22 @@ export async function adminListHomeServiceProviders(): Promise<HomeServiceProvid
   const b = getServerBackend();
   if (!b) return null;
   return b.listHomeServiceProviders();
+}
+
+export async function adminUpdateHomeServiceProvider(
+  id: string,
+  patch: Partial<{
+    serviceCategory: string;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }>
+): Promise<HomeServiceProviderRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.updateHomeServiceProvider(id, patch);
 }
 
 export async function adminInsertPropertyListing(row: {
@@ -271,6 +303,24 @@ export async function adminListPropertyListings(): Promise<PropertyListingRecord
   const b = getServerBackend();
   if (!b) return null;
   return b.listPropertyListings();
+}
+
+export async function adminUpdatePropertyListing(
+  id: string,
+  patch: Partial<{
+    title: string;
+    listingType: "SELL" | "RENT";
+    propertySubtype: string;
+    price: number;
+    district: string;
+    area: string;
+    description: string | null;
+    published: boolean;
+  }>
+): Promise<PropertyListingRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.updatePropertyListing(id, patch);
 }
 
 export async function adminDeletePropertyListing(id: string): Promise<boolean | null> {
