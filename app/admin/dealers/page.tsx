@@ -1,87 +1,52 @@
+import { isDataLayerConfigured } from "@kattadam/data-layer";
 import { adminListDealers } from "@kattadam/data-layer/server";
-import AddDealerForm from "@/components/admin/AddDealerForm";
-import { actionDeleteDealer } from "@/app/admin/actions";
-import { materialCategoryLabel } from "@/lib/mock-data";
+import DealersAdminPanel from "@/components/admin/DealersAdminPanel";
 
 export default async function DealersPage() {
-  const dealers = await adminListDealers();
+  const configured = isDataLayerConfigured();
+  const dealerRows = configured ? await adminListDealers() : null;
+  const loadFailed = configured && dealerRows === null;
+  const dealers = dealerRows ?? [];
 
   return (
     <div className="flex-1">
       <header className="bg-white border-b border-cement-200 px-4 md:px-6 py-4">
         <h1 className="font-semibold text-lg text-cement-900">Dealer management</h1>
         <p className="text-xs text-cement-500">
-          New dealers default to <strong>Approved</strong>. Categories are stored as keys (e.g. CEMENT) to match
-          Materials. Run{" "}
-          <code className="rounded bg-cement-100 px-1 py-0.5 text-[10px]">003_dealers_district_area_materials_dealer_fk.sql</code>{" "}
-          in Supabase if district/area columns are missing.
+          Add and edit dealers with district, area, and location. Filter the list below.
         </p>
       </header>
-      <div className="p-4 md:p-6 space-y-6">
-        <div className="admin-card p-5">
-          <h2 className="font-semibold text-sm text-cement-900 mb-3">Add dealer</h2>
-          <AddDealerForm />
-        </div>
-
-        {!dealers?.length ? (
-          <p className="text-sm text-cement-500 admin-card p-6">No dealers yet.</p>
-        ) : (
-          <div className="admin-table-wrap">
-            <table className="w-full min-w-[1100px]">
-              <thead>
-                <tr>
-                  <th className="admin-th">Shop</th>
-                  <th className="admin-th">Owner</th>
-                  <th className="admin-th">Phone</th>
-                  <th className="admin-th">District</th>
-                  <th className="admin-th">Area</th>
-                  <th className="admin-th">Location</th>
-                  <th className="admin-th min-w-[200px]">Categories</th>
-                  <th className="admin-th">Rating</th>
-                  <th className="admin-th">Status</th>
-                  <th className="admin-th">Flags</th>
-                  <th className="admin-th">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dealers.map((d) => (
-                  <tr key={d.id}>
-                    <td className="admin-td font-medium">{d.shopName}</td>
-                    <td className="admin-td">{d.ownerName ?? "—"}</td>
-                    <td className="admin-td">{d.phone ?? "—"}</td>
-                    <td className="admin-td text-xs">{d.district}</td>
-                    <td className="admin-td text-xs">{d.area}</td>
-                    <td className="admin-td text-xs text-cement-600">{d.location ?? "—"}</td>
-                    <td className="admin-td">
-                      <div className="flex flex-wrap gap-1">
-                        {(d.materials ?? []).map((key) => (
-                          <span
-                            key={key}
-                            className="text-[10px] bg-brand-50 text-brand-800 px-2 py-0.5 rounded-full font-medium"
-                          >
-                            {materialCategoryLabel(key)}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="admin-td">{d.rating.toFixed(1)}</td>
-                    <td className="admin-td text-xs">{d.status}</td>
-                    <td className="admin-td text-xs text-cement-500">
-                      {d.verified ? "Verified" : "Not verified"} · {d.enabled ? "On" : "Off"}
-                    </td>
-                    <td className="admin-td">
-                      <form action={actionDeleteDealer.bind(null, d.id)}>
-                        <button type="submit" className="text-xs text-red-600 hover:underline font-medium">
-                          Delete
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <div className="p-4 md:p-6 space-y-4">
+        {!configured ? (
+          <div
+            role="alert"
+            className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          >
+            <p className="font-medium">Supabase not configured</p>
+            <p className="text-xs mt-1 text-amber-800">
+              Set <code className="bg-white/80 px-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+              <code className="bg-white/80 px-1 rounded">SUPABASE_SERVICE_ROLE_KEY</code> in{" "}
+              <code className="bg-white/80 px-1 rounded">.env.local</code>, then restart the dev server.
+            </p>
           </div>
-        )}
+        ) : loadFailed ? (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+          >
+            <p className="font-medium text-red-900">Could not load dealers from Supabase</p>
+            <p className="text-xs mt-1 leading-relaxed">
+              The database request failed (often <code className="bg-white/80 px-1 rounded">fetch failed</code> on
+              Windows when Node prefers IPv6). Stop the server and start with{" "}
+              <code className="bg-white/80 px-1 rounded">npm run dev</code> (not{" "}
+              <code className="bg-white/80 px-1 rounded">npx next dev</code>) so IPv4 DNS is used. Or run:{" "}
+              <code className="bg-white/80 px-1 rounded block mt-1">
+                $env:NODE_OPTIONS=&quot;--dns-result-order=ipv4first&quot;; npx next dev
+              </code>
+            </p>
+          </div>
+        ) : null}
+        <DealersAdminPanel dealers={dealers} />
       </div>
     </div>
   );

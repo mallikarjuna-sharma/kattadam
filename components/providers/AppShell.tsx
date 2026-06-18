@@ -108,9 +108,9 @@ function SessionPing() {
 const POPUP_PHONE_FORMATTED = `${KD360_PHONE_DISPLAY.slice(0, 5)} ${KD360_PHONE_DISPLAY.slice(5)}`;
 
 const POPUP_SERVICE_CARDS = [
-  { key: "expert_popup_materials", icon: Hammer },
   { key: "expert_popup_experts", icon: UserCheck },
   { key: "expert_popup_homeservices", icon: Home },
+  { key: "expert_popup_materials", icon: Hammer },
 ] as const;
 
 function ExpertCallPopup() {

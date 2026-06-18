@@ -1,23 +1,57 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useState, useTransition } from "react";
-import { actionInsertExpert } from "@/app/admin/actions";
+import { useCallback, useEffect, useState, useTransition } from "react";
+import type { KattadamExpertRecord } from "@kattadam/data-layer";
+import { actionUpsertExpert } from "@/app/admin/actions";
 import { DISTRICTS } from "@/lib/mock-data";
 
-const initial = {
-  expertType: "builder" as "builder" | "architect" | "engineer",
+type FormFields = {
+  expertType: "builder" | "architect" | "engineer";
+  firmName: string;
+  ownerName: string;
+  contactNumber: string;
+  serviceableAreas: string;
+  district: string;
+};
+
+const emptyFields = (): FormFields => ({
+  expertType: "builder",
   firmName: "",
   ownerName: "",
   contactNumber: "",
   serviceableAreas: "",
-  district: "" as string,
+  district: "",
+});
+
+function fieldsFromExpert(expert: KattadamExpertRecord): FormFields {
+  return {
+    expertType: expert.expertType,
+    firmName: expert.firmName,
+    ownerName: expert.ownerName,
+    contactNumber: expert.contactNumber,
+    serviceableAreas: expert.serviceableAreas,
+    district: expert.district,
+  };
+}
+
+type Props = {
+  expert?: KattadamExpertRecord | null;
+  onCancel?: () => void;
+  onSaved?: () => void;
 };
 
-export default function AddExpertForm() {
+export default function AddExpertForm({ expert, onCancel, onSaved }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [fields, setFields] = useState(initial);
+  const [fields, setFields] = useState<FormFields>(() => (expert ? fieldsFromExpert(expert) : emptyFields()));
+  const [error, setError] = useState<string | null>(null);
+  const isEdit = Boolean(expert?.id);
+
+  useEffect(() => {
+    setFields(expert ? fieldsFromExpert(expert) : emptyFields());
+    setError(null);
+  }, [expert]);
 
   const canSave =
     fields.firmName.trim().length > 0 &&
@@ -31,6 +65,7 @@ export default function AddExpertForm() {
       e.preventDefault();
       if (!canSave || isPending) return;
       const fd = new FormData();
+      if (expert?.id) fd.set("id", expert.id);
       fd.set("expertType", fields.expertType);
       fd.set("firmName", fields.firmName.trim());
       fd.set("ownerName", fields.ownerName.trim());
@@ -38,23 +73,34 @@ export default function AddExpertForm() {
       fd.set("serviceableAreas", fields.serviceableAreas.trim());
       fd.set("district", fields.district.trim());
       startTransition(async () => {
-        await actionInsertExpert(fd);
-        setFields(initial);
+        const result = await actionUpsertExpert(fd);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        setError(null);
+        if (!isEdit) setFields(emptyFields());
+        onSaved?.();
         router.refresh();
       });
     },
-    [canSave, fields, isPending, router]
+    [canSave, expert?.id, fields, isEdit, isPending, onSaved, router]
   );
 
   return (
     <form onSubmit={onSubmit} className="grid sm:grid-cols-2 gap-3">
+      {error ? (
+        <div role="alert" className="sm:col-span-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
+        </div>
+      ) : null}
       <div>
         <label className="text-xs text-cement-500 block mb-1">Expert type *</label>
         <select
           className="admin-input"
           value={fields.expertType}
           onChange={(e) =>
-            setFields((f) => ({ ...f, expertType: e.target.value as typeof fields.expertType }))
+            setFields((f) => ({ ...f, expertType: e.target.value as FormFields["expertType"] }))
           }
         >
           <option value="builder">Builder</option>
@@ -118,10 +164,15 @@ export default function AddExpertForm() {
           required
         />
       </div>
-      <div className="sm:col-span-2">
+      <div className="sm:col-span-2 flex flex-wrap items-center gap-2">
         <button type="submit" className="admin-btn" disabled={!canSave || isPending}>
-          {isPending ? "Saving…" : "Save expert"}
+          {isPending ? "Saving…" : isEdit ? "Update expert" : "Save expert"}
         </button>
+        {isEdit ? (
+          <button type="button" className="admin-btn-outline" onClick={onCancel} disabled={isPending}>
+            Cancel edit
+          </button>
+        ) : null}
       </div>
     </form>
   );

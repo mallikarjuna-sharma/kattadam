@@ -32,6 +32,8 @@ type DealerUpdatePatch = Partial<{
   location: string | null;
   district: string;
   area: string;
+  residentialAddress: string | null;
+  deliveryAddress: string | null;
   lat: number | null;
   lng: number | null;
   verified: boolean;
@@ -52,7 +54,12 @@ export function getServerBackend(): IDataBackend | null {
 export async function catalogListDealers(): Promise<DealerRecord[] | null> {
   const b = getServerBackend();
   if (!b) return null;
-  return b.listPublicDealers();
+  try {
+    return await b.listPublicDealers();
+  } catch (e) {
+    console.error("[catalogListDealers]", e);
+    return null;
+  }
 }
 
 export async function catalogListMaterials(): Promise<MaterialRecord[] | null> {
@@ -74,6 +81,7 @@ export async function catalogCreateEnquiry(row: {
   materialId?: string | null;
   quantity?: number | null;
   location?: string | null;
+  deliveryAddress?: string | null;
   notes?: string | null;
   assignedDealerId?: string | null;
   customerId?: string | null;
@@ -217,6 +225,22 @@ export async function adminListKattadamExperts(): Promise<KattadamExpertRecord[]
   return b.listKattadamExperts();
 }
 
+export async function adminUpdateKattadamExpert(
+  id: string,
+  patch: Partial<{
+    expertType: ExpertType;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }>
+): Promise<KattadamExpertRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.updateKattadamExpert(id, patch);
+}
+
 export async function adminInsertHomeServiceProvider(row: {
   serviceCategory: string;
   firmName: string;
@@ -238,6 +262,22 @@ export async function adminListHomeServiceProviders(): Promise<HomeServiceProvid
   const b = getServerBackend();
   if (!b) return null;
   return b.listHomeServiceProviders();
+}
+
+export async function adminUpdateHomeServiceProvider(
+  id: string,
+  patch: Partial<{
+    serviceCategory: string;
+    firmName: string;
+    ownerName: string;
+    contactNumber: string;
+    serviceableAreas: string;
+    district: string;
+  }>
+): Promise<HomeServiceProviderRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.updateHomeServiceProvider(id, patch);
 }
 
 export async function adminInsertPropertyListing(row: {
@@ -265,6 +305,24 @@ export async function adminListPropertyListings(): Promise<PropertyListingRecord
   return b.listPropertyListings();
 }
 
+export async function adminUpdatePropertyListing(
+  id: string,
+  patch: Partial<{
+    title: string;
+    listingType: "SELL" | "RENT";
+    propertySubtype: string;
+    price: number;
+    district: string;
+    area: string;
+    description: string | null;
+    published: boolean;
+  }>
+): Promise<PropertyListingRecord | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  return b.updatePropertyListing(id, patch);
+}
+
 export async function adminDeletePropertyListing(id: string): Promise<boolean | null> {
   const b = getServerBackend();
   if (!b) return null;
@@ -284,7 +342,12 @@ export async function catalogListPropertyListings(): Promise<PropertyListingReco
 export async function adminListDealers(): Promise<DealerRecord[] | null> {
   const b = getServerBackend();
   if (!b) return null;
-  return b.listDealers();
+  try {
+    return await b.listDealers();
+  } catch (e) {
+    console.error("[adminListDealers]", e);
+    return null;
+  }
 }
 
 export async function adminUpsertDealer(row: Partial<DealerRecord> & { shopName: string }): Promise<DealerRecord | null> {

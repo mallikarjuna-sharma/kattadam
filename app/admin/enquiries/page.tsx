@@ -19,12 +19,18 @@ function parseLegacyEmail(notes: string | null): string | null {
   return m ? m[1] : null;
 }
 
+function parseLegacyDeliveryAddress(notes: string | null): string | null {
+  const m = notes?.match(/^Delivery:\s*(.+)$/m);
+  return m ? m[1].trim() : null;
+}
+
 function displayRequirement(notes: string | null): string | null {
   if (!notes) return null;
   let text = notes
     .replace(/^Phone:\s*\+?91?\s*\d{10}\s*\n?/m, "")
     .replace(/^Alt phone:\s*\+?91?\s*\d{10}\s*\n?/m, "")
-    .replace(/^Email:\s*.+\s*\n?/m, "");
+    .replace(/^Email:\s*.+\s*\n?/m, "")
+    .replace(/^Delivery:\s*.+\s*\n?/m, "");
   const regarding = text.match(/^Regarding:\s*.+\n\n([\s\S]*)$/);
   if (regarding) return regarding[1].trim() || null;
   return text.trim() || null;
@@ -111,7 +117,26 @@ export default async function EnquiriesPage() {
                       </div>
                     </td>
                     <td className="admin-td">{e.quantity ?? "—"}</td>
-                    <td className="admin-td text-cement-600">{e.location ?? "—"}</td>
+                    <td className="admin-td text-cement-600 max-w-[220px]">
+                      {e.location || e.deliveryAddress || parseLegacyDeliveryAddress(e.notes) ? (
+                        <div className="text-xs space-y-1">
+                          {e.location ? (
+                            <p className="whitespace-pre-wrap break-words">
+                              <span className="text-cement-400 font-medium">Current: </span>
+                              {e.location}
+                            </p>
+                          ) : null}
+                          {(e.deliveryAddress ?? parseLegacyDeliveryAddress(e.notes)) ? (
+                            <p className="whitespace-pre-wrap break-words">
+                              <span className="text-cement-400 font-medium">Delivery: </span>
+                              {e.deliveryAddress ?? parseLegacyDeliveryAddress(e.notes)}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
                     <td className="admin-td text-xs text-cement-500">
                       {new Date(e.createdAt).toLocaleString()}
                     </td>

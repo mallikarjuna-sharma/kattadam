@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import type { MaterialRecord } from "@kattadam/data-layer";
 import { actionUpsertMaterial } from "@/app/admin/actions";
 import {
   DISTRICTS,
@@ -14,21 +15,59 @@ import type { District } from "@/lib/mock-data";
 
 export type DealerOption = { id: string; shopName: string };
 
-const initial = {
+type FormFields = {
+  name: string;
+  categoryKey: string;
+  subcategory: string;
+  unit: string;
+  price: string;
+  dealerId: string;
+  district: string;
+  area: string;
+};
+
+const emptyFields = (): FormFields => ({
   name: "",
-  categoryKey: "" as string,
+  categoryKey: "",
   subcategory: "",
   unit: "",
   price: "",
   dealerId: "",
-  district: "" as string,
-  area: "" as string,
+  district: "",
+  area: "",
+});
+
+function fieldsFromMaterial(material: MaterialRecord): FormFields {
+  return {
+    name: material.name,
+    categoryKey: material.category,
+    subcategory: material.subcategory ?? "",
+    unit: material.unit ?? "",
+    price: String(material.price ?? ""),
+    dealerId: material.dealerId ?? "",
+    district: material.district,
+    area: material.area,
+  };
+}
+
+type Props = {
+  dealers: DealerOption[];
+  material?: MaterialRecord | null;
+  onCancel?: () => void;
+  onSaved?: () => void;
 };
 
-export default function AddMaterialForm({ dealers }: { dealers: DealerOption[] }) {
+export default function AddMaterialForm({ dealers, material, onCancel, onSaved }: Props) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [fields, setFields] = useState(initial);
+  const [fields, setFields] = useState<FormFields>(() =>
+    material ? fieldsFromMaterial(material) : emptyFields()
+  );
+  const isEdit = Boolean(material?.id);
+
+  useEffect(() => {
+    setFields(material ? fieldsFromMaterial(material) : emptyFields());
+  }, [material]);
 
   const areaOptions = useMemo(() => {
     if (!fields.district || !(DISTRICTS as readonly string[]).includes(fields.district)) return [];
@@ -59,6 +98,7 @@ export default function AddMaterialForm({ dealers }: { dealers: DealerOption[] }
       if (!canSave || isPending) return;
 
       const fd = new FormData();
+      if (material?.id) fd.set("id", material.id);
       fd.set("name", fields.name.trim());
       fd.set("categoryKey", fields.categoryKey.trim());
       fd.set("subcategory", fields.subcategory.trim());
@@ -73,14 +113,15 @@ export default function AddMaterialForm({ dealers }: { dealers: DealerOption[] }
       startTransition(async () => {
         try {
           await actionUpsertMaterial(fd);
-          setFields(initial);
+          if (!isEdit) setFields(emptyFields());
+          onSaved?.();
           router.refresh();
         } catch (err) {
           console.error(err);
         }
       });
     },
-    [canSave, dealers, fields, isPending, router]
+    [canSave, dealers, fields, isEdit, isPending, material?.id, onSaved, router]
   );
 
   return (
@@ -230,10 +271,15 @@ export default function AddMaterialForm({ dealers }: { dealers: DealerOption[] }
           ))}
         </select>
       </div>
-      <div className="flex items-end">
+      <div className="flex items-end gap-2">
         <button type="submit" className="admin-btn" disabled={!canSave || isPending}>
-          {isPending ? "Saving…" : "Save"}
+          {isPending ? "Saving…" : isEdit ? "Update" : "Save"}
         </button>
+        {isEdit ? (
+          <button type="button" className="admin-btn-outline" onClick={onCancel} disabled={isPending}>
+            Cancel
+          </button>
+        ) : null}
       </div>
     </form>
   );

@@ -7,7 +7,13 @@ import AdminMobileNav from "@/components/admin/AdminMobileNav";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import { isAdminClientAuthed } from "@/lib/admin-auth-client";
 
-export default function AdminLayoutShell({ children }: { children: React.ReactNode }) {
+export default function AdminLayoutShell({
+  children,
+  configError,
+}: {
+  children: React.ReactNode;
+  configError: string | null;
+}) {
   const path = usePathname();
   const router = useRouter();
   const isLoginRoute = path === "/admin/login";
@@ -51,7 +57,7 @@ export default function AdminLayoutShell({ children }: { children: React.ReactNo
 
   return (
     <>
-      <AdminConfigBanner />
+      <AdminConfigBanner configError={configError} />
       <div className="min-h-screen flex flex-col md:flex-row bg-cement-50">
         <AdminMobileNav />
         <AdminSidebar />

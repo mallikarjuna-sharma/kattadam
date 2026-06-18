@@ -57,6 +57,17 @@ export interface IDataBackend {
     district: string;
   }): Promise<KattadamExpertRecord>;
   listKattadamExperts(): Promise<KattadamExpertRecord[]>;
+  updateKattadamExpert(
+    id: string,
+    patch: Partial<{
+      expertType: ExpertType;
+      firmName: string;
+      ownerName: string;
+      contactNumber: string;
+      serviceableAreas: string;
+      district: string;
+    }>
+  ): Promise<KattadamExpertRecord | null>;
 
   insertHomeServiceProvider(row: {
     serviceCategory: string;
@@ -67,6 +78,17 @@ export interface IDataBackend {
     district: string;
   }): Promise<HomeServiceProviderRecord>;
   listHomeServiceProviders(): Promise<HomeServiceProviderRecord[]>;
+  updateHomeServiceProvider(
+    id: string,
+    patch: Partial<{
+      serviceCategory: string;
+      firmName: string;
+      ownerName: string;
+      contactNumber: string;
+      serviceableAreas: string;
+      district: string;
+    }>
+  ): Promise<HomeServiceProviderRecord | null>;
 
   insertPropertyListing(row: {
     title: string;
@@ -80,6 +102,19 @@ export interface IDataBackend {
   }): Promise<PropertyListingRecord>;
   listPropertyListings(): Promise<PropertyListingRecord[]>;
   listPublicPropertyListings(): Promise<PropertyListingRecord[]>;
+  updatePropertyListing(
+    id: string,
+    patch: Partial<{
+      title: string;
+      listingType: "SELL" | "RENT";
+      propertySubtype: string;
+      price: number;
+      district: string;
+      area: string;
+      description: string | null;
+      published: boolean;
+    }>
+  ): Promise<PropertyListingRecord | null>;
   deletePropertyListing(id: string): Promise<boolean>;
 
   listDealers(): Promise<DealerRecord[]>;
@@ -99,6 +134,8 @@ export interface IDataBackend {
       location: string | null;
       district: string;
       area: string;
+      residentialAddress: string | null;
+      deliveryAddress: string | null;
       lat: number | null;
       lng: number | null;
       verified: boolean;
@@ -127,6 +164,7 @@ export interface IDataBackend {
     materialId?: string | null;
     quantity?: number | null;
     location?: string | null;
+    deliveryAddress?: string | null;
     notes?: string | null;
     assignedDealerId?: string | null;
     customerId?: string | null;

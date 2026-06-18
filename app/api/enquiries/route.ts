@@ -15,6 +15,9 @@ function migrationHint(message: string): string | null {
   if (/phone|alt_phone|email/.test(message) && /column|does not exist|schema cache/i.test(message)) {
     return "Run packages/data-layer/supabase/migrations/005_enquiries_contact_fields.sql in the Supabase SQL Editor.";
   }
+  if (/delivery_address/.test(message) && /column|does not exist|schema cache/i.test(message)) {
+    return "Run packages/data-layer/supabase/migrations/007_enquiries_delivery_address.sql in the Supabase SQL Editor.";
+  }
   return null;
 }
 
@@ -34,15 +37,28 @@ export async function POST(req: Request) {
   const rawEmail = typeof o.email === "string" ? o.email.trim() : "";
   const email = rawEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail) ? rawEmail : null;
   const message = typeof o.message === "string" ? o.message.trim() : "";
+  const currentAddress = typeof o.currentAddress === "string" ? o.currentAddress.trim() : "";
+  const deliveryAddress = typeof o.deliveryAddress === "string" ? o.deliveryAddress.trim() : "";
   const target = typeof o.target === "string" ? o.target.trim() : "";
   const rawDealerId = typeof o.dealerId === "string" ? o.dealerId.trim() : "";
   const assignedDealerId = rawDealerId && isUuid(rawDealerId) ? rawDealerId : null;
   const rawMaterialId = typeof o.materialId === "string" ? o.materialId.trim() : "";
   const materialId = rawMaterialId && isUuid(rawMaterialId) ? rawMaterialId : null;
 
-  if (!customerName || phone.length < 10 || !message) {
+  if (!customerName || phone.length < 10 || !message || !currentAddress || !deliveryAddress) {
     return NextResponse.json(
-      { ok: false, error: "Name, a valid phone number, and requirement text are required.", code: "VALIDATION" },
+      {
+        ok: false,
+        error: "Name, phone, current address, delivery address, and requirement text are required.",
+        code: "VALIDATION",
+      },
+      { status: 400 }
+    );
+  }
+
+  if (currentAddress.length > 500 || deliveryAddress.length > 500) {
+    return NextResponse.json(
+      { ok: false, error: "Each address must be at most 500 characters.", code: "VALIDATION" },
       { status: 400 }
     );
   }
@@ -68,6 +84,8 @@ export async function POST(req: Request) {
     email,
     materialLabel: target || null,
     materialId,
+    location: currentAddress,
+    deliveryAddress,
     notes: message,
     assignedDealerId,
   });

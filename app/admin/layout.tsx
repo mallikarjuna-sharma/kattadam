@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getDataLayerConfigError, isDataLayerConfigured } from "@kattadam/data-layer";
 import AdminLayoutShell from "@/components/admin/AdminLayoutShell";
 
 /** Admin loads data from Supabase; do not prerender at build time. */
@@ -10,5 +11,6 @@ export const metadata: Metadata = {
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return <AdminLayoutShell>{children}</AdminLayoutShell>;
+  const configError = isDataLayerConfigured() ? null : getDataLayerConfigError();
+  return <AdminLayoutShell configError={configError}>{children}</AdminLayoutShell>;
 }
