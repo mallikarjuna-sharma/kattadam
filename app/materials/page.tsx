@@ -31,6 +31,7 @@ type ApiCatalogMaterial = {
   fixedPrice?: number | null;
   price?: number;
   dealerName?: string | null;
+  dealerId?: string | null;
   district?: string;
   area?: string;
 };
@@ -82,6 +83,7 @@ export default function MaterialsPage() {
   const [enquiryOpen, setEnquiryOpen] = useState<{
     target: string;
     materialId?: string;
+    dealerId?: string;
   } | null>(null);
   const [catalogMaterials, setCatalogMaterials] = useState<ApiCatalogMaterial[]>([]);
   const [listStatus, setListStatus] = useState<"live" | "empty" | "error">("empty");
@@ -326,7 +328,13 @@ export default function MaterialsPage() {
 
                     <button
                       type="button"
-                      onClick={() => setEnquiryOpen({ target: m.name, materialId: m.id })}
+                      onClick={() =>
+                        setEnquiryOpen({
+                          target: m.name,
+                          materialId: m.id,
+                          ...(m.dealerId ? { dealerId: m.dealerId } : {}),
+                        })
+                      }
                       className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-sm"
                     >
                       <Phone className="w-4 h-4" /> Send Enquiry
@@ -359,6 +367,7 @@ export default function MaterialsPage() {
         <EnquiryModal
           target={enquiryOpen.target}
           materialId={enquiryOpen.materialId}
+          dealerId={enquiryOpen.dealerId}
           onClose={() => setEnquiryOpen(null)}
         />
       )}
