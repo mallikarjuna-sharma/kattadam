@@ -73,23 +73,42 @@ export function buildCreateEnquiryPayload(
 }
 
 export async function submitEnquiry(payload: CreateEnquiryPayload): Promise<CreateEnquiryResponse> {
-  const res = await fetch("/api/enquiries", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  // POST directly to the provided AWS Lambda endpoint.
+  const url =
+    "https://3ykaxi3hty6ngrwgf64v5fcdgy0bctgn.lambda-url.ap-south-1.on.aws/";
 
-  const data = (await res.json()) as CreateEnquiryResponse & { id?: string };
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-  if (!res.ok || !data.ok) {
-    return {
-      ok: false,
-      error: data.ok === false ? data.error : "Something went wrong. Please try again.",
-      code: "code" in data ? data.code : undefined,
-      detail: "detail" in data ? data.detail : undefined,
-      hint: "hint" in data ? data.hint : undefined,
-    };
+    // Try to parse JSON response; if parsing fails, return generic error.
+    const data = await (async () => {
+      try {
+        return (await res.json()) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })();
+
+    if (!res.ok) {
+      const message = data && typeof data.message === "string" ? data.message : "Server error";
+      return { ok: false, error: message };
+    }
+
+    // Expected lambda response shape: { success: true, messageId: string }
+    if (data && data.success === true) {
+      const id = typeof data.messageId === "string" ? data.messageId : "";
+      return { ok: true, id };
+    }
+
+    // If lambda returns success:false or unexpected shape, map to failure
+    const errMsg = data && typeof data.message === "string" ? data.message : "Could not send enquiry.";
+    return { ok: false, error: errMsg };
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { ok: false, error: `Network error: ${msg}` };
   }
-
-  return { ok: true, id: data.id ?? "" };
 }
