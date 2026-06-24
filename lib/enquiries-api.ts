@@ -73,40 +73,28 @@ export function buildCreateEnquiryPayload(
 }
 
 export async function submitEnquiry(payload: CreateEnquiryPayload): Promise<CreateEnquiryResponse> {
-  // POST directly to the provided AWS Lambda endpoint.
-  const url =
-    "https://3ykaxi3hty6ngrwgf64v5fcdgy0bctgn.lambda-url.ap-south-1.on.aws/";
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch("/api/enquiries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    // Try to parse JSON response; if parsing fails, return generic error.
-    const data = await (async () => {
-      try {
-        return (await res.json()) as Record<string, unknown>;
-      } catch {
-        return null;
-      }
-    })();
+    const data = (await res.json()) as Record<string, unknown>;
 
-    if (!res.ok) {
-      const message = data && typeof data.message === "string" ? data.message : "Server error";
-      return { ok: false, error: message };
+    if (!res.ok || data.ok !== true) {
+      const errMsg = typeof data.error === "string" ? data.error : "Something went wrong. Please try again.";
+      return {
+        ok: false,
+        error: errMsg,
+        code: typeof data.code === "string" ? data.code : undefined,
+        detail: typeof data.detail === "string" ? data.detail : undefined,
+        hint: typeof data.hint === "string" ? data.hint : undefined,
+      };
     }
 
-    // Expected lambda response shape: { success: true, messageId: string }
-    if (data && data.success === true) {
-      const id = typeof data.messageId === "string" ? data.messageId : "";
-      return { ok: true, id };
-    }
-
-    // If lambda returns success:false or unexpected shape, map to failure
-    const errMsg = data && typeof data.message === "string" ? data.message : "Could not send enquiry.";
-    return { ok: false, error: errMsg };
+    const id = typeof data.id === "string" ? data.id : "";
+    return { ok: true, id };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     return { ok: false, error: `Network error: ${msg}` };
