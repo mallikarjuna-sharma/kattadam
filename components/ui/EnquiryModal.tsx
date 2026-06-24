@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { X, Phone, CheckCircle, AlertCircle, Mail } from "lucide-react";
+import { buildCreateEnquiryPayload, submitEnquiry } from "@/lib/enquiries-api";
 
 const ENQUIRY_SUBTITLE = "Submit your enquiry and we'll connect you with the right dealer.";
 
@@ -54,42 +55,15 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
 
     setSubmitting(true);
     try {
-      const res = await fetch("/api/enquiries", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName: form.name.trim(),
-          phone: form.phone,
-          altPhone: form.altPhone || undefined,
-          email: form.email.trim() || undefined,
-          currentAddress: form.currentAddress.trim(),
-          deliveryAddress: form.deliveryAddress.trim(),
-          message: form.message.trim(),
-          target,
-          ...(dealerId ? { dealerId } : {}),
-          ...(materialId ? { materialId } : {}),
-        }),
-      });
-      const data = (await res.json()) as {
-        ok?: boolean;
-        error?: string;
-        code?: string;
-        detail?: string;
-        hint?: string;
-      };
-      if (!res.ok || !data.ok) {
-        console.error("[EnquiryModal] Submit failed:", {
-          status: res.status,
-          code: data.code,
-          error: data.error,
-          detail: data.detail,
-          hint: data.hint,
-        });
+      const payload = buildCreateEnquiryPayload(form, { target, dealerId, materialId });
+      const data = await submitEnquiry(payload);
+      if (!data.ok) {
+        console.error("[EnquiryModal] Submit failed:", data);
         const devDetail =
           process.env.NODE_ENV === "development" && data.detail && data.detail !== data.error
             ? ` (${data.detail})`
             : "";
-        setError((data.error ?? "Something went wrong. Please try again.") + devDetail);
+        setError(data.error + devDetail);
         return;
       }
       setSubmitted(true);

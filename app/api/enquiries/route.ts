@@ -119,6 +119,44 @@ export async function POST(req: Request) {
 
   console.info("[api/enquiries] Saved enquiry:", result.record.id);
 
+  // Trigger AWS Lambda email notification
+  const lambdaUrl = "https://3ykaxi3hty6ngrwgf64v5fcdgy0bctgn.lambda-url.ap-south-1.on.aws/";
+  try {
+    const lambdaPayload = {
+      name: customerName,
+      customerName: customerName,
+      phone: phone,
+      altPhone: altPhone || "",
+      email: email || "",
+      message: message,
+      notes: message,
+      currentAddress: currentAddress,
+      location: currentAddress,
+      deliveryAddress: deliveryAddress,
+      target: target,
+      materialLabel: target,
+      dealerId: assignedDealerId || "",
+      assignedDealerId: assignedDealerId || "",
+      materialId: materialId || "",
+    };
+
+    console.info("[api/enquiries] Triggering AWS Lambda email...", lambdaPayload);
+    const lambdaRes = await fetch(lambdaUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(lambdaPayload),
+    });
+
+    if (!lambdaRes.ok) {
+      console.warn(`[api/enquiries] AWS Lambda email trigger failed with status: ${lambdaRes.status}`);
+    } else {
+      const lambdaData = await lambdaRes.json();
+      console.info("[api/enquiries] AWS Lambda email success response:", lambdaData);
+    }
+  } catch (error) {
+    console.error("[api/enquiries] Error triggering AWS Lambda email:", error);
+  }
+
   revalidatePath("/admin/enquiries");
   revalidatePath("/admin");
 
