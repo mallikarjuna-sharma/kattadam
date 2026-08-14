@@ -5,15 +5,8 @@ import {
   authUserExistsByEmail,
   getServerBackend,
 } from "@kattadam/data-layer/server";
-import {
-  fixedDevOtp,
-  generateOtpCode,
-  hashOtp,
-  isDevExposeOtp,
-  otpExpiresAt,
-  type OtpPurpose,
-} from "@/lib/otp";
-import { isSesConfigured, sendOtpEmail } from "@/lib/ses-email";
+import { isDevExposeOtp, fixedDevOtp, generateOtpCode, hashOtp, otpExpiresAt, type OtpPurpose } from "@/lib/otp";
+import { isSesFullyConfigured, sendOtpEmail } from "@/lib/ses-email";
 
 const OTP_RATE_LIMIT = 5;
 const OTP_RATE_WINDOW_MS = 15 * 60 * 1000;
@@ -84,10 +77,19 @@ export async function POST(req: Request) {
   }
 
   let emailed = false;
-  if (isSesConfigured()) {
-    emailed = await sendOtpEmail(email, purpose, code);
+  let sendError: string | undefined;
+
+  if (isSesFullyConfigured()) {
+    const sent = await sendOtpEmail(email, purpose, code);
+    if (sent.ok) {
+      emailed = true;
+    } else {
+      sendError = sent.reason;
+      console.error("[auth/otp/send]", sendError);
+    }
   } else {
-    console.warn(`[auth/otp/send] SES not configured. OTP for ${email}: ${code}`);
+    sendError = "SES is not fully configured on the server.";
+    console.warn(`[auth/otp/send] ${sendError} OTP for ${email}: ${code}`);
   }
 
   const payload: { ok: true; emailed: boolean; devOtp?: string } = { ok: true, emailed };
@@ -97,7 +99,10 @@ export async function POST(req: Request) {
 
   if (!emailed && !isDevExposeOtp()) {
     return NextResponse.json(
-      { ok: false, error: "Could not send verification email. Check SES configuration." },
+      {
+        ok: false,
+        error: sendError ?? "Could not send verification email. Check SES configuration.",
+      },
       { status: 503 }
     );
   }
