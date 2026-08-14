@@ -2,34 +2,20 @@
 
 Edit code in `src/` — deploy with one command (no manual zip).
 
-## Local workflow
+## Deploy (recommended: AWS Cloud Shell)
+
+Do **not** use `aws configure` on your Mac. In **AWS Cloud Shell**:
 
 ```bash
-cd backend/lambda
-npm install
-
-# Edit src/routes/*.mjs, src/handler.mjs, etc.
-
-npm run deploy
+git clone --depth 1 https://github.com/mallikarjuna-sharma/kattadam.git ~/kattadam-deploy
+cd ~/kattadam-deploy && bash infra/deploy-lambda-cloudshell.sh
 ```
 
-Requires AWS CLI credentials with `lambda:UpdateFunctionCode` (e.g. `KattadamSES-send` access keys in `~/.aws/credentials`).
+See `infra/DEPLOY-LAMBDA.md` in the repo root.
 
-Optional env:
+## Local deploy (optional, after IAM `lambda:UpdateFunctionCode` on KattadamSES-send)
 
-```bash
-export AWS_REGION=ap-south-1
-export LAMBDA_FUNCTION_NAME=kattadam-api
-export LAMBDA_FUNCTION_URL=https://lzp67olabvxlrfs4ni4xagmztu0gcunk.lambda-url.ap-south-1.on.aws
-```
-
-## Edit directly in AWS Console (no local deploy)
-
-1. Lambda → **kattadam-api** → **Code**
-2. Create/edit `index.mjs` in the inline editor
-3. **Deploy** button in the console
-
-Good for quick one-file tweaks. For multiple files, use `src/` + `npm run deploy` here.
+Lambda → **kattadam-api** → **Code** → edit → **Deploy** (no local credentials).
 
 ## Function URL
 
@@ -42,9 +28,9 @@ Good for quick one-file tweaks. For multiple files, use `src/` + `npm run deploy
 
 ```
 src/
-  handler.mjs       # route table
-  lib/http.mjs      # CORS, json helpers
-  routes/           # one file per area
+  handler.mjs
+  router.mjs
+  lib/
 ```
 
-`npm run build` bundles to `dist/index.mjs` (esbuild). `npm run deploy` uploads automatically.
+`npm run build` → `dist/index.mjs`. `npm run deploy` uploads via AWS SDK (no AWS CLI).
