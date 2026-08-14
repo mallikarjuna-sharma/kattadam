@@ -245,6 +245,9 @@ export default function LoginPage() {
                     ? "Register your business. Our team will review and activate your listing."
                     : "Join as a homeowner or buyer — free to get started."}
                 </p>
+                <p className="text-xs text-cement-500 mb-4 rounded-lg bg-cement-50 border border-cement-100 px-3 py-2">
+                  Step 1: Enter your email and tap <strong>Send code</strong>. Step 2: Enter the 6-digit code from your inbox, then register.
+                </p>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-cement-700 mb-1.5">Full name</label>
@@ -252,14 +255,48 @@ export default function LoginPage() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-cement-700 mb-1.5">Email</label>
+                    <div className="flex gap-2">
+                      <input
+                        className="input flex-1 min-w-0"
+                        type="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value.trim());
+                          setOtp("");
+                          setOtpSent(false);
+                        }}
+                        placeholder="you@example.com"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void onSendOtp()}
+                        disabled={otpSending || !email}
+                        className="btn-outline shrink-0 px-3 text-xs sm:text-sm disabled:opacity-40"
+                      >
+                        {otpSending ? "Sending…" : otpSent ? "Resend" : "Send code"}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-cement-700 mb-1.5">Verification code</label>
                     <input
                       className="input"
-                      type="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value.trim())}
-                      placeholder="you@example.com"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="6-digit code from email"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     />
+                    {otpSent ? (
+                      <p className="text-xs text-cement-500 mt-1.5">
+                        Code sent — check inbox (and spam) for noreply@kattadam.in
+                      </p>
+                    ) : (
+                      <p className="text-xs text-cement-400 mt-1.5">Tap Send code after entering your email</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-cement-700 mb-1.5">Password</label>
@@ -280,32 +317,6 @@ export default function LoginPage() {
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
                     />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-sm font-medium text-cement-700">Email verification code</label>
-                      <button
-                        type="button"
-                        onClick={() => void onSendOtp()}
-                        disabled={otpSending || !email}
-                        className="text-xs font-semibold text-brand-600 hover:text-brand-700 disabled:opacity-40"
-                      >
-                        {otpSending ? "Sending…" : otpSent ? "Resend code" : "Send code"}
-                      </button>
-                    </div>
-                    <input
-                      className="input"
-                      type="text"
-                      inputMode="numeric"
-                      autoComplete="one-time-code"
-                      placeholder="6-digit code"
-                      maxLength={6}
-                      value={otp}
-                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    />
-                    {otpSent && (
-                      <p className="text-xs text-cement-500 mt-1.5">Check your inbox for a code from noreply@kattadam.in</p>
-                    )}
                   </div>
                   {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
