@@ -1,0 +1,19 @@
+{
+  "name": "kattadam-lambda",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/handler.mjs --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.mjs",
+    "deploy": "node scripts/deploy.mjs",
+    "dev": "node scripts/local.mjs"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@aws-sdk/client-sesv2": "^3.758.0",
+    "@aws-sdk/lib-dynamodb": "^3.758.0"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-lambda": "^3.758.0",
+    "esbuild": "^0.25.0"
+  }
+}

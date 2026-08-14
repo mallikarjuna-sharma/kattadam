@@ -1,6 +1,6 @@
-import { readSupabaseServerConfig } from "./internal/env";
+import { readKattadamApiUrl } from "./internal/kattadam-api-env";
 
-/** True when server-side Supabase credentials are present (does not validate connectivity). */
+/** True when KATTADAM_API_URL points at the Lambda backend. */
 export function isDataLayerConfigured(): boolean {
-  return readSupabaseServerConfig() !== null;
+  return readKattadamApiUrl() !== null;
 }

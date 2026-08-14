@@ -135,10 +135,9 @@ export default function MaterialsPage() {
 
         {listStatus === "unconfigured" && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 mb-6">
-            Database is not connected for this environment. Set{" "}
-            <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
-            <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">SUPABASE_SERVICE_ROLE_KEY</code> to load
-            materials from Admin.
+            Database is not connected. Set{" "}
+            <code className="rounded bg-white/80 px-1.5 py-0.5 text-xs">KATTADAM_API_URL</code> to your Lambda API to
+            load materials from Admin.
           </div>
         )}
 

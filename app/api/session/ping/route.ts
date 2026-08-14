@@ -1,24 +1,7 @@
 import { NextResponse } from "next/server";
-import { getServerBackend } from "@kattadam/data-layer/server";
+import { forwardToKattadamApi } from "@/lib/lambda-proxy";
 
 export async function POST(req: Request) {
-  const b = getServerBackend();
-  if (!b) {
-    return NextResponse.json({ ok: false }, { status: 503 });
-  }
-
-  let body: { sessionId?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ ok: false }, { status: 400 });
-  }
-
-  const sessionId = String(body.sessionId ?? "").trim();
-  if (!sessionId) {
-    return NextResponse.json({ ok: false }, { status: 400 });
-  }
-
-  const ok = await b.touchAppSession(sessionId);
-  return NextResponse.json({ ok: !!ok });
+  const proxied = await forwardToKattadamApi("/session/ping", req);
+  return proxied ?? NextResponse.json({ ok: false, error: "KATTADAM_API_URL is not configured." }, { status: 503 });
 }

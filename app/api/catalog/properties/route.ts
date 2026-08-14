@@ -1,19 +1,7 @@
 import { NextResponse } from "next/server";
-import { isDataLayerConfigured } from "@kattadam/data-layer";
-import { catalogListPropertyListings } from "@kattadam/data-layer/server";
+import { forwardToKattadamApi } from "@/lib/lambda-proxy";
 
 export async function GET() {
-  if (!isDataLayerConfigured()) {
-    return NextResponse.json({ configured: false, source: "unconfigured", listings: [] });
-  }
-  try {
-    const listings = await catalogListPropertyListings();
-    if (!listings) {
-      return NextResponse.json({ configured: true, source: "error", listings: [], error: "Could not load listings." });
-    }
-    return NextResponse.json({ configured: true, source: "live", listings });
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    return NextResponse.json({ configured: true, source: "error", listings: [], error: msg });
-  }
+  const proxied = await forwardToKattadamApi("/catalog/properties");
+  return proxied ?? NextResponse.json({ ok: false, error: "KATTADAM_API_URL is not configured." }, { status: 503 });
 }
