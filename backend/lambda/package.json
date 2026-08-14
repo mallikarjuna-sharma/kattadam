@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/handler.mjs --bundle --platform=node --target=node20 --format=esm --outfile=dist/index.mjs",
+    "build": "esbuild src/handler.mjs --bundle --platform=node --target=node20 --format=cjs --outfile=dist/index.js",
     "deploy": "node scripts/deploy.mjs",
     "dev": "node scripts/local.mjs"
   },

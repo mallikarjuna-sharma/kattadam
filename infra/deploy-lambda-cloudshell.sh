@@ -27,7 +27,7 @@ npm run build
 
 echo "==> zip + upload"
 rm -f dist/function.zip
-(cd dist && zip -q function.zip index.mjs)
+(cd dist && zip -q function.zip index.js)
 
 aws lambda update-function-code \
   --function-name "$FUNCTION_NAME" \

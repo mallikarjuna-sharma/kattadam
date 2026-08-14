@@ -13,7 +13,7 @@ import {
 import { loadLambdaLocalEnv, readKattadamDeployCredentials, readDeployRegion } from "./load-env.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const distFile = join(root, "dist", "index.mjs");
+const distFile = join(root, "dist", "index.js");
 const zipPath = join(root, "dist", "function.zip");
 
 loadLambdaLocalEnv();
@@ -41,7 +41,7 @@ if (!existsSync(distFile)) {
 }
 
 if (existsSync(zipPath)) unlinkSync(zipPath);
-execSync("zip -q function.zip index.mjs", { cwd: join(root, "dist") });
+execSync("zip -q function.zip index.js", { cwd: join(root, "dist") });
 
 const zip = readFileSync(zipPath);
 console.log(`Deploying to ${FUNCTION_NAME} (${REGION})…`);

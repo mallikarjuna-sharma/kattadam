@@ -33,4 +33,4 @@ src/
   lib/
 ```
 
-`npm run build` → `dist/index.mjs`. `npm run deploy` uploads via AWS SDK (no AWS CLI).
+`npm run build` → `dist/index.js` (CommonJS bundle for Lambda). `npm run deploy` uploads via AWS SDK (no AWS CLI).

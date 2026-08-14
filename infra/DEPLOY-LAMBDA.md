@@ -46,7 +46,7 @@ npm run deploy
 Lambda → **kattadam-api** → **Code** → upload zip built in Cloud Shell:
 
 ```bash
-cd ~/kattadam-deploy/backend/lambda && npm run build && cd dist && zip function.zip index.mjs
+cd ~/kattadam-deploy/backend/lambda && npm run build && cd dist && zip function.zip index.js
 ```
 
 Download `function.zip` from Cloud Shell → Lambda Console → **Upload from** → `.zip file`.
