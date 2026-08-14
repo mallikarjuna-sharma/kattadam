@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { authRegisterCustomer, authRegisterPartner, getServerBackend } from "@kattadam/data-layer/server";
+import {
+  authRegisterCustomer,
+  authRegisterPartner,
+  authVerifyEmailOtp,
+  getServerBackend,
+} from "@kattadam/data-layer/server";
 
 export async function POST(req: Request) {
   const b = getServerBackend();
@@ -7,7 +12,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "Database is not configured." }, { status: 503 });
   }
 
-  let body: { mode?: string; name?: string; email?: string; password?: string };
+  let body: { mode?: string; name?: string; email?: string; password?: string; otp?: string };
   try {
     body = await req.json();
   } catch {
@@ -17,6 +22,7 @@ export async function POST(req: Request) {
   const name = String(body.name ?? "").trim();
   const email = String(body.email ?? "").trim().toLowerCase();
   const password = String(body.password ?? "");
+  const otp = String(body.otp ?? "").trim();
   const mode = body.mode === "partner" ? "partner" : "user";
 
   if (!name || !email || !email.includes("@")) {
@@ -25,12 +31,23 @@ export async function POST(req: Request) {
   if (password.length < 6) {
     return NextResponse.json({ ok: false, error: "Password must be at least 6 characters." }, { status: 400 });
   }
+  if (!otp || otp.length < 4) {
+    return NextResponse.json({ ok: false, error: "Enter the verification code from your email." }, { status: 400 });
+  }
+
+  const otpOk = await authVerifyEmailOtp(email, "signup", otp);
+  if (otpOk === null) {
+    return NextResponse.json({ ok: false, error: "Could not verify code." }, { status: 503 });
+  }
+  if (!otpOk) {
+    return NextResponse.json({ ok: false, error: "Invalid or expired verification code." }, { status: 400 });
+  }
 
   try {
     const user =
       mode === "partner"
-        ? await authRegisterPartner({ name, email, password })
-        : await authRegisterCustomer({ name, email, password });
+        ? await authRegisterPartner({ name, email, password, emailVerified: true })
+        : await authRegisterCustomer({ name, email, password, emailVerified: true });
     if (!user) {
       return NextResponse.json({ ok: false, error: "Could not create account. Email may already be in use." }, { status: 400 });
     }

@@ -18,6 +18,9 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [otp, setOtp] = useState("");
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpSending, setOtpSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +48,35 @@ export default function LoginPage() {
     setLoading(false);
   };
 
+  const onSendOtp = async () => {
+    setError(null);
+    if (!email || !email.includes("@")) {
+      setError("Enter a valid email before requesting a code.");
+      return;
+    }
+    setOtpSending(true);
+    try {
+      const res = await fetch("/api/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, purpose: "signup" }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? "Could not send verification code.");
+        setOtpSending(false);
+        return;
+      }
+      setOtpSent(true);
+      if (data.devOtp) {
+        setOtp(String(data.devOtp));
+      }
+    } catch {
+      setError("Network error. Try again.");
+    }
+    setOtpSending(false);
+  };
+
   const onRegister = async (mode: "user" | "partner") => {
     setError(null);
     if (password.length < 6) {
@@ -59,12 +91,16 @@ export default function LoginPage() {
       setError("Please enter your name.");
       return;
     }
+    if (!otp.trim()) {
+      setError("Enter the verification code from your email.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode, name: name.trim(), email, password }),
+        body: JSON.stringify({ mode, name: name.trim(), email, password, otp: otp.trim() }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
@@ -141,6 +177,8 @@ export default function LoginPage() {
                 onClick={() => {
                   setTab(id);
                   setError(null);
+                  setOtp("");
+                  setOtpSent(false);
                 }}
                 className={`flex-1 text-xs sm:text-sm font-semibold py-2.5 rounded-lg transition-colors ${
                   tab === id ? "bg-white text-cement-900 shadow-sm" : "text-cement-500 hover:text-cement-700"
@@ -243,6 +281,32 @@ export default function LoginPage() {
                       onChange={(e) => setConfirm(e.target.value)}
                     />
                   </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-medium text-cement-700">Email verification code</label>
+                      <button
+                        type="button"
+                        onClick={() => void onSendOtp()}
+                        disabled={otpSending || !email}
+                        className="text-xs font-semibold text-brand-600 hover:text-brand-700 disabled:opacity-40"
+                      >
+                        {otpSending ? "Sending…" : otpSent ? "Resend code" : "Send code"}
+                      </button>
+                    </div>
+                    <input
+                      className="input"
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="6-digit code"
+                      maxLength={6}
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    />
+                    {otpSent && (
+                      <p className="text-xs text-cement-500 mt-1.5">Check your inbox for a code from noreply@kattadam.in</p>
+                    )}
+                  </div>
                   {error && <p className="text-sm text-red-600">{error}</p>}
                   <button
                     type="button"
@@ -250,7 +314,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-40"
                   >
-                    <Lock className="w-4 h-4" /> Register & continue
+                    <Lock className="w-4 h-4" /> Verify email & register
                   </button>
                 </div>
               </>

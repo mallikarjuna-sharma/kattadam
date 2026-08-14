@@ -17,6 +17,7 @@ import type {
   UserRecord,
   UserStatus,
   ZoneRecord,
+  EmailOtpPurpose,
 } from "../types";
 
 /** Backend contract: implement this for DynamoDB, Firestore, etc. */
@@ -37,9 +38,23 @@ export interface IDataBackend {
     }>
   ): Promise<UserRecord | null>;
 
-  registerCustomerUser(row: { name: string; email: string; password: string }): Promise<UserRecord>;
-  registerPartnerUser(row: { name: string; email: string; password: string }): Promise<UserRecord>;
+  registerCustomerUser(row: {
+    name: string;
+    email: string;
+    password: string;
+    emailVerified?: boolean;
+  }): Promise<UserRecord>;
+  registerPartnerUser(row: {
+    name: string;
+    email: string;
+    password: string;
+    emailVerified?: boolean;
+  }): Promise<UserRecord>;
   authenticateByEmail(email: string, password: string): Promise<UserRecord | null>;
+  userExistsByEmail(email: string): Promise<boolean>;
+  storeEmailOtp(email: string, purpose: EmailOtpPurpose, codeHash: string, expiresAt: string): Promise<void>;
+  verifyEmailOtp(email: string, purpose: EmailOtpPurpose, code: string): Promise<boolean>;
+  countEmailOtpsSince(email: string, purpose: EmailOtpPurpose, sinceIso: string): Promise<number>;
 
   insertAdminEvent(kind: string, title: string, body: string): Promise<AdminEventRecord>;
   listAdminEvents(limit?: number): Promise<AdminEventRecord[]>;

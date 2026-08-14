@@ -10,6 +10,8 @@ export type MaterialPricingType = "fixed" | "dealer_quote";
 
 export type NotificationAudience = "all" | "dealers" | "customers";
 
+export type EmailOtpPurpose = "signup" | "password_reset";
+
 export interface UserRecord {
   id: string;
   name: string;

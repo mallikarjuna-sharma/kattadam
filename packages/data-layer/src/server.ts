@@ -26,6 +26,7 @@ import type {
   ReviewRecord,
   UserRecord,
   ZoneRecord,
+  EmailOtpPurpose,
 } from "./types";
 import type { DealerStatus, EnquiryStatus, UserStatus } from "./types";
 
@@ -135,6 +136,7 @@ export async function authRegisterCustomer(row: {
   name: string;
   email: string;
   password: string;
+  emailVerified?: boolean;
 }): Promise<UserRecord | null> {
   const b = getServerBackend();
   if (!b) return null;
@@ -150,6 +152,7 @@ export async function authRegisterPartner(row: {
   name: string;
   email: string;
   password: string;
+  emailVerified?: boolean;
 }): Promise<UserRecord | null> {
   const b = getServerBackend();
   if (!b) return null;
@@ -165,6 +168,64 @@ export async function authLoginEmail(email: string, password: string): Promise<U
   const b = getServerBackend();
   if (!b) return null;
   return b.authenticateByEmail(email, password);
+}
+
+export async function authUserExistsByEmail(email: string): Promise<boolean | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.userExistsByEmail(email);
+  } catch (e) {
+    console.error("[@kattadam/data-layer] userExistsByEmail:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+export async function authStoreEmailOtp(
+  email: string,
+  purpose: EmailOtpPurpose,
+  codeHash: string,
+  expiresAt: string
+): Promise<boolean> {
+  const b = getServerBackend();
+  if (!b) return false;
+  try {
+    await b.storeEmailOtp(email, purpose, codeHash, expiresAt);
+    return true;
+  } catch (e) {
+    console.error("[@kattadam/data-layer] storeEmailOtp:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
+export async function authCountEmailOtpsSince(
+  email: string,
+  purpose: EmailOtpPurpose,
+  sinceIso: string
+): Promise<number | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.countEmailOtpsSince(email, purpose, sinceIso);
+  } catch (e) {
+    console.error("[@kattadam/data-layer] countEmailOtpsSince:", e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
+export async function authVerifyEmailOtp(
+  email: string,
+  purpose: EmailOtpPurpose,
+  code: string
+): Promise<boolean | null> {
+  const b = getServerBackend();
+  if (!b) return null;
+  try {
+    return await b.verifyEmailOtp(email, purpose, code);
+  } catch (e) {
+    console.error("[@kattadam/data-layer] verifyEmailOtp:", e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 export async function adminListAdminEvents(limit?: number): Promise<AdminEventRecord[] | null> {

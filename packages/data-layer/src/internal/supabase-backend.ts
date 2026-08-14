@@ -18,7 +18,8 @@ import type {
   UserRecord,
   ZoneRecord,
 } from "../types";
-import type { DealerStatus, EnquiryStatus, UserStatus } from "../types";
+import type { DealerStatus, EnquiryStatus, UserStatus, EmailOtpPurpose } from "../types";
+import { hashEmailOtp } from "./otp-hash";
 
 type UserRow = {
   id: string;
@@ -481,7 +482,12 @@ export class SupabaseDataBackend implements IDataBackend {
     return mapUser(data as UserRow);
   }
 
-  async registerCustomerUser(row: { name: string; email: string; password: string }): Promise<UserRecord> {
+  async registerCustomerUser(row: {
+    name: string;
+    email: string;
+    password: string;
+    emailVerified?: boolean;
+  }): Promise<UserRecord> {
     const email = row.email.trim().toLowerCase();
     const ph = await hashPasswordPbkdf2(row.password);
     const { data, error } = await this.client
@@ -493,6 +499,7 @@ export class SupabaseDataBackend implements IDataBackend {
         role: "customer",
         status: "active",
         phone: null,
+        email_verified_at: row.emailVerified ? new Date().toISOString() : null,
       })
       .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at")
       .single();
@@ -506,7 +513,12 @@ export class SupabaseDataBackend implements IDataBackend {
     return u;
   }
 
-  async registerPartnerUser(row: { name: string; email: string; password: string }): Promise<UserRecord> {
+  async registerPartnerUser(row: {
+    name: string;
+    email: string;
+    password: string;
+    emailVerified?: boolean;
+  }): Promise<UserRecord> {
     const email = row.email.trim().toLowerCase();
     const ph = await hashPasswordPbkdf2(row.password);
     const { data, error } = await this.client
@@ -518,6 +530,7 @@ export class SupabaseDataBackend implements IDataBackend {
         role: "dealer",
         status: "pending",
         phone: null,
+        email_verified_at: row.emailVerified ? new Date().toISOString() : null,
       })
       .select("id, name, phone, email, role, status, location, lat, lng, kyc_status, created_at")
       .single();
@@ -558,6 +571,69 @@ export class SupabaseDataBackend implements IDataBackend {
       kyc_status: row.kyc_status,
       created_at: row.created_at,
     });
+  }
+
+  async userExistsByEmail(email: string): Promise<boolean> {
+    const normalized = email.trim().toLowerCase();
+    const { count, error } = await this.client
+      .from("users")
+      .select("id", { count: "exact", head: true })
+      .eq("email", normalized);
+    if (error) throw new Error(error.message);
+    return (count ?? 0) > 0;
+  }
+
+  async storeEmailOtp(email: string, purpose: EmailOtpPurpose, codeHash: string, expiresAt: string): Promise<void> {
+    const normalized = email.trim().toLowerCase();
+    const { error } = await this.client.from("email_otps").insert({
+      email: normalized,
+      purpose,
+      code_hash: codeHash,
+      expires_at: expiresAt,
+    });
+    if (error) throw new Error(error.message);
+  }
+
+  async countEmailOtpsSince(email: string, purpose: EmailOtpPurpose, sinceIso: string): Promise<number> {
+    const normalized = email.trim().toLowerCase();
+    const { count, error } = await this.client
+      .from("email_otps")
+      .select("id", { count: "exact", head: true })
+      .eq("email", normalized)
+      .eq("purpose", purpose)
+      .gte("created_at", sinceIso);
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  }
+
+  async verifyEmailOtp(email: string, purpose: EmailOtpPurpose, code: string): Promise<boolean> {
+    const normalized = email.trim().toLowerCase();
+    const { data, error } = await this.client
+      .from("email_otps")
+      .select("id, code_hash, expires_at, attempts")
+      .eq("email", normalized)
+      .eq("purpose", purpose)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return false;
+
+    const row = data as { id: string; code_hash: string; expires_at: string; attempts: number };
+    if (new Date(row.expires_at).getTime() <= Date.now()) return false;
+    if (row.attempts >= 5) return false;
+
+    const expected = hashEmailOtp(normalized, purpose, code.trim());
+    if (expected !== row.code_hash) {
+      await this.client
+        .from("email_otps")
+        .update({ attempts: row.attempts + 1 })
+        .eq("id", row.id);
+      return false;
+    }
+
+    await this.client.from("email_otps").delete().eq("id", row.id);
+    return true;
   }
 
   async insertAdminEvent(kind: string, title: string, body: string): Promise<AdminEventRecord> {
