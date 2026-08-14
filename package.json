@@ -9,11 +9,9 @@
     "dev": "NODE_OPTIONS=--dns-result-order=ipv4first next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "supabase:test": "NODE_OPTIONS=--dns-result-order=ipv4first node scripts/supabase-test.mjs"
+    "lint": "next lint"
   },
   "dependencies": {
-    "@aws-sdk/client-sesv2": "^3.1110.0",
     "@kattadam/data-layer": "*",
     "clsx": "^2.1.1",
     "lucide-react": "^0.383.0",

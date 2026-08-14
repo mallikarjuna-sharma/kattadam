@@ -59,7 +59,7 @@ export default async function AdminDashboardPage() {
                 </div>
               ))}
               {!s?.enquiriesLast7Days?.length && (
-                <p className="text-sm text-cement-400">No data yet. Connect Supabase and add enquiries.</p>
+                <p className="text-sm text-cement-400">No data yet. Add enquiries or seed catalog data in admin.</p>
               )}
             </div>
           </div>

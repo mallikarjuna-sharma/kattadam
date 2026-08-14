@@ -11,7 +11,6 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  # Reduces Node "fetch failed" to Supabase on networks where IPv6 DNS is broken.
   NODE_OPTIONS = "--dns-result-order=ipv4first"
 
 [[plugins]]

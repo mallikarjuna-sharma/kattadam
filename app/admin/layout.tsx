@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import AdminLayoutShell from "@/components/admin/AdminLayoutShell";
 
-/** Admin loads data from Supabase; do not prerender at build time. */
+/** Admin loads data from Lambda API; do not prerender at build time. */
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {

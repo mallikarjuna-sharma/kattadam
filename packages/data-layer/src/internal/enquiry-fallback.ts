@@ -1,4 +1,4 @@
-/** When true, enquiries are persisted under `.data/enquiries.json` if Supabase is missing or fails. */
+/** When true, enquiries are persisted under `.data/enquiries.json` if the API is missing or fails. */
 export function useLocalEnquiryFallback(): boolean {
   const flag = process.env.ENQUIRY_LOCAL_FALLBACK?.trim();
   if (flag === "0" || flag === "false") return false;

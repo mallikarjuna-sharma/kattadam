@@ -22,7 +22,7 @@ import type {
   UserStatus,
 } from "../types";
 
-/** HTTP client to Kattadam Lambda Function URL (replaces Supabase). */
+/** HTTP client to Kattadam Lambda Function URL. */
 export class HttpApiBackend implements IDataBackend {
   private readonly base: string;
   private readonly secret: string | null;

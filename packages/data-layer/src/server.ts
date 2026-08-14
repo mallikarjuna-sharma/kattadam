@@ -86,14 +86,14 @@ export async function catalogCreateEnquiry(row: {
       console.error("[@kattadam/data-layer] createEnquiry failed:", msg);
       if (!useLocalEnquiryFallback()) return null;
       console.warn(
-        "[@kattadam/data-layer] Saving enquiry to .data/enquiries.json (Supabase insert failed)."
+        "[@kattadam/data-layer] Saving enquiry to .data/enquiries.json (API insert failed)."
       );
     }
   } else if (!useLocalEnquiryFallback()) {
     return null;
   } else {
     console.warn(
-      "[@kattadam/data-layer] Saving enquiry to .data/enquiries.json (Supabase env not set)."
+      "[@kattadam/data-layer] Saving enquiry to .data/enquiries.json (API not configured)."
     );
   }
   try {

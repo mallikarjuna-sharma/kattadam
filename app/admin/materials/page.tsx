@@ -29,9 +29,7 @@ export default async function AdminMaterialsPage() {
             . Category keys on materials should overlap dealer category selections so listings stay consistent.
           </p>
           <p className="text-xs text-cement-600 mt-2">
-            Run <code className="rounded bg-white px-1 py-0.5 text-[11px]">002_materials_catalog_fields.sql</code> and{" "}
-            <code className="rounded bg-white px-1 py-0.5 text-[11px]">003_dealers_district_area_materials_dealer_fk.sql</code>{" "}
-            in Supabase when upgrading.
+            Materials are stored in DynamoDB via the Kattadam API and appear on the customer catalogue immediately.
           </p>
         </div>
         <div className="admin-card p-5">

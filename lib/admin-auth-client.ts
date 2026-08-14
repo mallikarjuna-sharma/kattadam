@@ -1,6 +1,6 @@
 /**
  * Temporary client-only admin gate (hardcoded credentials).
- * Replace with server session / Supabase Auth before production.
+ * Replace with server session before production.
  */
 
 export const ADMIN_AUTH_STORAGE_KEY = "kattadam_admin_session_v1";

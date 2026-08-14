@@ -64,7 +64,7 @@ export default function MaterialsPage() {
         if (process.env.NODE_ENV === "development") {
           if (matJson?.configured === false) {
             console.info(
-              "[materials] Supabase env missing for server. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in .env.local (project root), then restart `npm run dev`."
+              "[materials] API not configured. Set KATTADAM_API_URL in .env.local (project root), then restart `npm run dev`."
             );
           }
           if (!matRes.ok || matJson?.source === "error") {

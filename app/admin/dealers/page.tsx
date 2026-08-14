@@ -12,9 +12,7 @@ export default async function DealersPage() {
         <h1 className="font-semibold text-lg text-cement-900">Dealer management</h1>
         <p className="text-xs text-cement-500">
           New dealers default to <strong>Approved</strong>. Categories are stored as keys (e.g. CEMENT) to match
-          Materials. Run{" "}
-          <code className="rounded bg-cement-100 px-1 py-0.5 text-[10px]">003_dealers_district_area_materials_dealer_fk.sql</code>{" "}
-          in Supabase if district/area columns are missing.
+          Materials.
         </p>
       </header>
       <div className="p-4 md:p-6 space-y-6">

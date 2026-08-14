@@ -9,9 +9,6 @@
     "./server": "./src/server.ts",
     "./probe": "./src/probe.ts"
   },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.0"
-  },
   "devDependencies": {
     "typescript": "^5.4.5"
   }

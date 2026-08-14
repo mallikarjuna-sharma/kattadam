@@ -355,7 +355,9 @@ export async function routeRequest(method, path, bodyText, headers, queryString 
   }
 
   if (path === "/admin/enquiries" && method === "GET") {
-    const enquiries = await listEntity("enquiry", mapEnquiry);
+    let enquiries = await listEntity("enquiry", mapEnquiry);
+    const statusFilter = q.get("status");
+    if (statusFilter) enquiries = enquiries.filter((e) => e.status === statusFilter);
     return { status: 200, data: { enquiries } };
   }
 
@@ -370,16 +372,50 @@ export async function routeRequest(method, path, bodyText, headers, queryString 
   }
 
   if (path === "/admin/dashboard" && method === "GET") {
+    const users = await listEntity("user", mapUser);
+    const dealers = await listEntity("dealer", mapDealer);
+    const enquiries = await listEntity("enquiry", mapEnquiry);
+    const totalUsers = users.length;
+    const totalDealers = dealers.length;
+    const totalEnquiries = enquiries.length;
+    const activeDealers = dealers.filter((d) => d.enabled && d.status === "approved").length;
+    const pendingUsers = users.filter((u) => u.status === "pending").length;
+    const pendingDealers = dealers.filter((d) => d.status === "pending").length;
+    const byDay = new Map();
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      byDay.set(d.toISOString().slice(0, 10), 0);
+    }
+    for (const e of enquiries) {
+      const key = (e.createdAt ?? "").slice(0, 10);
+      if (byDay.has(key)) byDay.set(key, (byDay.get(key) ?? 0) + 1);
+    }
+    const enquiriesLast7Days = [...byDay.entries()].map(([date, count]) => ({ date, count }));
+    const weekBuckets = new Map();
+    for (const u of users) {
+      const t = new Date(u.createdAt ?? 0).getTime();
+      if (!t) continue;
+      const w = new Date(t);
+      w.setDate(w.getDate() - w.getDay());
+      const ws = w.toISOString().slice(0, 10);
+      weekBuckets.set(ws, (weekBuckets.get(ws) ?? 0) + 1);
+    }
+    const weeklyUserGrowth = [...weekBuckets.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .slice(-8)
+      .map(([weekStart, count]) => ({ weekStart, count }));
     return {
       status: 200,
       data: {
-        totalUsers: 0,
-        totalDealers: 0,
-        activeDealers: 0,
-        pendingApprovals: 0,
-        totalEnquiries: 0,
-        enquiriesLast7Days: [],
-        weeklyUserGrowth: [],
+        totalUsers,
+        totalDealers,
+        activeDealers,
+        pendingApprovals: pendingUsers + pendingDealers,
+        totalEnquiries,
+        enquiriesLast7Days,
+        weeklyUserGrowth,
       },
     };
   }
@@ -412,8 +448,354 @@ export async function routeRequest(method, path, bodyText, headers, queryString 
     return { status: 200, data: { sessions: await listEntity("app_session", (i) => i) } };
   }
 
+  // ——— Admin mutations ———
+  const adminMatch = path.match(/^\/admin\/([^/]+)(?:\/([^/]+))?(?:\/([^/]+))?$/);
+  if (adminMatch) {
+    const [, resource, id, sub] = adminMatch;
+
+    if (resource === "users" && id && method === "PATCH") {
+      const user = await patchUser(id, body);
+      return { status: 200, data: { user } };
+    }
+
+    if (resource === "materials" && method === "POST") {
+      const material = await upsertMaterial(body);
+      return { status: 200, data: { material } };
+    }
+    if (resource === "materials" && id && method === "DELETE") {
+      const ok = await deleteEntity("material", "MATERIAL", id);
+      return { status: 200, data: { ok } };
+    }
+
+    if (resource === "dealers" && method === "POST" && !id) {
+      const dealer = await upsertDealer(body);
+      return { status: 200, data: { dealer } };
+    }
+    if (resource === "dealers" && id && sub === "zones" && method === "PUT") {
+      const dealer = await setDealerZones(id, body.zoneIds ?? []);
+      return { status: 200, data: { dealer } };
+    }
+    if (resource === "dealers" && id && method === "PATCH") {
+      const dealer = await patchDealer(id, body);
+      return { status: 200, data: { dealer } };
+    }
+    if (resource === "dealers" && id && method === "DELETE") {
+      const ok = await deleteEntity("dealer", "DEALER", id);
+      return { status: 200, data: { ok } };
+    }
+
+    if (resource === "enquiries" && id && method === "PATCH") {
+      const enquiry = await patchEnquiry(id, body);
+      return { status: 200, data: { enquiry } };
+    }
+
+    if (resource === "properties" && method === "POST" && !id) {
+      const listing = await insertProperty(body);
+      return { status: 200, data: { listing } };
+    }
+    if (resource === "properties" && id && method === "DELETE") {
+      const ok = await deleteEntity("property", "PROPERTY", id);
+      return { status: 200, data: { ok } };
+    }
+
+    if (resource === "experts" && method === "POST" && !id) {
+      const expert = await insertExpert(body);
+      return { status: 200, data: { expert } };
+    }
+
+    if (resource === "home-services" && method === "POST" && !id) {
+      const provider = await insertHomeService(body);
+      return { status: 200, data: { provider } };
+    }
+
+    if (resource === "reviews" && id && method === "PATCH") {
+      const review = await patchReview(id, body);
+      return { status: 200, data: { review } };
+    }
+
+    if (resource === "zones" && method === "POST" && !id) {
+      const zone = await createZone(body.name, body.notes);
+      return { status: 200, data: { zone } };
+    }
+
+    if (resource === "notifications" && method === "POST" && !id) {
+      const notification = await createNotification(body.audience, body.title, body.body);
+      return { status: 200, data: { notification } };
+    }
+
+    if (resource === "events" && method === "POST" && !id) {
+      const event = await insertAdminEvent(body.kind, body.title, body.body);
+      return { status: 200, data: { event } };
+    }
+  }
+
   return { status: 404, data: { ok: false, error: "not found", path, method } };
 }
+
+async function getEntityItem(type, prefix, id) {
+  return await getItem(entityPk(type), itemSk(prefix, id));
+}
+
+async function deleteEntity(type, prefix, id) {
+  const item = await getEntityItem(type, prefix, id);
+  if (!item) return false;
+  await deleteItem(item.PK, item.SK);
+  return true;
+}
+
+async function patchUser(id, patch) {
+  const meta = await getItem(`USER#${id}`, "META");
+  const entity = await getEntityItem("user", "USER", id);
+  const base = meta ?? entity;
+  if (!base) return null;
+  const row = { ...base };
+  if (patch.status !== undefined) row.status = patch.status;
+  if (patch.name !== undefined) row.name = patch.name;
+  if (patch.phone !== undefined) row.phone = patch.phone;
+  if (patch.email !== undefined) row.email = patch.email?.trim().toLowerCase();
+  if (patch.location !== undefined) row.location = patch.location;
+  await putItem({ ...row, PK: entityPk("user"), SK: itemSk("USER", id) });
+  if (meta) await putItem({ ...row, PK: `USER#${id}`, SK: "META" });
+  return mapUser(row);
+}
+
+async function upsertMaterial(row) {
+  const id = row.id || randomUUID();
+  const existing = row.id ? await getEntityItem("material", "MATERIAL", id) : null;
+  const t = existing?.createdAt ?? nowIso();
+  const priceVal =
+    row.price != null && Number.isFinite(Number(row.price))
+      ? Number(row.price)
+      : row.fixedPrice != null && Number.isFinite(Number(row.fixedPrice))
+        ? Number(row.fixedPrice)
+        : 0;
+  const item = {
+    PK: entityPk("material"),
+    SK: itemSk("MATERIAL", id),
+    id,
+    name: row.name,
+    category: row.category,
+    subcategory: row.subcategory ?? null,
+    unit: row.unit ?? null,
+    imageUrl: row.imageUrl ?? null,
+    pricingType: row.pricingType ?? "fixed",
+    fixedPrice: priceVal,
+    price: priceVal,
+    dealerId: row.dealerId?.trim() || null,
+    dealerName: row.dealerName?.trim() ?? "",
+    district: row.district?.trim() || "Coimbatore",
+    area: row.area?.trim() || "",
+    createdAt: t,
+  };
+  await putItem(item);
+  return mapMaterial(item);
+}
+
+async function upsertDealer(row) {
+  const id = row.id || randomUUID();
+  const existing = row.id ? await getEntityItem("dealer", "DEALER", id) : null;
+  const district = row.district?.trim() || existing?.district?.trim() || "Coimbatore";
+  const area = row.area?.trim() || existing?.area?.trim() || "";
+  const status = row.status ?? existing?.status ?? "approved";
+  const isApproved = status === "approved";
+  const location = row.location?.trim() || (area ? `${area}, ${district}` : district);
+  const item = {
+    PK: entityPk("dealer"),
+    SK: itemSk("DEALER", id),
+    id,
+    userId: row.userId ?? existing?.userId ?? null,
+    shopName: row.shopName,
+    ownerName: row.ownerName ?? existing?.ownerName ?? null,
+    phone: row.phone ?? existing?.phone ?? null,
+    materials: row.materials ?? existing?.materials ?? [],
+    location,
+    district,
+    area,
+    lat: row.lat ?? existing?.lat ?? null,
+    lng: row.lng ?? existing?.lng ?? null,
+    rating: existing?.rating ?? 0,
+    verified: row.verified ?? existing?.verified ?? isApproved,
+    enabled: row.enabled ?? existing?.enabled ?? true,
+    topDealer: row.topDealer ?? existing?.topDealer ?? false,
+    status,
+    gstDocUrl: row.gstDocUrl ?? existing?.gstDocUrl ?? null,
+    licenseDocUrl: row.licenseDocUrl ?? existing?.licenseDocUrl ?? null,
+    zoneIds: existing?.zoneIds ?? [],
+    createdAt: existing?.createdAt ?? nowIso(),
+  };
+  await putItem(item);
+  return mapDealer(item);
+}
+
+async function patchDealer(id, patch) {
+  const existing = await getEntityItem("dealer", "DEALER", id);
+  if (!existing) return null;
+  const district =
+    patch.district !== undefined ? patch.district?.trim() || "Coimbatore" : existing.district;
+  const area = patch.area !== undefined ? patch.area?.trim() || "" : existing.area;
+  let location = existing.location;
+  if (patch.location !== undefined) location = patch.location;
+  else if (patch.district !== undefined || patch.area !== undefined) {
+    location = area ? `${area}, ${district}` : district;
+  }
+  const merged = {
+    ...existing,
+    shopName: patch.shopName ?? existing.shopName,
+    ownerName: patch.ownerName !== undefined ? patch.ownerName : existing.ownerName,
+    phone: patch.phone !== undefined ? patch.phone : existing.phone,
+    materials: patch.materials ?? existing.materials,
+    location,
+    district,
+    area,
+    lat: patch.lat !== undefined ? patch.lat : existing.lat,
+    lng: patch.lng !== undefined ? patch.lng : existing.lng,
+    verified: patch.verified !== undefined ? patch.verified : existing.verified,
+    enabled: patch.enabled !== undefined ? patch.enabled : existing.enabled,
+    topDealer: patch.topDealer !== undefined ? patch.topDealer : existing.topDealer,
+    status: patch.status ?? existing.status,
+    gstDocUrl: patch.gstDocUrl !== undefined ? patch.gstDocUrl : existing.gstDocUrl,
+    licenseDocUrl: patch.licenseDocUrl !== undefined ? patch.licenseDocUrl : existing.licenseDocUrl,
+  };
+  await putItem(merged);
+  return mapDealer(merged);
+}
+
+async function setDealerZones(dealerId, zoneIds) {
+  const existing = await getEntityItem("dealer", "DEALER", dealerId);
+  if (!existing) return null;
+  const merged = { ...existing, zoneIds: Array.isArray(zoneIds) ? zoneIds : [] };
+  await putItem(merged);
+  return mapDealer(merged);
+}
+
+async function patchEnquiry(id, patch) {
+  const existing = await getEntityItem("enquiry", "ENQUIRY", id);
+  if (!existing) return null;
+  const merged = {
+    ...existing,
+    status: patch.status ?? existing.status,
+    assignedDealerId:
+      patch.assignedDealerId !== undefined ? patch.assignedDealerId : existing.assignedDealerId,
+    notes: patch.notes !== undefined ? patch.notes : existing.notes,
+  };
+  await putItem(merged);
+  return mapEnquiry(merged);
+}
+
+async function insertProperty(row) {
+  const id = randomUUID();
+  const t = nowIso();
+  const item = {
+    PK: entityPk("property"),
+    SK: itemSk("PROPERTY", id),
+    id,
+    title: row.title,
+    listingType: row.listingType,
+    propertySubtype: row.propertySubtype,
+    price: row.price,
+    district: row.district,
+    area: row.area,
+    description: row.description ?? null,
+    published: row.published ?? true,
+    createdAt: t,
+  };
+  await putItem(item);
+  return mapProperty(item);
+}
+
+async function insertExpert(row) {
+  const id = randomUUID();
+  const t = nowIso();
+  const item = {
+    PK: entityPk("expert"),
+    SK: itemSk("EXPERT", id),
+    id,
+    expertType: row.expertType,
+    firmName: row.firmName,
+    ownerName: row.ownerName,
+    contactNumber: row.contactNumber,
+    serviceableAreas: row.serviceableAreas,
+    district: row.district,
+    createdAt: t,
+  };
+  await putItem(item);
+  return item;
+}
+
+async function insertHomeService(row) {
+  const id = randomUUID();
+  const t = nowIso();
+  const item = {
+    PK: entityPk("home_service"),
+    SK: itemSk("HOME_SERVICE", id),
+    id,
+    serviceCategory: row.serviceCategory,
+    firmName: row.firmName,
+    ownerName: row.ownerName,
+    contactNumber: row.contactNumber,
+    serviceableAreas: row.serviceableAreas,
+    district: row.district,
+    createdAt: t,
+  };
+  await putItem(item);
+  return item;
+}
+
+async function patchReview(id, patch) {
+  const existing = await getEntityItem("review", "REVIEW", id);
+  if (!existing) return null;
+  const merged = { ...existing, approved: patch.approved ?? existing.approved };
+  await putItem(merged);
+  return merged;
+}
+
+async function createZone(name, notes) {
+  const id = randomUUID();
+  const t = nowIso();
+  const item = {
+    PK: entityPk("zone"),
+    SK: itemSk("ZONE", id),
+    id,
+    name,
+    notes: notes ?? null,
+    createdAt: t,
+  };
+  await putItem(item);
+  return item;
+}
+
+async function createNotification(audience, title, bodyText) {
+  const id = randomUUID();
+  const t = nowIso();
+  const item = {
+    PK: entityPk("notification"),
+    SK: itemSk("NOTIFICATION", id),
+    id,
+    audience,
+    title,
+    body: bodyText,
+    createdAt: t,
+  };
+  await putItem(item);
+  return item;
+}
+
+async function insertAdminEvent(kind, title, bodyText) {
+  const id = randomUUID();
+  const t = nowIso();
+  const item = {
+    PK: entityPk("admin_event"),
+    SK: itemSk("EVENT", id),
+    id,
+    kind,
+    title,
+    body: bodyText,
+    createdAt: t,
+  };
+  await putItem(item);
+  return item;
+}
+
 
 async function verifyOtpRecord(email, purpose, code) {
   const rows = await queryPk(`OTP#${email}`);
