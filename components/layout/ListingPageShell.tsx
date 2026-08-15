@@ -28,15 +28,15 @@ export default function ListingPageShell({
   children,
 }: Props) {
   return (
-    <div className="min-h-screen bg-cement-50">
+    <div className="min-h-screen bg-cement-50 dark:bg-background">
       <Navbar />
       {hideHeader ? null : (
-        <div className="bg-cement-900 text-white">
+        <div className="bg-cement-900 text-foreground pt-24">
           <div className="page-container py-8">
             {backHref ? (
               <Link
                 href={backHref}
-                className="text-cement-400 text-sm hover:text-white transition-colors mb-3 inline-block"
+                className="text-cement-400 text-sm hover:text-foreground transition-colors mb-3 inline-block"
               >
                 ← Back
               </Link>
@@ -49,7 +49,7 @@ export default function ListingPageShell({
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
                 <input
-                  className="w-full bg-white/10 border border-white/20 text-white placeholder-cement-400 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
+                  className="w-full bg-white/10 border border-border text-foreground placeholder-cement-400 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
                   placeholder={searchPlaceholder}
                   value={search}
                   onChange={(e) => onSearchChange(e.target.value)}
@@ -59,7 +59,9 @@ export default function ListingPageShell({
           </div>
         </div>
       )}
-      {children}
+      <div className={hideHeader ? "pt-24" : ""}>
+        {children}
+      </div>
     </div>
   );
 }

@@ -14,6 +14,10 @@ type Props = {
   onDistrictChange: (district: string) => void;
   area: string;
   onAreaChange: (area: string) => void;
+  /** Optional: pass search text + handler to render an integrated search input */
+  search?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
   className?: string;
 };
 
@@ -22,6 +26,9 @@ export default function DistrictAreaSearch({
   onDistrictChange,
   area,
   onAreaChange,
+  search,
+  onSearchChange,
+  searchPlaceholder = "Search by name, area, PIN…",
   className = "flex flex-col sm:flex-row gap-2",
 }: Props) {
   const areaOptions = areaOptionsForDistrict(district);
@@ -29,6 +36,20 @@ export default function DistrictAreaSearch({
 
   return (
     <div className={className}>
+      {/* Integrated Search Input */}
+      {onSearchChange !== undefined && (
+        <div className="relative min-w-0 sm:min-w-[200px] flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400 dark:text-zinc-500" />
+          <input
+            type="search"
+            value={search ?? ""}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder={searchPlaceholder}
+            aria-label="Search"
+            className="w-full bg-white dark:bg-white/5 border border-cement-200 dark:border-white/10 text-cement-900 dark:text-white placeholder-cement-400 dark:placeholder-zinc-500 rounded-lg pl-9 pr-3 py-2 text-sm shadow-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
+          />
+        </div>
+      )}
       <SearchSelect
         value={district}
         onChange={(v) => {
@@ -101,7 +122,7 @@ function SearchSelect({
   return (
     <div ref={wrapRef} className="relative min-w-0 sm:min-w-[200px]">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400 dark:text-zinc-500" />
         <input
           type="text"
           role="combobox"
@@ -127,7 +148,7 @@ function SearchSelect({
               (e.target as HTMLInputElement).blur();
             }
           }}
-          className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-lg pl-9 pr-8 py-2 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-white dark:bg-white/5 border border-cement-200 dark:border-white/10 text-cement-900 dark:text-white placeholder-cement-400 dark:placeholder-zinc-500 rounded-lg pl-9 pr-8 py-2 text-sm shadow-sm focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         />
         <button
           type="button"
@@ -140,7 +161,7 @@ function SearchSelect({
             setQuery("");
             setOpen((o) => !o);
           }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-cement-400 hover:text-cement-700 disabled:cursor-not-allowed"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-cement-400 hover:text-cement-700 dark:text-zinc-500 dark:hover:text-zinc-300 disabled:cursor-not-allowed"
         >
           <ChevronDown
             className={`w-4 h-4 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -151,10 +172,10 @@ function SearchSelect({
       {open && !disabled ? (
         <div
           role="listbox"
-          className="absolute z-20 mt-1 w-full max-h-60 overflow-y-auto bg-white border border-cement-200 rounded-lg shadow-lg py-1"
+          className="absolute z-20 mt-1 w-full max-h-60 overflow-y-auto bg-white dark:bg-zinc-900 border border-cement-200 dark:border-white/10 rounded-lg shadow-lg dark:shadow-black/40 py-1"
         >
           {filtered.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-cement-500">No matches</div>
+            <div className="px-3 py-2 text-sm text-cement-500 dark:text-zinc-400">No matches</div>
           ) : (
             filtered.map((opt) => {
               const selected = value === opt.value;
@@ -171,8 +192,8 @@ function SearchSelect({
                   }}
                   className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                     selected
-                      ? "bg-brand-50 text-brand-700 font-medium"
-                      : "text-cement-700 hover:bg-cement-50"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-cement-700 dark:text-zinc-300 hover:bg-cement-50 dark:hover:bg-white/5"
                   }`}
                 >
                   {opt.label}

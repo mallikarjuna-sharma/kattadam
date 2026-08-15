@@ -76,47 +76,47 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center py-[10dvh] px-3 sm:px-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center py-[6dvh] px-3 sm:px-4 bg-black/60 backdrop-blur-md"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl w-full max-w-full sm:max-w-xl md:max-w-2xl shadow-2xl max-h-[80dvh] flex flex-col overflow-hidden"
+        className="bg-card text-card-foreground rounded-3xl border border-border dark:border-zinc-800 w-full max-w-full sm:max-w-xl md:max-w-2xl shadow-2xl max-h-[88dvh] flex flex-col overflow-hidden transition-colors"
         onClick={(e) => e.stopPropagation()}
       >
         {!submitted ? (
           <>
-            <div className="flex items-center justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-earth-100 shrink-0">
-              <h3 className="font-semibold text-earth-900 text-base sm:text-lg">Send Enquiry</h3>
+            <div className="flex items-center justify-between gap-3 px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-border dark:border-zinc-800 shrink-0">
+              <h3 className="font-extrabold text-foreground dark:text-white text-lg sm:text-xl">Send Enquiry</h3>
               <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close"
-                className="w-8 h-8 rounded-lg bg-earth-50 flex items-center justify-center hover:bg-earth-100 shrink-0"
+                className="w-8 h-8 rounded-full bg-muted dark:bg-zinc-800 flex items-center justify-center hover:bg-muted/80 dark:hover:bg-zinc-700 transition-colors text-foreground dark:text-white shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
             <form
               onSubmit={handleSubmit}
-              className="px-4 sm:px-6 pt-4 pb-6 space-y-3 sm:space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain"
+              className="px-4 sm:px-6 pt-4 pb-6 space-y-4 overflow-y-auto flex-1 min-h-0 overscroll-contain"
             >
-              <div className="rounded-lg border-2 border-brand-600 bg-[#CFE3DD]/60 px-3 py-2.5 sm:px-4 sm:py-3 text-center ring-2 ring-brand-500/30">
-                <p className="text-sm sm:text-base font-semibold text-brand-800">{target}</p>
-                <p className="text-xs sm:text-sm text-brand-700 mt-1 leading-snug">{ENQUIRY_SUBTITLE}</p>
+              <div className="rounded-2xl border border-primary/40 bg-primary/10 dark:bg-primary/15 px-4 py-3.5 text-center">
+                <p className="text-sm sm:text-base font-extrabold text-primary">{target}</p>
+                <p className="text-xs sm:text-sm text-foreground/80 dark:text-zinc-300 font-medium mt-1 leading-snug">{ENQUIRY_SUBTITLE}</p>
               </div>
 
               {error && (
-                <div className="flex gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-800">
+                <div className="flex gap-2 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs font-semibold text-red-600 dark:text-red-400">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>{error}</span>
                 </div>
               )}
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
                   Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
-                  className="input w-full"
+                  className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all"
                   placeholder="Eg: Karthik Kumar"
                   required
                   autoComplete="name"
@@ -125,17 +125,17 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="min-w-0">
-                  <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                  <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
                     Mobile Number <span className="text-red-500">*</span>
                   </label>
-                  <div className="flex gap-1.5">
-                    <span className="flex items-center px-2.5 bg-earth-50 border border-earth-200 rounded-xl text-earth-600 text-sm shrink-0">
+                  <div className="flex gap-2">
+                    <span className="flex items-center px-3 bg-muted dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded-2xl text-foreground dark:text-zinc-200 text-sm font-bold shrink-0">
                       +91
                     </span>
                     <input
-                      className="input flex-1 min-w-0"
+                      className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all flex-1 min-w-0"
                       placeholder="98765 43210"
                       required
                       type="tel"
@@ -150,15 +150,15 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
                   </div>
                 </div>
                 <div className="min-w-0">
-                  <label className="block text-sm font-medium text-earth-700 mb-1.5">
-                    Alternate Mobile <span className="text-earth-400 font-normal">(optional)</span>
+                  <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
+                    Alternate Mobile <span className="text-muted-foreground dark:text-zinc-400 font-normal text-xs">(optional)</span>
                   </label>
-                  <div className="flex gap-1.5">
-                    <span className="flex items-center px-2.5 bg-earth-50 border border-earth-200 rounded-xl text-earth-600 text-sm shrink-0">
+                  <div className="flex gap-2">
+                    <span className="flex items-center px-3 bg-muted dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded-2xl text-foreground dark:text-zinc-200 text-sm font-bold shrink-0">
                       +91
                     </span>
                     <input
-                      className="input flex-1 min-w-0"
+                      className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all flex-1 min-w-0"
                       placeholder="Another number"
                       type="tel"
                       inputMode="numeric"
@@ -173,15 +173,15 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">
-                  Email <span className="text-earth-400 font-normal">(optional)</span>
+                <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
+                  Email <span className="text-muted-foreground dark:text-zinc-400 font-normal text-xs">(optional)</span>
                 </label>
                 <div className="flex gap-2 min-w-0">
-                  <span className="flex items-center px-3 bg-earth-50 border border-earth-200 rounded-xl text-earth-500 shrink-0">
+                  <span className="flex items-center px-3.5 bg-muted dark:bg-zinc-800 border border-border dark:border-zinc-700 rounded-2xl text-muted-foreground dark:text-zinc-300 shrink-0">
                     <Mail className="w-4 h-4" />
                   </span>
                   <input
-                    className="input flex-1 min-w-0"
+                    className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all flex-1 min-w-0"
                     placeholder="you@example.com"
                     type="email"
                     autoComplete="email"
@@ -192,11 +192,11 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
                   Current address <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className="input resize-none min-h-[72px] w-full"
+                  className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all resize-none min-h-[72px]"
                   placeholder="Site / home address with area and district"
                   required
                   rows={2}
@@ -206,11 +206,11 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
                   Delivery address <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className="input resize-none min-h-[72px] w-full"
+                  className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all resize-none min-h-[72px]"
                   placeholder="Delivery location with area and district"
                   required
                   rows={2}
@@ -220,11 +220,11 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-earth-700 mb-1.5">
+                <label className="block text-xs sm:text-sm font-bold text-foreground dark:text-zinc-200 mb-1.5">
                   Requirement <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className="input resize-none h-20 sm:h-24 w-full"
+                  className="w-full py-3 px-4 rounded-2xl bg-background dark:bg-zinc-900 text-foreground dark:text-white border border-border dark:border-zinc-700 placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-sm font-medium transition-all resize-none h-20 sm:h-24"
                   placeholder="Describe what you need..."
                   required
                   value={form.message}
@@ -234,28 +234,32 @@ export default function EnquiryModal({ target, dealerId, materialId, onClose }: 
               <button
                 type="submit"
                 disabled={submitting}
-                className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60"
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-6 rounded-2xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-[#5ee06a] hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-primary/20 disabled:opacity-60"
               >
-                <Phone className="w-4 h-4" /> {submitting ? "Sending…" : "Submit Enquiry"}
+                <Phone className="w-4 h-4 fill-current" /> {submitting ? "Sending…" : "Submit Enquiry"}
               </button>
-              <p className="text-xs text-earth-400 text-center pb-1 sm:pb-0">
+              <p className="text-xs text-muted-foreground dark:text-zinc-400 text-center pb-1 sm:pb-0">
                 Your details are saved for the team to follow up
               </p>
             </form>
           </>
         ) : (
           <div className="px-4 sm:px-6 py-8 text-center overflow-y-auto flex-1 min-h-0">
-            <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="w-8 h-8 text-green-500" />
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20">
+              <CheckCircle className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="font-semibold text-earth-900 text-lg mb-2">Enquiry Sent!</h3>
-            <p className="text-earth-500 text-sm mb-5">
+            <h3 className="font-extrabold text-foreground dark:text-white text-xl mb-2">Enquiry Sent!</h3>
+            <p className="text-muted-foreground dark:text-zinc-300 text-sm mb-6 leading-relaxed">
               {materialId && !dealerId
                 ? "Our team will contact you on "
                 : "The dealer will contact you on "}
-              <strong>+91 {form.phone}</strong> shortly.
+              <strong className="text-foreground dark:text-white">+91 {form.phone}</strong> shortly.
             </p>
-            <button type="button" onClick={onClose} className="btn-primary px-8 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto px-8 py-3 rounded-2xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-[#5ee06a] transition-all shadow-md shadow-primary/20"
+            >
               Done
             </button>
           </div>

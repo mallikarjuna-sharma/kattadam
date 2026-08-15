@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
@@ -12,8 +12,9 @@ import {
   BedDouble,
   Bath,
   Maximize2,
-  Search,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import {
   PROPERTIES,
@@ -74,7 +75,7 @@ function PropertyTypeImage({
   if (failed) {
     return (
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-5xl" aria-hidden="true">
+        <span className="text-4xl sm:text-5xl" aria-hidden="true">
           {emoji}
         </span>
       </div>
@@ -87,8 +88,7 @@ function PropertyTypeImage({
       loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}
-      style={{ mixBlendMode: "multiply" }}
-      className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
+      className="absolute inset-0 w-full h-full object-contain p-1 transition-transform duration-500 ease-out group-hover:scale-105"
     />
   );
 }
@@ -136,20 +136,58 @@ export default function PropertiesPage() {
   const [enquiry, setEnquiry] = useState<string | null>(null);
   const [apiExtras, setApiExtras] = useState<PropertyCard[]>([]);
 
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (categoryScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = categoryScrollRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(checkScroll, 100);
+    const el = categoryScrollRef.current;
+    if (el) {
+      el.addEventListener("scroll", checkScroll, { passive: true });
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        el.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+        clearTimeout(timer);
+      };
+    }
+  }, []);
+
+  const scrollCategories = (direction: "left" | "right") => {
+    if (categoryScrollRef.current) {
+      categoryScrollRef.current.scrollBy({ left: direction === "left" ? -280 : 280, behavior: "smooth" });
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1000);
+
     (async () => {
       try {
-        const res = await fetch("/api/catalog/properties");
+        const res = await fetch("/api/catalog/properties", { signal: controller.signal });
+        clearTimeout(timer);
         const j = await res.json();
         if (cancelled || !j?.configured || j?.source !== "live" || !Array.isArray(j.listings)) return;
         setApiExtras(j.listings.map(mapApiListing));
       } catch {
-        /* mock only */
+        /* mock fallback */
       }
     })();
     return () => {
       cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
     };
   }, []);
 
@@ -193,26 +231,26 @@ export default function PropertiesPage() {
       <div className="page-container pt-0 pb-6">
         <BannerCarousel slides={PROPERTY_BANNER_SLIDES} className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen mb-6" />
 
-        <div className="mb-4 flex justify-end">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by area, PIN, title…"
-              aria-label="Search properties"
-              className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-            />
-          </div>
-        </div>
+        {/* Category Tabs Carousel */}
+        <div className="relative mb-4 px-10 md:px-12">
+          <button
+            type="button"
+            onClick={() => scrollCategories("left")}
+            className={`hidden md:flex absolute left-0 top-[44px] -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-cement-200 dark:border-white/10 shadow-lg items-center justify-center text-cement-700 dark:text-zinc-200 hover:text-primary hover:scale-110 transition-all duration-200 ${
+              canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-        <div className="flex flex-col gap-4 mb-5">
           <div
-            className="flex flex-wrap justify-center gap-2.5 sm:gap-[15px]"
+            ref={categoryScrollRef}
+            className="flex items-center gap-3 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
             role="tablist"
             aria-label="Listing types"
           >
+            <div className="w-1.5 shrink-0" aria-hidden="true" />
             {TYPES.map((t) => {
               const meta = TYPE_META[t];
               const active = type === t;
@@ -223,31 +261,34 @@ export default function PropertiesPage() {
                   role="tab"
                   aria-selected={active}
                   aria-label={`Filter by ${meta.label}`}
-                  onClick={() => {
-                    setType(t);
-                    setEnquiry(meta.label);
-                  }}
-                  className="group flex w-[90px] sm:w-[120px] flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  onClick={() => setType(t)}
+                  className="group flex flex-col items-center gap-2 shrink-0 w-20 sm:w-24 focus:outline-none"
                 >
                   <div
-                    className={`relative w-[90px] h-[90px] sm:w-[120px] sm:h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                    className={`relative w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-2xl transition-all duration-300 ease-out border-2 p-1.5 ${
                       active
-                        ? "bg-[#CFE3DD] scale-[1.02]"
-                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
+                        ? "bg-white dark:bg-zinc-800 border-primary shadow-md shadow-primary/20 ring-2 ring-primary/20"
+                        : "bg-white dark:bg-zinc-900 border-cement-200 dark:border-white/10 group-hover:border-primary/50"
                     }`}
                   >
-                    <PropertyTypeImage src={meta.image} alt={meta.label} emoji={meta.emoji} />
+                    <div
+                      className={`relative w-full h-full rounded-xl bg-slate-50 dark:bg-zinc-800/80 overflow-hidden flex items-center justify-center transition-transform duration-300 ${
+                        active ? "scale-105" : "group-hover:scale-105"
+                      }`}
+                    >
+                      <PropertyTypeImage src={meta.image} alt={meta.label} emoji={meta.emoji} />
+                    </div>
                     {active && (
-                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
-                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
+                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md z-10">
+                        <Check className="w-3 h-3" strokeWidth={3} />
                       </div>
                     )}
                   </div>
                   <span
-                    className={`text-xs sm:text-sm leading-tight text-center truncate w-full transition-colors ${
+                    className={`text-xs leading-tight text-center truncate w-full transition-colors ${
                       active
-                        ? "text-brand-700 font-semibold"
-                        : "text-cement-700 font-medium group-hover:text-cement-900"
+                        ? "text-primary font-bold"
+                        : "text-cement-700 dark:text-zinc-300 font-medium group-hover:text-cement-900 dark:group-hover:text-white"
                     }`}
                   >
                     {meta.label}
@@ -255,11 +296,25 @@ export default function PropertiesPage() {
                 </button>
               );
             })}
+            <div className="w-1.5 shrink-0" aria-hidden="true" />
           </div>
 
-          {subtypeOptions && type !== "All" && (
+          <button
+            type="button"
+            onClick={() => scrollCategories("right")}
+            className={`hidden md:flex absolute right-0 top-[44px] -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-cement-200 dark:border-white/10 shadow-lg items-center justify-center text-cement-700 dark:text-zinc-200 hover:text-primary hover:scale-110 transition-all duration-200 ${
+              canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+          {subtypeOptions && type !== "All" ? (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-semibold text-earth-500 uppercase tracking-wider w-full sm:w-auto">
+              <span className="text-xs font-semibold text-cement-500 dark:text-zinc-500 uppercase tracking-wider w-full sm:w-auto">
                 {type === "SELL" ? "Buy" : "Rent"} · type
               </span>
               {subtypeOptions.map((s) => (
@@ -269,91 +324,114 @@ export default function PropertiesPage() {
                   onClick={() => setSubtype(s)}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     subtype === s
-                      ? "bg-earth-900 text-white border-earth-900"
-                      : "bg-white text-earth-600 border-earth-200"
+                      ? "bg-cement-900 dark:bg-white text-white dark:text-cement-900 border-cement-900 dark:border-white"
+                      : "bg-white dark:bg-white/5 text-cement-600 dark:text-zinc-300 border-cement-200 dark:border-white/10"
                   }`}
                 >
                   {s}
                 </button>
               ))}
             </div>
-          )}
-          <div className="flex justify-end">
-            <DistrictAreaSearch
-              district={district}
-              onDistrictChange={setDistrict}
-              area={area}
-              onAreaChange={setArea}
-            />
-          </div>
+          ) : <div />}
+          <DistrictAreaSearch
+            district={district}
+            onDistrictChange={setDistrict}
+            area={area}
+            onAreaChange={setArea}
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search by area, PIN, title…"
+          />
         </div>
 
-        <p className="text-sm text-earth-500 mb-5">
-          <span className="font-semibold text-earth-900">{filtered.length}</span> listings found
+        <p className="text-sm text-cement-500 dark:text-zinc-400 mb-5">
+          <span className="font-semibold text-cement-900 dark:text-white">{filtered.length}</span> listings found
         </p>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {filtered.map((p) => (
-            <div key={p.id} className="card overflow-hidden group">
-              <div className="h-44 bg-gradient-to-br from-earth-200 to-earth-300 relative flex items-center justify-center">
-                <Home className="w-12 h-12 text-earth-400" />
-                <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                  <span
-                    className={`badge font-semibold ${p.type === "RENT" ? "bg-blue-500 text-white" : "bg-green-500 text-white"}`}
-                  >
-                    {p.type === "RENT" ? "RENT" : "SALE"}
-                  </span>
-                  <span className="badge bg-cement-800 text-white text-[10px]">{p.listingSubtype}</span>
-                  {p.tag && <span className="badge bg-brand-500 text-white">{p.tag}</span>}
+            <div
+              key={p.id}
+              className="bg-card text-card-foreground rounded-3xl border border-border/80 dark:border-zinc-800 overflow-hidden shadow-[6px_6px_20px_rgba(0,0,0,0.08)] dark:shadow-[6px_6px_25px_rgba(0,0,0,0.9)] hover:shadow-[8px_8px_25px_rgba(34,197,94,0.25)] dark:hover:shadow-[8px_8px_30px_rgba(74,222,128,0.35)] hover:border-primary/60 dark:hover:border-primary/60 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between group/card"
+            >
+              <div>
+                <div className="h-44 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-zinc-800 dark:to-zinc-900 relative flex items-center justify-center border-b border-border/40">
+                  <Home className="w-12 h-12 text-slate-400 dark:text-zinc-600" />
+                  <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                    <span
+                      className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full shadow-sm ${
+                        p.type === "RENT"
+                          ? "bg-blue-600 text-white"
+                          : "bg-emerald-600 text-white"
+                      }`}
+                    >
+                      {p.type === "RENT" ? "RENT" : "SALE"}
+                    </span>
+                    <span className="text-[11px] font-bold bg-zinc-900/80 dark:bg-zinc-800/90 text-white dark:text-zinc-200 px-2.5 py-0.5 rounded-full border border-white/10 backdrop-blur-sm">
+                      {p.listingSubtype}
+                    </span>
+                    {p.tag && (
+                      <span className="text-[11px] font-extrabold bg-primary text-primary-foreground px-2.5 py-0.5 rounded-full shadow-sm">
+                        {p.tag}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-5">
+                  <h3 className="font-bold text-foreground dark:text-white text-base sm:text-lg mb-1.5 leading-snug truncate">
+                    {p.title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 text-xs font-medium mb-3">
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />{" "}
+                    {formatLocationLine(
+                      normalizeAreaName(parseLocationToAreaDistrict(p.location).area),
+                      p.district
+                    )}
+                  </div>
+
+                  {(p.bedrooms || p.area) && (
+                    <div className="flex items-center gap-3 text-xs text-zinc-700 dark:text-zinc-200 font-semibold mb-4 bg-muted/40 dark:bg-zinc-800/60 p-2.5 rounded-2xl border border-border/40 dark:border-zinc-700/50">
+                      {p.bedrooms != null && p.bedrooms > 0 && (
+                        <span className="flex items-center gap-1">
+                          <BedDouble className="w-3.5 h-3.5 text-primary" /> {p.bedrooms} BHK
+                        </span>
+                      )}
+                      {p.bathrooms != null && p.bathrooms > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Bath className="w-3.5 h-3.5 text-primary" /> {p.bathrooms} Bath
+                        </span>
+                      )}
+                      {p.area > 0 && (
+                        <span className="flex items-center gap-1">
+                          <Maximize2 className="w-3.5 h-3.5 text-primary" /> {p.area.toLocaleString()} sq.ft
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-end justify-between gap-2 pt-1">
+                    <div className="min-w-0">
+                      <div className="text-xl sm:text-2xl font-extrabold text-primary leading-tight">
+                        {formatPrice(p.price, p.type)}
+                      </div>
+                      <div className="text-[11px] text-zinc-500 dark:text-zinc-400 font-medium mt-0.5">
+                        {p.daysAgo === 0 ? "Just listed" : p.daysAgo === 1 ? "1 day ago" : `${p.daysAgo} days ago`} ·{" "}
+                        {p.postedBy}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-4">
-                <h3 className="font-semibold text-earth-900 mb-1 leading-snug">{p.title}</h3>
-                <div className="flex items-center gap-1 text-earth-500 text-xs mb-3">
-                  <MapPin className="w-3 h-3" />{" "}
-                  {formatLocationLine(
-                    normalizeAreaName(parseLocationToAreaDistrict(p.location).area),
-                    p.district
-                  )}
-                </div>
-
-                {(p.bedrooms || p.area) && (
-                  <div className="flex items-center gap-3 text-xs text-earth-500 mb-3">
-                    {p.bedrooms != null && p.bedrooms > 0 && (
-                      <span className="flex items-center gap-1">
-                        <BedDouble className="w-3.5 h-3.5" /> {p.bedrooms} BHK
-                      </span>
-                    )}
-                    {p.bathrooms != null && p.bathrooms > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Bath className="w-3.5 h-3.5" /> {p.bathrooms} Bath
-                      </span>
-                    )}
-                    {p.area > 0 && (
-                      <span className="flex items-center gap-1">
-                        <Maximize2 className="w-3.5 h-3.5" /> {p.area.toLocaleString()} sq.ft
-                      </span>
-                    )}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="text-lg sm:text-xl font-bold text-earth-900">{formatPrice(p.price, p.type)}</div>
-                    <div className="text-xs text-earth-400">
-                      {p.daysAgo === 0 ? "Just listed" : p.daysAgo === 1 ? "1 day ago" : `${p.daysAgo} days ago`} ·{" "}
-                      {p.postedBy}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEnquiry(p.title)}
-                    className="flex items-center gap-1.5 bg-brand-50 text-brand-600 border border-brand-200 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-brand-100 transition-colors flex-shrink-0"
-                  >
-                    <Phone className="w-3.5 h-3.5" /> Contact
-                  </button>
-                </div>
+              <div className="px-5 pb-5 pt-0">
+                <button
+                  type="button"
+                  onClick={() => setEnquiry(p.title)}
+                  className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-[#5ee06a] hover:scale-[1.01] active:scale-95 transition-all shadow-md shadow-primary/20"
+                >
+                  <Phone className="w-4 h-4 fill-current" /> Contact
+                </button>
               </div>
             </div>
           ))}

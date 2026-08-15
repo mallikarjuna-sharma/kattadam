@@ -52,6 +52,7 @@ const client = createClient(url, key, {
 
 const { error: usersError } = await client.from("users").select("id", { head: true });
 if (usersError) {
+  console.error("FULL ERROR:", usersError);
   fail(`Cannot reach Supabase or \`users\` table: ${usersError.message}\n  → Run migrations/001_initial.sql in Supabase SQL Editor.`);
 }
 ok("`users` table reachable");

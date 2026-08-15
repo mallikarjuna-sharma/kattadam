@@ -18,7 +18,7 @@ type Props = {
 
 export default function KD360Logo({ className = "", size = "md", variant = "default" }: Props) {
   const s = SIZES[size];
-  const kdColor = variant === "light" ? "text-white" : "text-inherit";
+  const kdColor = variant === "light" ? "text-foreground" : "text-inherit";
 
   return (
     <span

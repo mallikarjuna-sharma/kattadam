@@ -38,7 +38,11 @@ export default function LoginPage() {
       }
       if (data.sessionId) localStorage.setItem(SESSION_KEY, data.sessionId);
       localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-      router.push("/home");
+      if (data.user?.role === "super_admin" || data.user?.role === "staff_admin") {
+        router.push("/admin");
+      } else {
+        router.push("/home");
+      }
     } catch {
       setError("Network error. Try again.");
     }
@@ -81,8 +85,14 @@ export default function LoginPage() {
       if (loginRes.ok && loginData.ok) {
         if (loginData.sessionId) localStorage.setItem(SESSION_KEY, loginData.sessionId);
         localStorage.setItem(USER_KEY, JSON.stringify(loginData.user));
+        if (loginData.user?.role === "super_admin" || loginData.user?.role === "staff_admin") {
+          router.push("/admin");
+        } else {
+          router.push("/home");
+        }
+      } else {
+        router.push("/home");
       }
-      router.push("/home");
     } catch {
       setError("Network error. Try again.");
     }
@@ -94,10 +104,10 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-cement-900 flex-col justify-between p-12">
         <Link href="/" className="flex items-center gap-3">
           <Image src="/logo.jpeg" alt="" width={40} height={40} className="rounded-xl object-cover" />
-          <span className="font-display text-2xl font-bold text-white tracking-tight">Kattadam</span>
+          <span className="font-display text-2xl font-bold text-foreground tracking-tight">Kattadam</span>
         </Link>
         <div>
-          <h1 className="font-display text-5xl font-bold text-white leading-tight mb-6">
+          <h1 className="font-display text-5xl font-bold text-foreground leading-tight mb-6">
             Build better, together — with email sign-in.
           </h1>
           <p className="text-cement-400 text-lg leading-relaxed mb-10">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import ListingPageShell from "@/components/layout/ListingPageShell";
 import DistrictAreaSearch from "@/components/ui/DistrictAreaSearch";
 import EnquiryModal from "@/components/ui/EnquiryModal";
@@ -11,8 +11,9 @@ import {
   Phone,
   Briefcase,
   CheckCircle,
-  Search,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { BUILDERS, DISTRICT_FILTER_ALL, formatLocationLine } from "@/lib/mock-data";
 import { matchesAreaFilter, matchesLocationSearch } from "@/lib/location-filters";
@@ -66,7 +67,7 @@ function ExpertImage({ src, alt, emoji }: { src: string; alt: string; emoji: str
   if (failed) {
     return (
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-5xl" aria-hidden="true">
+        <span className="text-4xl sm:text-5xl" aria-hidden="true">
           {emoji}
         </span>
       </div>
@@ -79,8 +80,7 @@ function ExpertImage({ src, alt, emoji }: { src: string; alt: string; emoji: str
       loading="lazy"
       decoding="async"
       onError={() => setFailed(true)}
-      style={{ mixBlendMode: "multiply" }}
-      className="absolute inset-0 w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105"
+      className="absolute inset-0 w-full h-full object-contain p-1 transition-transform duration-500 ease-out group-hover:scale-105"
     />
   );
 }
@@ -91,6 +91,38 @@ export default function BuildersPage() {
   const [district, setDistrict] = useState<string>(DISTRICT_FILTER_ALL);
   const [area, setArea] = useState("All Areas");
   const [enquiry, setEnquiry] = useState<string | null>(null);
+
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScroll = () => {
+    if (categoryScrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = categoryScrollRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(checkScroll, 100);
+    const el = categoryScrollRef.current;
+    if (el) {
+      el.addEventListener("scroll", checkScroll, { passive: true });
+      window.addEventListener("resize", checkScroll);
+      return () => {
+        el.removeEventListener("scroll", checkScroll);
+        window.removeEventListener("resize", checkScroll);
+        clearTimeout(timer);
+      };
+    }
+  }, []);
+
+  const scrollCategories = (direction: "left" | "right") => {
+    if (categoryScrollRef.current) {
+      categoryScrollRef.current.scrollBy({ left: direction === "left" ? -280 : 280, behavior: "smooth" });
+    }
+  };
 
   const filtered = BUILDERS.filter((b) => {
     const matchSearch =
@@ -114,26 +146,26 @@ export default function BuildersPage() {
       <div className="page-container pt-0 pb-6">
         <BannerCarousel slides={BUILDERS_BANNER_SLIDES} className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen mb-6" />
 
-        <div className="mb-4 flex justify-end">
-          <div className="relative w-full sm:max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cement-400" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search name, area, PIN…"
-              aria-label="Search experts"
-              className="w-full bg-white border border-cement-200 text-cement-900 placeholder-cement-400 rounded-xl pl-9 pr-3 py-2.5 text-sm shadow-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
-            />
-          </div>
-        </div>
+        {/* Category Tabs Carousel */}
+        <div className="relative mb-6 px-10 md:px-12">
+          <button
+            type="button"
+            onClick={() => scrollCategories("left")}
+            className={`hidden md:flex absolute left-0 top-[44px] -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-cement-200 dark:border-white/10 shadow-lg items-center justify-center text-cement-700 dark:text-zinc-200 hover:text-primary hover:scale-110 transition-all duration-200 ${
+              canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-        <div className="mb-6">
           <div
-            className="flex flex-wrap justify-center gap-2.5 sm:gap-[15px]"
+            ref={categoryScrollRef}
+            className="flex items-center gap-3 overflow-x-auto scrollbar-none py-4 px-2 scroll-smooth"
             role="tablist"
             aria-label="Expert types"
           >
+            <div className="w-1.5 shrink-0" aria-hidden="true" />
             {TYPES.map((t) => {
               const active = type === t.key;
               return (
@@ -143,39 +175,38 @@ export default function BuildersPage() {
                   role="tab"
                   aria-selected={active}
                   aria-label={`Filter by ${t.label}`}
-                  onClick={() => {
-                    setType(t.key);
-                    setEnquiry(t.label);
-                  }}
-                  className="group flex w-[78px] sm:w-[120px] flex-col items-center gap-1.5 sm:gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                  onClick={() => setType(t.key)}
+                  className="group flex flex-col items-center gap-2 shrink-0 w-20 sm:w-24 focus:outline-none"
                 >
                   <div
-                    className={`relative w-[78px] h-[78px] sm:w-[120px] sm:h-[120px] overflow-hidden transition-all duration-300 ease-out ${
+                    className={`relative w-20 h-20 sm:w-24 sm:h-24 overflow-hidden rounded-2xl transition-all duration-300 ease-out border-2 p-1.5 ${
                       active
-                        ? "bg-[#CFE3DD] scale-[1.02]"
-                        : "bg-[#E0EDE8] group-hover:bg-[#D2E2DC]"
+                        ? "bg-white dark:bg-zinc-800 border-primary shadow-md shadow-primary/20 ring-2 ring-primary/20"
+                        : "bg-white dark:bg-zinc-900 border-cement-200 dark:border-white/10 group-hover:border-primary/50"
                     }`}
                   >
-                    {t.image ? (
-                      <ExpertImage src={t.image} alt={t.label} emoji={t.emoji} />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center transition-transform duration-500 ease-out group-hover:scale-110">
-                        <span className="text-4xl sm:text-5xl" aria-hidden="true">
-                          {t.emoji}
-                        </span>
-                      </div>
-                    )}
+                    <div
+                      className={`relative w-full h-full rounded-xl bg-slate-50 dark:bg-zinc-800/80 overflow-hidden flex items-center justify-center transition-transform duration-300 ${
+                        active ? "scale-105" : "group-hover:scale-105"
+                      }`}
+                    >
+                      {t.image ? (
+                        <ExpertImage src={t.image} alt={t.label} emoji={t.emoji} />
+                      ) : (
+                        <span className="text-3xl sm:text-4xl" aria-hidden="true">{t.emoji}</span>
+                      )}
+                    </div>
                     {active && (
-                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md">
-                        <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5" strokeWidth={3} />
+                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md z-10">
+                        <Check className="w-3 h-3" strokeWidth={3} />
                       </div>
                     )}
                   </div>
                   <span
-                    className={`text-xs sm:text-sm leading-tight text-center truncate w-full transition-colors ${
+                    className={`text-xs leading-tight text-center truncate w-full transition-colors ${
                       active
-                        ? "text-brand-700 font-semibold"
-                        : "text-cement-700 font-medium group-hover:text-cement-900"
+                        ? "text-primary font-bold"
+                        : "text-cement-700 dark:text-zinc-300 font-medium group-hover:text-cement-900 dark:group-hover:text-white"
                     }`}
                   >
                     {t.label}
@@ -183,80 +214,110 @@ export default function BuildersPage() {
                 </button>
               );
             })}
+            <div className="w-1.5 shrink-0" aria-hidden="true" />
           </div>
+
+          <button
+            type="button"
+            onClick={() => scrollCategories("right")}
+            className={`hidden md:flex absolute right-0 top-[44px] -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white dark:bg-zinc-800 border border-cement-200 dark:border-white/10 shadow-lg items-center justify-center text-cement-700 dark:text-zinc-200 hover:text-primary hover:scale-110 transition-all duration-200 ${
+              canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
-          <p className="text-sm text-earth-500">
-            <span className="font-semibold text-earth-900">{filtered.length}</span> found
+          <p className="text-sm text-cement-500 dark:text-zinc-400">
+            <span className="font-semibold text-cement-900 dark:text-white">{filtered.length}</span> found
           </p>
           <DistrictAreaSearch
             district={district}
             onDistrictChange={setDistrict}
             area={area}
             onAreaChange={setArea}
+            search={search}
+            onSearchChange={setSearch}
+            searchPlaceholder="Search name, area, PIN…"
           />
         </div>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
           {filtered.map((b) => (
-            <div key={b.id} className="card p-4 sm:p-5">
-              <div className="flex items-start gap-3 sm:gap-4 mb-4">
-                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Briefcase className="w-6 h-6 sm:w-7 sm:h-7 text-blue-500" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-semibold text-earth-900">{b.companyName}</h3>
-                    {b.isVerified && (
-                      <span className="inline-flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full font-medium">
-                        <CheckCircle className="w-3 h-3" /> Verified
+            <div
+              key={b.id}
+              className="bg-card text-card-foreground rounded-3xl border border-border/80 dark:border-zinc-800 p-5 sm:p-6 shadow-[6px_6px_20px_rgba(0,0,0,0.08)] dark:shadow-[6px_6px_25px_rgba(0,0,0,0.9)] hover:shadow-[8px_8px_25px_rgba(34,197,94,0.25)] dark:hover:shadow-[8px_8px_30px_rgba(74,222,128,0.35)] hover:border-primary/60 dark:hover:border-primary/60 hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all duration-300 flex flex-col justify-between group/card"
+            >
+              <div>
+                <div className="flex items-start gap-3.5 sm:gap-4 mb-4">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 bg-primary/10 rounded-2xl flex items-center justify-center flex-shrink-0 border border-primary/20">
+                    <Briefcase className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap mb-1">
+                      <h3 className="font-bold text-foreground dark:text-white text-base sm:text-lg truncate">{b.companyName}</h3>
+                      {b.isVerified && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-500/20">
+                          <CheckCircle className="w-3 h-3" /> Verified
+                        </span>
+                      )}
+                      <span className="text-[11px] font-extrabold bg-primary/10 text-primary px-2.5 py-0.5 rounded-full border border-primary/20">
+                        {b.type}
                       </span>
-                    )}
-                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-medium">{b.type}</span>
-                  </div>
-                  <p className="text-sm text-earth-500 mt-0.5">{b.ownerName}</p>
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
-                      <span className="text-sm font-semibold text-earth-800">{b.rating}</span>
-                      <span className="text-xs text-earth-400">({b.reviewCount})</span>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-earth-500">
-                      <MapPin className="w-3 h-3" /> {formatLocationLine(b.area, b.district)}
+                    <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-300 font-semibold">{b.ownerName}</p>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <span className="font-extrabold text-foreground dark:text-white">{b.rating}</span>
+                        <span className="text-zinc-500 dark:text-zinc-300">({b.reviewCount})</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300">
+                        <MapPin className="w-3.5 h-3.5 text-primary" /> {formatLocationLine(b.area, b.district)}
+                      </div>
+                      <span className="text-zinc-600 dark:text-zinc-300 font-semibold">{b.experience} yrs exp</span>
                     </div>
-                    <span className="text-xs text-earth-500">{b.experience} yrs exp</span>
                   </div>
                 </div>
-              </div>
 
-              <p className="text-sm text-earth-600 leading-relaxed mb-4">{b.description}</p>
+                <p className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-200 leading-relaxed mb-4 line-clamp-3 font-normal">
+                  {b.description}
+                </p>
 
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {b.tags.map((t) => (
-                  <span key={t} className="text-xs bg-earth-100 text-earth-600 px-2.5 py-1 rounded-full">
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <div className="bg-earth-50 rounded-xl p-3 mb-4 space-y-1.5">
-                <p className="text-xs font-semibold text-earth-500 uppercase tracking-wider mb-2">Past Projects</p>
-                {b.projects.map((p) => (
-                  <div key={p.title} className="flex items-center justify-between text-sm">
-                    <span className="text-earth-700">{p.title}</span>
-                    <span className="text-xs text-earth-400">
-                      {p.sqft.toLocaleString()} sq.ft · {p.year}
+                <div className="flex flex-wrap gap-1.5 mb-4">
+                  {b.tags.map((t) => (
+                    <span
+                      key={t}
+                      className="text-[11px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 px-2.5 py-1 rounded-full border border-zinc-200 dark:border-zinc-700"
+                    >
+                      {t}
                     </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
+
+                <div className="bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl p-3.5 mb-5 space-y-2 border border-zinc-200 dark:border-zinc-700/60">
+                  <p className="text-[11px] font-extrabold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
+                    Past Projects
+                  </p>
+                  {b.projects.map((p) => (
+                    <div key={p.title} className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-zinc-900 dark:text-white truncate pr-2">{p.title}</span>
+                      <span className="text-zinc-600 dark:text-zinc-300 shrink-0 font-medium">
+                        {p.sqft.toLocaleString()} sq.ft · {p.year}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <button
+                type="button"
                 onClick={() => setEnquiry(b.companyName)}
-                className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 text-sm"
+                className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-primary text-primary-foreground font-extrabold text-sm hover:bg-[#5ee06a] hover:scale-[1.01] active:scale-95 transition-all shadow-md shadow-primary/20"
               >
-                <Phone className="w-4 h-4" /> Get Quote
+                <Phone className="w-4 h-4 fill-current" /> Get Quote
               </button>
             </div>
           ))}

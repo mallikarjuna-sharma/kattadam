@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { LogOut } from "lucide-react";
 import { clearAdminClientAuthed } from "@/lib/admin-auth-client";
 import {
@@ -40,6 +41,17 @@ const NAV = [
 export default function AdminSidebar() {
   const path = usePathname();
   const router = useRouter();
+  const [userName, setUserName] = useState("Kattadam");
+
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem("kattadam_user");
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u && u.name) setUserName(u.name);
+      }
+    } catch {}
+  }, []);
 
   return (
     <aside className="hidden md:flex w-64 bg-cement-900 text-white flex-col flex-shrink-0">
@@ -47,7 +59,7 @@ export default function AdminSidebar() {
         <Link href="/admin" className="flex items-center gap-3">
           <Image src="/logo.jpeg" alt="" width={40} height={40} className="rounded-lg object-cover" />
           <div>
-            <div className="font-display font-bold text-sm tracking-tight">Kattadam</div>
+            <div className="font-display font-bold text-sm tracking-tight truncate w-32">{userName}</div>
             <div className="text-cement-400 text-xs">Admin</div>
           </div>
         </Link>
@@ -77,6 +89,8 @@ export default function AdminSidebar() {
           type="button"
           onClick={() => {
             clearAdminClientAuthed();
+            localStorage.removeItem("kattadam_user");
+            localStorage.removeItem("kattadam_session_id");
             router.push("/admin/login");
             router.refresh();
           }}

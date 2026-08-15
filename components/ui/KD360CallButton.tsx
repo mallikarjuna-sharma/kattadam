@@ -2,13 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Phone, X } from "lucide-react";
+import { Phone, X, ShieldCheck } from "lucide-react";
 import KD360Logo from "@/components/ui/KD360Logo";
 import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
-/**
- * Fixed bottom-right dial control: icon only until opened, panel opens above the button.
- */
 export default function KD360CallButton() {
   const path = usePathname();
   const [open, setOpen] = useState(false);
@@ -25,51 +22,62 @@ export default function KD360CallButton() {
 
   if (path?.startsWith("/admin")) return null;
 
-  /** `/home` has a fixed mobile bottom nav; lift FAB above it on small screens only. */
   const bottomOffset = path === "/home" ? "bottom-24 md:bottom-8" : "bottom-6 md:bottom-8";
 
   return (
     <div
       ref={wrapRef}
-      className={`fixed right-4 z-[60] md:right-6 flex flex-col items-end gap-2 ${bottomOffset}`}
+      className={`fixed right-4 z-[95] md:right-6 flex flex-col items-end gap-3 ${bottomOffset}`}
     >
       {open && (
         <div
-          className="rounded-2xl border border-cement-200 bg-white shadow-xl p-4 w-[min(18rem,calc(100vw-2rem))] text-left"
+          className="rounded-2xl border border-primary/40 bg-[#0d1810]/95 backdrop-blur-2xl shadow-2xl p-5 w-[min(19rem,calc(100vw-2rem))] text-left space-y-4 animate-in fade-in zoom-in-95 duration-200"
           role="dialog"
           aria-label={`${KD360_NAME} contact`}
         >
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <KD360Logo size="sm" className="text-cement-900" />
+          <div className="flex items-start justify-between gap-2 border-b border-border pb-3">
+            <KD360Logo size="sm" className="text-foreground" />
             <button
               type="button"
-              className="p-1 rounded-lg text-cement-400 hover:bg-cement-100 hover:text-cement-700"
+              className="p-1.5 rounded-full text-muted-foreground hover:bg-white/10 hover:text-foreground transition-colors"
               aria-label="Close"
               onClick={() => setOpen(false)}
             >
               <X className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-xs text-cement-500 mb-3">Customer support</p>
+
+          <div className="space-y-1">
+            <p className="text-xs font-bold text-primary">Customer Support Hotline</p>
+            <p className="text-[11px] text-muted-foreground">Available 9 AM - 8 PM (Mon - Sat)</p>
+          </div>
+
           <a
             href={KD360_TEL_HREF}
-            className="block text-center text-lg font-bold tracking-wide text-brand-700 hover:text-brand-800 py-2 rounded-xl bg-brand-50 border border-brand-200"
+            className="flex items-center justify-center gap-2 text-center text-lg font-black tracking-wide text-primary-foreground py-3 rounded-xl bg-primary hover:bg-[#5ee06a] transition-all duration-300 shadow-lg shadow-primary/20 hover:scale-105 active:scale-95"
             onClick={() => setOpen(false)}
           >
-            +91 {KD360_PHONE_DISPLAY}
+            <Phone className="w-4 h-4 fill-current" />
+            <span>+91 {KD360_PHONE_DISPLAY}</span>
           </a>
-          <p className="text-[10px] text-cement-400 mt-2 text-center">Tap number to dial</p>
+
+          <div className="flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground pt-1">
+            <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+            <span>Verified Kattadam Support Line</span>
+          </div>
         </div>
       )}
+
+      {/* Floating Call Button */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-600 text-white shadow-lg border-2 border-white/30 hover:bg-brand-700 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2"
+        className="flex h-14 w-14 items-center justify-center rounded-full bg-primary hover:bg-[#5ee06a] text-foreground shadow-xl shadow-primary/30 hover:scale-105 transition-all duration-300 focus:outline-none"
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-label={`Open ${KD360_NAME} phone number`}
       >
-        <Phone className="w-6 h-6" strokeWidth={2.25} />
+        <Phone className="w-6 h-6 text-foreground fill-current group-hover:rotate-12 transition-transform" />
       </button>
     </div>
   );

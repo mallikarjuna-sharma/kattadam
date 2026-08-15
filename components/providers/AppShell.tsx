@@ -13,6 +13,8 @@ import Image from "next/image";
 import { Building2, Check, Hammer, Home, Phone, Shield, UserCheck, X } from "lucide-react";
 import KD360CallButton from "@/components/ui/KD360CallButton";
 import KD360Logo from "@/components/ui/KD360Logo";
+import ChatEnquiryWidget from "@/components/ui/ChatEnquiryWidget";
+import truckHero from "@/assets/images/kd360-truck-hero.png";
 import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 
 const LANG_KEY = "kattadam_lang";
@@ -135,25 +137,27 @@ function ExpertCallPopup() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60">
-      <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-[#50D890]/30 bg-[#052010] shadow-2xl">
-        <div className="relative h-36 overflow-hidden">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-border bg-card text-card-foreground shadow-2xl transition-colors duration-300">
+        
+        {/* Header Image with Gradient */}
+        <div className="relative h-32 overflow-hidden">
           <Image
-            src="/images/kd360-truck-hero.png"
-            alt=""
+            src={truckHero}
+            alt="Kattadam Construction"
             fill
-            className="object-cover object-center"
+            className="object-cover object-center opacity-80"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#052010]/20 via-transparent to-[#052010]" />
-          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#50D890] px-2.5 py-1 text-[10px] font-bold tracking-wider text-[#50D890]">
-              <Building2 className="h-3 w-3" strokeWidth={2.5} />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-card" />
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/40 bg-black/60 px-3 py-1 text-[11px] font-extrabold tracking-wider text-primary backdrop-blur-md">
+              <Building2 className="h-3.5 w-3.5 text-primary" strokeWidth={2.5} />
               KATTADAM
             </span>
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-[#50D890]/70 text-[#50D890] transition-colors hover:bg-[#50D890]/10"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white transition-all hover:bg-white/20 hover:scale-105"
               aria-label="Close"
               onClick={() => setOpen(false)}
             >
@@ -162,72 +166,76 @@ function ExpertCallPopup() {
           </div>
         </div>
 
-        <div className="px-5 pb-5">
-          <h2 className="text-center font-display text-3xl font-extrabold leading-tight tracking-tight text-white">
-            {t("expert_popup_heading_free")}
-            <br />
-            {t("expert_popup_heading_consultation")}
+        {/* Modal Body */}
+        <div className="px-5 pb-6 pt-1">
+          <h2 className="text-center font-display text-2xl sm:text-3xl font-extrabold leading-tight tracking-tight text-foreground">
+            {t("expert_popup_heading_free")} {t("expert_popup_heading_consultation")}
           </h2>
-          <p className="mt-1.5 flex flex-wrap items-center justify-center gap-1.5 text-center text-sm font-medium text-[#50D890]">
-            <KD360Logo size="sm" variant="light" />
+          <p className="mt-2 flex flex-wrap items-center justify-center gap-1.5 text-center text-xs font-semibold text-primary">
+            <KD360Logo size="sm" />
             <span>· {t("expert_popup_subtitle")}</span>
           </p>
 
-          <div className="mt-4 grid grid-cols-3 gap-2">
+          {/* Service Pill Badges */}
+          <div className="mt-5 grid grid-cols-3 gap-2">
             {POPUP_SERVICE_CARDS.map(({ key, icon: Icon }) => (
               <div
                 key={key}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-[#50D890]/40 bg-[#0a2e18] px-2 py-3"
+                className="flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-cement-50 dark:bg-white/5 px-2 py-3 transition-all hover:border-primary/40 hover:bg-primary/5"
               >
-                <Icon className="h-5 w-5 text-[#50D890]" strokeWidth={1.75} />
-                <span className="text-center text-[10px] font-semibold leading-tight text-[#50D890]">
+                <Icon className="h-5 w-5 text-primary" strokeWidth={2} />
+                <span className="text-center text-[10px] font-extrabold leading-tight text-foreground">
                   {t(key)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className="mt-4 flex items-center gap-3 rounded-xl border border-[#50D890]/40 bg-[#0a2e18] px-3 py-3">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#50D890]">
-              <Check className="h-5 w-5 text-[#052010]" strokeWidth={3} />
+          {/* Phone Offer Card */}
+          <div className="mt-4 flex items-center gap-3.5 rounded-2xl border border-primary/30 bg-primary/10 p-3.5">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-md">
+              <Check className="h-5 w-5" strokeWidth={3} />
             </span>
             <div className="min-w-0">
-              <p className="text-xs text-[#50D890]/90">
-                <span className="mr-1.5 line-through text-[#50D890]/50">₹500</span>
-                <span className="font-bold text-[#50D890]">{t("expert_popup_offer_free")}</span>
+              <p className="text-xs text-muted-foreground">
+                <span className="mr-1.5 line-through opacity-60">₹500</span>
+                <span className="font-extrabold text-primary">{t("expert_popup_offer_free")}</span>
                 {" — "}
                 {t("expert_popup_offer_tagline")}
               </p>
-              <p className="mt-0.5 text-lg font-bold tracking-wide text-white">
+              <p className="mt-0.5 text-lg font-black tracking-wide text-foreground">
                 +91 {KD360_PHONE_DISPLAY}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 flex gap-2">
+          {/* Action Buttons */}
+          <div className="mt-5 flex gap-2.5">
             <a
               href={KD360_TEL_HREF}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#50D890] px-3 py-3 text-center text-sm font-bold text-[#052010] transition-colors hover:bg-[#5ee89d]"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-center text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-[#5ee06a] hover:scale-105 active:scale-95"
             >
-              <Phone className="h-4 w-4" strokeWidth={2.5} />
+              <Phone className="h-4 w-4 fill-current" />
               <span className="truncate">
                 {t("expert_popup_call")} · +91 {POPUP_PHONE_FORMATTED}
               </span>
             </a>
             <button
               type="button"
-              className="shrink-0 rounded-xl border border-[#50D890]/50 px-3 py-3 text-xs font-semibold text-[#50D890] transition-colors hover:bg-[#50D890]/10"
+              className="shrink-0 rounded-2xl border border-border bg-cement-100 dark:bg-white/10 px-4 py-3 text-xs font-bold text-foreground transition-all hover:bg-cement-200 dark:hover:bg-white/15"
               onClick={() => setOpen(false)}
             >
               {t("expert_popup_later")}
             </button>
           </div>
 
-          <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[10px] text-[#50D890]/60">
-            <Shield className="h-3 w-3 shrink-0" />
+          {/* Footer Guarantee */}
+          <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-[10px] text-muted-foreground">
+            <Shield className="h-3.5 w-3.5 shrink-0 text-primary" />
             {t("expert_popup_footer")}
           </p>
         </div>
+
       </div>
     </div>
   );
@@ -235,6 +243,8 @@ function ExpertCallPopup() {
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin") ?? false;
 
   useEffect(() => {
     const s = localStorage.getItem(LANG_KEY) as Lang | null;
@@ -256,8 +266,13 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <LangContext.Provider value={value}>
       <SessionPing />
-      <KD360CallButton />
-      <ExpertCallPopup />
+      {!isAdmin && (
+        <>
+          <KD360CallButton />
+          <ExpertCallPopup />
+          <ChatEnquiryWidget />
+        </>
+      )}
       {children}
     </LangContext.Provider>
   );
