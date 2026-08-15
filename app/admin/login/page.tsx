@@ -40,12 +40,12 @@ export default function AdminLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
-      <Link href="/" className="absolute top-6 left-6 text-cement-400 text-sm hover:text-white transition-colors">
+      <Link href="/" className="absolute top-6 left-6 text-cement-400 text-sm hover:text-foreground transition-colors">
         ← Back to site
       </Link>
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <Image src="/logo.jpeg" alt="" width={56} height={56} className="rounded-xl object-cover border border-white/10" />
+          <Image src="/logo.jpeg" alt="" width={56} height={56} className="rounded-xl object-cover border border-border" />
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-cement-100">
           <h1 className="font-display text-2xl font-bold text-cement-900 text-center mb-1">Kattadam Admin</h1>

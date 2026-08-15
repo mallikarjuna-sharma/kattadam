@@ -5,6 +5,30 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #121212;
+    --card: #f9f9f9;
+    --card-foreground: #121212;
+    --primary: #4caf50;
+    --primary-foreground: #0d1f0f;
+    --border: #e8e8e8;
+    --muted: #6b6b6b;
+    --muted-foreground: #6b6b6b;
+  }
+
+  .dark {
+    --background: #121212;
+    --foreground: #ffffff;
+    --card: #0a180d;
+    --card-foreground: #ffffff;
+    --primary: #4caf50;
+    --primary-foreground: #0d1f0f;
+    --border: rgba(255, 255, 255, 0.1);
+    --muted: rgba(255, 255, 255, 0.6);
+    --muted-foreground: rgba(255, 255, 255, 0.4);
+  }
+
   * {
     box-sizing: border-box;
   }
@@ -13,6 +37,9 @@
   }
   body {
     min-height: 100dvh;
+    overflow-x: hidden;
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }
 
@@ -58,4 +85,12 @@
   .admin-td {
     @apply px-4 py-3 text-sm text-cement-800 border-b border-cement-50;
   }
+}
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

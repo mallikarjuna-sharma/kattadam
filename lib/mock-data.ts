@@ -1,78 +1,142 @@
 // lib/mock-data.ts — Static mock data for all pages
 
-export const DISTRICTS = ["Coimbatore", "Tirupur", "Erode", "Namakkal", "Salem"] as const;
+export const DISTRICTS = ["Coimbatore", "Tirupur", "Erode", "Namakkal", "Salem", "Chennai"] as const;
 export type District = (typeof DISTRICTS)[number];
 export const DISTRICT_FILTER_ALL = "All Districts" as const;
 
-/** Well-known localities per district (for filters & mock listings) */
-export const DISTRICT_AREAS: Record<District, string[]> = {
-  Coimbatore: [
-    "RS Puram",
-    "Gandhipuram",
-    "Peelamedu",
-    "Saibaba Colony",
-    "Race Course",
-    "Singanallur",
-    "Ganapathy",
-    "Vadavalli",
-    "Kalapatti",
-    "Sulur",
-  ],
-  Tirupur: [
-    "Avinashi Road",
-    "Dharapuram Road",
-    "PN Road",
-    "Kumaran Road",
-    "Kongu Nagar",
-    "Velampalayam",
-    "Tirupur Town",
-    "Palladam Road",
-    "Uthukuli Road",
-    "Collectorate",
-  ],
-  Erode: [
-    "Erode Town",
-    "Perundurai Road",
-    "Chennimalai Road",
-    "Kavundampalayam",
-    "Chithode",
-    "Bhavani",
-    "Gobichettipalayam",
-    "Modakurichi",
-    "Ingur",
-    "EVN Road",
-  ],
-  Namakkal: [
-    "Namakkal Town",
-    "Tiruchengode",
-    "Rasipuram",
-    "Paramathi-Velur",
-    "Mohanur",
-    "Komarapalayam",
-    "Kumarapalayam",
-    "Senthamangalam",
-    "Namagiripettai",
-    "Trichy Road",
-  ],
-  Salem: [
-    "Fairlands",
-    "Hasthampatti",
-    "Ammapet",
-    "Suramangalam",
-    "Meyyanur",
-    "Omalur",
-    "Jagir",
-    "Steel Plant Road",
-    "Gugai",
-    "Yercaud Road",
-  ],
-};
+/** Area + PIN code per district (single source of truth). */
+export const AREA_LOCATIONS: ReadonlyArray<{ district: District; area: string; pin: string }> = [
+  { district: "Coimbatore", area: "RS Puram", pin: "641002" },
+  { district: "Coimbatore", area: "Gandhipuram", pin: "641012" },
+  { district: "Coimbatore", area: "Peelamedu", pin: "641004" },
+  { district: "Coimbatore", area: "Saibaba Colony", pin: "641011" },
+  { district: "Coimbatore", area: "Race Course", pin: "641018" },
+  { district: "Coimbatore", area: "Singanallur", pin: "641005" },
+  { district: "Coimbatore", area: "Ganapathy", pin: "641006" },
+  { district: "Coimbatore", area: "Vadavalli", pin: "641041" },
+  { district: "Coimbatore", area: "Kalapatti", pin: "641048" },
+  { district: "Coimbatore", area: "Sulur", pin: "641402" },
+  { district: "Tirupur", area: "Avinashi Road", pin: "641603" },
+  { district: "Tirupur", area: "Dharapuram Road", pin: "641608" },
+  { district: "Tirupur", area: "PN Road", pin: "641602" },
+  { district: "Tirupur", area: "Kumaran Road", pin: "641601" },
+  { district: "Tirupur", area: "Kongu Nagar", pin: "641607" },
+  { district: "Tirupur", area: "Velampalayam", pin: "641652" },
+  { district: "Tirupur", area: "Tirupur Town", pin: "641604" },
+  { district: "Tirupur", area: "Palladam Road", pin: "641605" },
+  { district: "Tirupur", area: "Uthukuli Road", pin: "638752" },
+  { district: "Tirupur", area: "Collectorate", pin: "641604" },
+  { district: "Erode", area: "Erode Town", pin: "638001" },
+  { district: "Erode", area: "Perundurai Road", pin: "638011" },
+  { district: "Erode", area: "Chennimalai Road", pin: "638052" },
+  { district: "Erode", area: "Kavundampalayam", pin: "638112" },
+  { district: "Erode", area: "Chithode", pin: "638102" },
+  { district: "Erode", area: "Bhavani", pin: "638301" },
+  { district: "Erode", area: "Gobichettipalayam", pin: "638452" },
+  { district: "Erode", area: "Modakurichi", pin: "638104" },
+  { district: "Erode", area: "Ingur", pin: "638058" },
+  { district: "Erode", area: "EVN Road", pin: "638009" },
+  { district: "Namakkal", area: "Namakkal Town", pin: "637001" },
+  { district: "Namakkal", area: "Tiruchengode", pin: "637211" },
+  { district: "Namakkal", area: "Rasipuram", pin: "637408" },
+  { district: "Namakkal", area: "Paramathi-Velur", pin: "638182" },
+  { district: "Namakkal", area: "Mohanur", pin: "637015" },
+  { district: "Namakkal", area: "Komarapalayam", pin: "637017" },
+  { district: "Namakkal", area: "Kumarapalayam", pin: "638183" },
+  { district: "Namakkal", area: "Senthamangalam", pin: "637409" },
+  { district: "Namakkal", area: "Namagiripettai", pin: "637406" },
+  { district: "Namakkal", area: "Trichy Road", pin: "637001" },
+  { district: "Salem", area: "Fairlands", pin: "636016" },
+  { district: "Salem", area: "Hasthampatti", pin: "636007" },
+  { district: "Salem", area: "Ammapet", pin: "636003" },
+  { district: "Salem", area: "Suramangalam", pin: "636005" },
+  { district: "Salem", area: "Meyyanur", pin: "636004" },
+  { district: "Salem", area: "Omalur", pin: "636455" },
+  { district: "Salem", area: "Jagir", pin: "636302" },
+  { district: "Salem", area: "Steel Plant Road", pin: "636013" },
+  { district: "Salem", area: "Gugai", pin: "636006" },
+  { district: "Salem", area: "Yercaud Road", pin: "636008" },
+  { district: "Chennai", area: "Anna Nagar", pin: "600040" },
+  { district: "Chennai", area: "T Nagar", pin: "600017" },
+  { district: "Chennai", area: "Adyar", pin: "600020" },
+  { district: "Chennai", area: "Velachery", pin: "600042" },
+  { district: "Chennai", area: "OMR", pin: "600097" },
+  { district: "Chennai", area: "Porur", pin: "600116" },
+  { district: "Chennai", area: "Ambattur", pin: "600053" },
+  { district: "Chennai", area: "Tambaram", pin: "600045" },
+  { district: "Chennai", area: "Chromepet", pin: "600044" },
+  { district: "Chennai", area: "Nungambakkam", pin: "600034" },
+];
 
-export function areaOptionsForDistrict(district: string): string[] {
-  if (district === DISTRICT_FILTER_ALL) return ["All Areas"];
-  const list = DISTRICT_AREAS[district as District];
-  if (!list) return ["All Areas"];
-  return ["All Areas", ...list];
+/** Well-known localities per district (for filters & mock listings) */
+export const DISTRICT_AREAS: Record<District, string[]> = DISTRICTS.reduce(
+  (acc, district) => {
+    acc[district] = AREA_LOCATIONS.filter((l) => l.district === district).map((l) => l.area);
+    return acc;
+  },
+  {} as Record<District, string[]>
+);
+
+export const AREA_PIN_CODES: Record<string, string> = Object.fromEntries(
+  AREA_LOCATIONS.map((l) => [l.area, l.pin])
+);
+
+export type AreaSearchOption = { value: string; label: string; searchText: string };
+
+export function pinCodeForArea(area: string | null | undefined): string | undefined {
+  if (!area) return undefined;
+  return AREA_PIN_CODES[area];
+}
+
+export function formatAreaWithPin(area: string | null | undefined): string {
+  if (!area) return "—";
+  const pin = pinCodeForArea(area);
+  return pin ? `${area} · ${pin}` : area;
+}
+
+export function formatLocationLine(
+  area: string | null | undefined,
+  district: string | null | undefined
+): string {
+  const place = formatAreaWithPin(area);
+  return district ? `${place}, ${district}` : place;
+}
+
+/** Strip a PIN suffix from labels like `RS Puram · 641002`. */
+export function normalizeAreaName(areaLabel: string | null | undefined): string {
+  if (!areaLabel) return "";
+  return areaLabel.split("·")[0]?.trim() ?? areaLabel.trim();
+}
+
+export function areasForPinQuery(pinQuery: string): string[] {
+  const q = pinQuery.trim();
+  if (!q) return [];
+  return AREA_LOCATIONS.filter((l) => l.pin.includes(q)).map((l) => l.area);
+}
+
+export function areaOptionsForDistrict(district: string): AreaSearchOption[] {
+  const allOption: AreaSearchOption = {
+    value: "All Areas",
+    label: "All Areas",
+    searchText: "all areas",
+  };
+  const rows =
+    district === DISTRICT_FILTER_ALL
+      ? AREA_LOCATIONS
+      : AREA_LOCATIONS.filter((l) => l.district === district);
+  return [
+    allOption,
+    ...rows.map((l) => ({
+      value: l.area,
+      label: `${l.area} · ${l.pin}`,
+      searchText: `${l.area} ${l.pin} ${l.district}`.toLowerCase(),
+    })),
+  ];
+}
+
+/** @deprecated Use `areaOptionsForDistrict` — returns area names only. */
+export function areaNamesForDistrict(district: string): string[] {
+  return areaOptionsForDistrict(district).map((o) => o.value);
 }
 
 /** Parse "Area, District" from API-style location strings */
@@ -492,15 +556,88 @@ export const PROPERTIES = [
 ];
 
 export const MATERIAL_CATEGORIES = [
-  { key: "CEMENT", label: "Cement", emoji: "🏗️" },
-  { key: "TMT_STEEL", label: "TMT Steel", emoji: "🔩" },
-  { key: "BRICKS", label: "Bricks", emoji: "🧱" },
-  { key: "SAND", label: "Sand", emoji: "⛱️" },
-  { key: "AGGREGATES", label: "Aggregates", emoji: "🪨" },
-  { key: "PAINT", label: "Paint", emoji: "🎨" },
-  { key: "TILES", label: "Tiles", emoji: "◼️" },
-  { key: "PLUMBING", label: "Plumbing", emoji: "🔧" },
-  { key: "ELECTRICAL", label: "Electrical", emoji: "⚡" },
+  {
+    key: "AGGREGATES",
+    label: "Aggregates",
+    emoji: "🪨",
+    image:
+      "https://5.imimg.com/data5/SELLER/Default/2025/12/566163028/RS/CG/GM/257549343/ston-gitti1-png-1000x1000.png",
+  },
+  {
+    key: "BRICKS",
+    label: "Bricks",
+    emoji: "🧱",
+    image: "https://sakshichemsciences.com/wp-content/uploads/2025/07/Clay-Bricks.webp",
+  },
+  {
+    key: "CEMENT",
+    label: "Cement",
+    emoji: "🏗️",
+    image:
+      "https://5.imimg.com/data5/SELLER/Default/2024/1/380017223/RL/IV/WF/147568731/cement-wholesale-all-brands-1000x1000.jpg",
+  },
+  {
+    key: "DOORS_PLYWOOD",
+    label: "Doors & Plywood",
+    emoji: "🚪",
+    image:
+      "https://fairwell-gpc.in/wp-content/uploads/2024/07/door-wooden-plywood-hyderabad-1.png",
+  },
+  {
+    key: "ELECTRICAL",
+    label: "Electrical",
+    emoji: "⚡",
+    image: "https://i.pinimg.com/736x/1d/ee/39/1dee3930653c7b7ee93e98c818c4f8bb.jpg",
+  },
+  {
+    key: "PAINT",
+    label: "Paint",
+    emoji: "🎨",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQXBFBoFgoaY4B5edJ7AIyowmRrOnd4t_3WIg&s",
+  },
+  {
+    key: "PLUMBING",
+    label: "Plumbing",
+    emoji: "🔧",
+    image:
+      "https://www.pngitem.com/pimgs/m/119-1190540_since-car-dolphin-pipe-and-fittings-hd-png.png",
+  },
+  {
+    key: "RMC",
+    label: "RMC",
+    emoji: "🚛",
+    image:
+      "https://png.pngtree.com/png-vector/20250228/ourmid/pngtree-red-ready-mix-cement-mixer-truck-isolated-construction-equipment-clipart-illustration-png-image_15630019.png",
+  },
+  {
+    key: "SAND",
+    label: "Sand",
+    emoji: "⛱️",
+    image:
+      "https://tiimg.tistatic.com/fp/1/008/350/moderate-heat-natural-m-sand-for-construction-work--392.jpg",
+  },
+  {
+    key: "SANITARY_WARE",
+    label: "Sanitary Ware",
+    emoji: "🚿",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6VAljnZcSjod_zeXjGoM3MGoYJ3F8TxNePA&s",
+  },
+  {
+    key: "TILES",
+    label: "Tiles",
+    emoji: "◼️",
+    image:
+      "https://static.vecteezy.com/system/resources/thumbnails/047/457/871/small/floor-stone-marbles-or-tiles-design-isolated-on-transparent-background-cutout-png.png",
+  },
+  {
+    key: "TMT_STEEL",
+    label: "TMT Steel",
+    emoji: "🔩",
+    image:
+      "https://5.imimg.com/data5/SELLER/Default/2025/12/570274755/DH/NH/EL/257733873/agni-steel-tmt-bar-fe-550-12mm-500x500.png",
+  },
 ];
 
 /** Category keys that use a fixed subcategory dropdown in admin (others use free-text subcategory). */
@@ -529,12 +666,12 @@ export function materialCategoryLabel(categoryKey: string): string {
 
 export const SERVICE_CATEGORY_FILTERS = [
   "All",
-  "Interiors",
-  "Renovations",
-  "Painting",
   "Electrical",
-  "Plumbing",
+  "Interiors",
   "Masonry works",
+  "Painting",
+  "Plumbing",
+  "Renovations",
 ] as const;
 
 export const SERVICES = [

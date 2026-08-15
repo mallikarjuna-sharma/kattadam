@@ -55,6 +55,8 @@ export default function AdminMobileNav() {
             className="flex items-center gap-2 w-full text-left px-3 py-2.5 rounded-lg text-sm text-cement-300 hover:bg-white/10"
             onClick={() => {
               clearAdminClientAuthed();
+              localStorage.removeItem("kattadam_user");
+              localStorage.removeItem("kattadam_session_id");
               setOpen(false);
               router.push("/admin/login");
               router.refresh();

@@ -8,7 +8,7 @@ import { KD360_NAME, KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-con
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-earth-50 pb-24 md:pb-0">
-      <header className="bg-earth-900 text-white">
+      <header className="bg-earth-900 text-foreground">
         <div className="page-container py-8 md:py-10">
           <div className="flex items-start justify-between gap-4 mb-6">
             <div className="space-y-3 min-w-0">
@@ -22,7 +22,7 @@ export default function HomePage() {
                 <span aria-hidden>📍</span>
                 <span>Coimbatore · Tirupur · Erode · Namakkal · Salem</span>
               </p>
-              <p className="text-earth-100 text-sm font-medium pt-2 border-t border-white/10 mt-4 max-w-lg">
+              <p className="text-earth-100 text-sm font-medium pt-2 border-t border-border mt-4 max-w-lg">
                 No middlemen. No confusion. Just trusted connections.
               </p>
             </div>
@@ -39,7 +39,7 @@ export default function HomePage() {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-earth-400" />
             <input
               placeholder="Search materials, experts, real estate…"
-              className="w-full bg-white/10 border border-white/20 text-white placeholder-earth-500 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
+              className="w-full bg-white/10 border border-border text-foreground placeholder-earth-500 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:bg-white/15"
             />
           </div>
         </div>
@@ -51,7 +51,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <Link
               href="/materials"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 text-white px-5 py-3 text-sm font-semibold"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 text-foreground px-5 py-3 text-sm font-semibold"
             >
               Explore materials <ArrowRight className="w-4 h-4" />
             </Link>
@@ -94,7 +94,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             <Link
               href="/properties"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-earth-900 text-white px-5 py-3 text-sm font-semibold"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-earth-900 text-foreground px-5 py-3 text-sm font-semibold"
             >
               Explore real estate <ArrowRight className="w-4 h-4" />
             </Link>
@@ -163,7 +163,7 @@ export default function HomePage() {
         </section>
 
         <section>
-          <div className="bg-earth-900 rounded-2xl p-5 text-white relative overflow-hidden">
+          <div className="bg-earth-900 rounded-2xl p-5 text-foreground relative overflow-hidden">
             <div className="absolute top-0 right-0 w-28 h-28 bg-brand-500/20 rounded-full -translate-y-6 translate-x-6" />
             <Home className="w-5 h-5 text-brand-400 mb-2" />
             <h3 className="font-display text-lg font-bold mb-1">List on Kattadam</h3>
