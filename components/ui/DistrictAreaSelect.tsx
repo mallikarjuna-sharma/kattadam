@@ -45,15 +45,13 @@ export default function DistrictAreaSelect({
       </select>
       <select
         className={selectClassName}
-        value={areaOptions.includes(area) ? area : "All Areas"}
+        value={areaOptions.some((o) => o.value === area) ? area : "All Areas"}
         onChange={(e) => onAreaChange(e.target.value)}
-        disabled={district === DISTRICT_FILTER_ALL}
-        aria-label="Area"
-        title={district === DISTRICT_FILTER_ALL ? "Choose a district to filter by area" : undefined}
+        aria-label="Area or PIN code"
       >
         {areaOptions.map((a) => (
-          <option key={a} value={a}>
-            {a}
+          <option key={a.value} value={a.value}>
+            {a.label}
           </option>
         ))}
       </select>

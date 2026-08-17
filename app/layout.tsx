@@ -8,11 +8,15 @@ export const metadata: Metadata = {
     "கட்டடம் — materials, Kattadam Experts, real estate, and home services. Coimbatore, Tirupur, Erode, Namakkal, Salem.",
 };
 
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="bg-cement-50 text-cement-900 font-sans antialiased">
-        <AppShell>{children}</AppShell>
+    <html lang="en" suppressHydrationWarning>
+      <body className="font-sans antialiased">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AppShell>{children}</AppShell>
+        </ThemeProvider>
       </body>
     </html>
   );
