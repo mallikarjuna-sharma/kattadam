@@ -50,7 +50,7 @@ export default function BannerCarousel({ slides, intervalMs = 3500, className = 
               loading={i === 0 ? "eager" : "lazy"}
               decoding="async"
               draggable={false}
-              className="w-full h-[130px] sm:h-auto block select-none"
+              className="w-full h-[130px] sm:h-auto block select-none object-cover"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.visibility = "hidden";
               }}
