@@ -59,7 +59,7 @@ export default function ListingPageShell({
           </div>
         </div>
       )}
-      <div className={hideHeader ? "pt-24" : ""}>
+      <div className={hideHeader ? "pt-20" : ""}>
         {children}
       </div>
     </div>
