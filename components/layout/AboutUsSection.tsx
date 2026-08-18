@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Sparkles, ShieldCheck, MapPin, Target, ArrowRight, Award, CheckCircle2 } from "lucide-react";
 import { useSiteLang } from "@/components/providers/AppShell";
 import { KD360_GSTIN } from "@/lib/kd360-contact";
+import cardMaterials from "@/assets/images/landing/card-materials.png";
 
 export default function AboutUsSection() {
   const { lang } = useSiteLang();
@@ -43,21 +44,25 @@ export default function AboutUsSection() {
 
       <div className="page-container relative z-10 space-y-16">
         
-        {/* Section Title & Subtitle (Kept as requested) */}
-        <div className="text-center max-w-3xl mx-auto space-y-4">
+        {/* Section Title & Subtitle */}
+        <div className="text-center max-w-5xl mx-auto space-y-4 flex flex-col items-center justify-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary backdrop-blur-md">
             <Sparkles className="h-4 w-4" />
             <span>{isTa ? "கட்டடம் 360° பற்றி" : "ABOUT KATTADAM 360°"}</span>
           </div>
 
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight leading-tight">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-extrabold text-foreground tracking-tight leading-[1.15] w-full text-center">
             {isTa ? (
               <>
-                தமிழ்நாட்டின் நம்பிக்கையான <span className="italic font-serif text-primary">கட்டட சேவை அமைப்பு</span>
+                <span className="block sm:inline-block sm:whitespace-nowrap text-center">தமிழ்நாட்டின் நம்பிக்கையான</span>{" "}
+                <br className="hidden sm:inline" />
+                <span className="italic font-serif text-primary block sm:inline-block sm:whitespace-nowrap text-center">கட்டட சேவை அமைப்பு</span>
               </>
             ) : (
               <>
-                Building Tamil Nadu&apos;s Most Trusted <span className="italic font-serif text-primary">Construction Ecosystem</span>
+                <span className="block sm:inline-block sm:whitespace-nowrap text-center">Building Tamil Nadu&apos;s Most Trusted</span>{" "}
+                <br className="hidden sm:inline" />
+                <span className="italic font-serif text-primary block sm:inline-block sm:whitespace-nowrap text-center">Construction Ecosystem</span>
               </>
             )}
           </h2>
@@ -150,7 +155,7 @@ export default function AboutUsSection() {
             {/* Secondary Overlapping Floating Card Image */}
             <div className="absolute -bottom-6 -left-6 w-44 md:w-52 rounded-2xl overflow-hidden border-2 border-border shadow-2xl transform -rotate-3 hover:rotate-0 transition-transform duration-300 hidden sm:block">
               <Image
-                src="/images/landing/card-materials.png"
+                src={cardMaterials}
                 alt="Materials & Steel"
                 width={220}
                 height={160}

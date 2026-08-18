@@ -52,27 +52,44 @@ export default function StatsBannerSection() {
   const { lang } = useSiteLang();
   const isTa = lang === "ta";
 
+  const STATS = [
+    { num: 500, suffix: "+", l: isTa ? "சரிபார்க்கப்பட்ட விற்பனையாளர்கள்" : "Verified dealers" },
+    { num: 100, suffix: "+", l: isTa ? "சரிபார்க்கப்பட்ட நிபுணர்கள்" : "Verified experts" },
+    { num: 1000, suffix: "+", l: isTa ? "நிலம் & வீடு விளம்பரங்கள்" : "Real estate listings" },
+    { num: 6, suffix: "", l: isTa ? "மாவட்ட சேவை பகுதிகள்" : "District service area" },
+  ];
+
   return (
     <section className="w-full border-t border-b border-border bg-[#0d170e]/90 py-12 md:py-16 backdrop-blur-md">
-      <div className="page-container grid grid-cols-2 gap-8 text-center md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-white/10">
-        {[
-          { num: 500, suffix: "+", l: isTa ? "சரிபார்க்கப்பட்ட விற்பனையாளர்கள்" : "Verified dealers" },
-          { num: 100, suffix: "+", l: isTa ? "சரிபார்க்கப்பட்ட நிபுணர்கள்" : "Verified experts" },
-          { num: 1000, suffix: "+", l: isTa ? "நிலம் & வீடு விளம்பரங்கள்" : "Real estate listings" },
-          { num: 6, suffix: "", l: isTa ? "மாவட்ட சேவை பகுதிகள்" : "District service area" },
-        ].map((s) => (
-          <div key={s.l} className="group flex flex-col items-center justify-center pt-6 md:pt-0 px-2 cursor-pointer transition-transform duration-300">
-            <div 
-              className="font-black text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-transparent group-hover:text-primary transition-all duration-500 tracking-tight group-hover:scale-105 group-hover:drop-shadow-[0_0_25px_rgba(76,175,80,0.5)] select-none"
-              style={{ WebkitTextStroke: "2px #4CAF50" }}
+      <div className="page-container grid grid-cols-2 text-center md:grid-cols-4">
+        {STATS.map((s, idx) => {
+          const isRightBorderMobile = idx % 2 === 0;
+          const isBottomBorderMobile = idx < 2;
+          const isRightBorderDesktop = idx < 3;
+
+          return (
+            <div
+              key={s.l}
+              className={`group flex flex-col items-center justify-center py-6 md:py-4 px-4 sm:px-6 cursor-pointer transition-transform duration-300 ${
+                isRightBorderMobile ? "border-r border-white/10" : ""
+              } ${
+                isBottomBorderMobile ? "border-b border-white/10 md:border-b-0" : ""
+              } ${
+                isRightBorderDesktop ? "md:border-r md:border-white/10" : "md:border-r-0"
+              }`}
             >
-              <CountUpNumber target={s.num} suffix={s.suffix} />
+              <div 
+                className="font-black text-4xl sm:text-5xl md:text-5xl lg:text-6xl xl:text-7xl text-transparent group-hover:text-primary transition-all duration-500 tracking-tight group-hover:scale-105 group-hover:drop-shadow-[0_0_25px_rgba(76,175,80,0.5)] select-none whitespace-nowrap"
+                style={{ WebkitTextStroke: "1.5px #4CAF50" }}
+              >
+                <CountUpNumber target={s.num} suffix={s.suffix} />
+              </div>
+              <div className="mt-3 text-xs md:text-sm font-semibold tracking-wide text-muted-foreground group-hover:text-foreground transition-colors duration-300 text-center">
+                {s.l}
+              </div>
             </div>
-            <div className="mt-3 text-xs md:text-sm font-semibold tracking-wide text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-              {s.l}
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

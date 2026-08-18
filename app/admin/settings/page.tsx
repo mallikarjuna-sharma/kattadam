@@ -11,7 +11,7 @@ export default function AdminSettingsPage() {
         <div className="admin-card p-5 space-y-3">
           <h2 className="font-semibold text-sm text-cement-900">App identity</h2>
           <div className="flex items-center gap-3">
-            <Image src="/logo.jpeg" alt="" width={48} height={48} className="rounded-lg object-cover" />
+            <Image src="/logo.png" alt="" width={48} height={48} className="rounded-lg object-cover" />
             <div>
               <p className="font-bold text-cement-900">Kattadam</p>
               <p className="text-xs text-cement-500">கட்டடம் · Construction materials & services</p>

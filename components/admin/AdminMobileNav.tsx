@@ -31,7 +31,7 @@ export default function AdminMobileNav() {
     <div className="md:hidden sticky top-0 z-50 bg-cement-900 text-white border-b border-white/10">
       <div className="flex items-center justify-between px-4 h-14">
         <Link href="/admin" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <Image src="/logo.jpeg" alt="" width={32} height={32} className="rounded-md object-cover" />
+          <Image src="/logo.png" alt="" width={32} height={32} className="rounded-md object-cover" />
           <span className="font-bold text-sm">Kattadam</span>
         </Link>
         <button type="button" className="p-2" aria-label="Menu" onClick={() => setOpen(!open)}>

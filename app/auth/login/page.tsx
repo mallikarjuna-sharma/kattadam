@@ -139,7 +139,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-cement-50 flex">
       <div className="hidden lg:flex lg:w-1/2 bg-cement-900 flex-col justify-between p-12">
         <Link href="/" className="flex items-center gap-3">
-          <Image src="/logo.jpeg" alt="" width={40} height={40} className="rounded-xl object-cover" />
+          <Image src="/logo.png" alt="" width={40} height={40} className="rounded-xl object-cover" />
           <span className="font-display text-2xl font-bold text-foreground tracking-tight">Kattadam</span>
         </Link>
         <div>
@@ -169,7 +169,7 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <Link href="/" className="flex items-center gap-2 mb-10 lg:hidden">
-            <Image src="/logo.jpeg" alt="" width={32} height={32} className="rounded-lg object-cover" />
+            <Image src="/logo.png" alt="" width={32} height={32} className="rounded-lg object-cover" />
             <span className="font-display text-xl font-bold text-cement-900 tracking-tight">Kattadam</span>
           </Link>
 

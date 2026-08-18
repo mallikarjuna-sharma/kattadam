@@ -31,9 +31,9 @@ export default function Navbar() {
 
   const NAV = [
     { label: isTa ? "முகப்பு" : "Home", href: HREF.home, icon: Home },
-    { label: t("nav_materials"), href: HREF.materials, icon: Package },
-    { label: t("nav_experts"), href: HREF.experts, icon: Building2 },
     { label: t("nav_realestate"), href: HREF.realestate, icon: Building },
+    { label: t("nav_experts"), href: HREF.experts, icon: Building2 },
+    { label: t("nav_materials"), href: HREF.materials, icon: Package },
     { label: t("nav_homeservices"), href: HREF.homeservices, icon: Wrench },
   ];
 
@@ -46,7 +46,7 @@ export default function Navbar() {
           {/* Logo Only */}
           <Link href="/" prefetch={true} className="flex items-center group shrink-0">
             <Image
-              src="/logo.jpeg"
+              src="/logo.png"
               alt="Kattadam"
               width={160}
               height={60}
@@ -56,7 +56,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden md:flex items-center gap-1 bg-black/20 p-1.5 rounded-full border border-border">
+          <div className="hidden md:flex items-center gap-0.5 lg:gap-1 bg-black/20 p-1 lg:p-1.5 rounded-full border border-border shrink-0 max-w-full overflow-hidden">
             {NAV.map((n) => {
               const isActive = n.href === "/" ? path === "/" : path.startsWith(n.href);
               return (
@@ -66,13 +66,13 @@ export default function Navbar() {
                   prefetch={true}
                   onMouseEnter={() => router.prefetch(n.href)}
                   onTouchStart={() => router.prefetch(n.href)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-extrabold transition-all duration-300 flex items-center gap-2.5 whitespace-nowrap ${
+                  className={`px-2.5 lg:px-3.5 xl:px-5 py-2 xl:py-2.5 rounded-full text-xs xl:text-sm font-extrabold transition-all duration-300 flex items-center gap-1.5 xl:gap-2.5 whitespace-nowrap ${
                     isActive
                       ? "bg-primary text-primary-foreground shadow-md shadow-primary/20"
                       : "text-cement-800 hover:text-brand-600 hover:bg-cement-100 dark:text-zinc-200 dark:hover:text-foreground dark:hover:bg-white/10"
                   }`}
                 >
-                  <n.icon className={`w-4 h-4 ${isActive ? "text-primary-foreground" : "text-primary"}`} />
+                  <n.icon className={`w-3.5 h-3.5 xl:w-4 xl:h-4 ${isActive ? "text-primary-foreground" : "text-primary"}`} />
                   <span>{n.label}</span>
                 </Link>
               );
@@ -80,14 +80,14 @@ export default function Navbar() {
           </div>
 
           {/* Right Action Bar (Language Switcher + Auth) */}
-          <div className="hidden md:flex items-center gap-3 shrink-0">
+          <div className="hidden md:flex items-center gap-1.5 lg:gap-3 shrink-0">
             
             {/* Language Switcher Pill */}
             <div className="flex items-center p-1 rounded-full border text-xs font-extrabold border-cement-200 bg-cement-50 dark:border-border dark:bg-black/40">
               <button
                 type="button"
                 onClick={() => setLang("en")}
-                className={`px-3 py-1 rounded-full transition-all duration-300 ${
+                className={`px-2.5 lg:px-3 py-1 rounded-full transition-all duration-300 ${
                   lang === "en"
                     ? "bg-primary text-primary-foreground shadow-sm font-black"
                     : "text-cement-500 hover:text-cement-900 dark:text-muted-foreground dark:hover:text-foreground"
@@ -98,7 +98,7 @@ export default function Navbar() {
               <button
                 type="button"
                 onClick={() => setLang("ta")}
-                className={`px-3 py-1 rounded-full transition-all duration-300 ${
+                className={`px-2.5 lg:px-3 py-1 rounded-full transition-all duration-300 ${
                   lang === "ta"
                     ? "bg-primary text-primary-foreground shadow-sm font-black"
                     : "text-cement-500 hover:text-cement-900 dark:text-muted-foreground dark:hover:text-foreground"
@@ -112,7 +112,7 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className={`p-2.5 rounded-full border transition-all duration-300 flex items-center justify-center border-cement-200 bg-cement-50 text-cement-700 hover:text-cement-900 hover:bg-cement-100 dark:border-border dark:bg-black/40 dark:text-zinc-300 dark:hover:text-white ${mounted ? 'opacity-100' : 'opacity-0'}`}
+              className={`p-2 lg:p-2.5 rounded-full border transition-all duration-300 flex items-center justify-center border-cement-200 bg-cement-50 text-cement-700 hover:text-cement-900 hover:bg-cement-100 dark:border-border dark:bg-black/40 dark:text-zinc-300 dark:hover:text-white ${mounted ? 'opacity-100' : 'opacity-0'}`}
               aria-label="Toggle Theme"
             >
               {mounted && theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -121,7 +121,7 @@ export default function Navbar() {
             {/* Login Button */}
             <Link
               href="/auth/login"
-              className="text-sm px-6 py-2.5 rounded-full font-extrabold bg-primary text-primary-foreground hover:bg-[#5ee06a] hover:scale-105 active:scale-95 transition-all duration-300 shadow-md shadow-primary/20"
+              className="text-xs xl:text-sm px-3.5 lg:px-5 xl:px-6 py-2 xl:py-2.5 rounded-full font-extrabold bg-primary text-primary-foreground hover:bg-[#5ee06a] hover:scale-105 active:scale-95 transition-all duration-300 shadow-md shadow-primary/20 whitespace-nowrap"
             >
               {t("nav_login")}
             </Link>

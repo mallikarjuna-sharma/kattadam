@@ -13,52 +13,37 @@ interface HeroSectionProps {
 
 export default function HeroSection({ onSendEnquiry }: HeroSectionProps) {
   return (
-    <section className="relative overflow-hidden text-white min-h-[85vh] flex flex-col justify-between">
-      {/* Background building image with softer gradient shade */}
-      <div className="absolute inset-0">
-        <Image
-          src="/about-us-collage.png"
-          alt="Modern Construction Skyline"
-          fill
-          className="object-cover object-center opacity-100"
-          priority
-          sizes="100vw"
-        />
-        {/* Soft gradient overlays: Dark left for text, clear right for image visibility */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#121212] via-[#121212]/60 to-transparent sm:via-[#121212]/40" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#121212] via-transparent to-transparent" />
-      </div>
-
-      <div className="w-full px-6 sm:px-10 lg:px-16 relative pt-28 sm:pt-32 md:pt-36 pb-16 md:pb-20">
-        <div className="grid lg:grid-cols-12 gap-10 items-center">
+    <section className="relative overflow-hidden bg-background text-foreground min-h-[85vh] flex flex-col justify-between transition-colors duration-300">
+      <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative pt-28 sm:pt-32 md:pt-36 pb-16 md:pb-20">
+        <div className="grid lg:grid-cols-12 gap-8 items-center">
           
           {/* Left Content Column */}
-          <div className="lg:col-span-7 space-y-6 max-w-3xl">
+          <div className="lg:col-span-7 space-y-6">
             {/* Top pill badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--primary)]/50 bg-[var(--primary)]/10 px-4 py-1.5 text-xs font-semibold tracking-wider text-[var(--primary)] backdrop-blur-md">
-              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[10px] font-extrabold text-[#0d1f0f]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-1.5 text-xs font-semibold tracking-wider text-primary backdrop-blur-md">
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-extrabold text-primary-foreground">
                 KD
               </span>
               <span>TRUSTED HOME & COMMERCIAL CONSTRUCTION PLATFORM</span>
             </div>
 
             {/* Giant Title Typography */}
-            <h1 className="font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl">
-              Build <span className="font-serif italic font-normal text-[var(--primary)]">Better.</span> <br />
+            <h1 className="font-display text-4xl font-extrabold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl text-foreground">
+              Build <span className="font-serif italic font-normal text-primary">Better.</span> <br />
               Build with{" "}
-              <span className="bg-[var(--primary)] text-[#0d1f0f] px-3 py-0.5 rounded-lg inline-block font-black shadow-lg shadow-[var(--primary)]/20">
+              <span className="bg-primary text-primary-foreground px-3 py-0.5 rounded-lg inline-block font-black shadow-lg shadow-primary/20">
                 Confidence.
               </span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base font-bold tracking-widest text-[var(--primary)] uppercase md:text-lg">
+            <p className="text-base font-bold tracking-widest text-primary uppercase md:text-lg">
               Simple. Transparent. Trusted.
             </p>
 
             {/* Main Description */}
-            <p className="max-w-2xl text-base leading-relaxed text-cement-300 md:text-lg">
-              From quality materials to verified construction professionals and reliable services, <strong className="text-white">KATTADAM</strong> brings everything you need to build your KATTADAM — Land to Living.
+            <p className="max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              From quality materials to verified construction professionals and reliable services, <strong className="text-foreground">KATTADAM</strong> brings everything you need to build your KATTADAM — Land to Living.
             </p>
 
             {/* Verified Feature Badges */}
@@ -71,7 +56,7 @@ export default function HeroSection({ onSendEnquiry }: HeroSectionProps) {
               ].map((pill) => (
                 <div
                   key={pill}
-                  className="flex items-center gap-1.5 rounded-full border border-[var(--primary)]/30 bg-[#0d1f0f]/90 px-3.5 py-1.5 text-xs font-bold text-[var(--primary)] shadow-sm backdrop-blur-sm"
+                  className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 text-xs font-bold text-primary shadow-sm backdrop-blur-sm"
                 >
                   {pill}
                 </div>
@@ -83,30 +68,30 @@ export default function HeroSection({ onSendEnquiry }: HeroSectionProps) {
               <button
                 type="button"
                 onClick={() => onSendEnquiry("General Construction")}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--primary)] px-6 py-3.5 text-sm font-extrabold text-[#0d1f0f] shadow-lg shadow-[var(--primary)]/20 transition-all hover:bg-[#5ee06a] hover:scale-105"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-extrabold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-[#5ee06a] hover:scale-105"
               >
                 Get a Free Consultation <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
               </button>
               <a
                 href={KD360_TEL_HREF}
-                className="inline-flex items-center justify-center gap-2.5 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-bold text-white backdrop-blur-md transition-all hover:border-white/40 hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-2.5 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-bold text-foreground backdrop-blur-md transition-all hover:border-primary/50 hover:bg-accent shadow-sm"
               >
-                <Phone className="h-4 w-4 text-[var(--primary)]" />
+                <Phone className="h-4 w-4 text-primary" />
                 <span>Call Now: +91 {KD360_PHONE_DISPLAY}</span>
               </a>
             </div>
 
             {/* Social Proof Badge */}
-            <div className="flex items-center gap-3 pt-3 text-xs text-cement-400">
-              <div className="flex items-center gap-1 text-[var(--primary)]">
+            <div className="flex items-center gap-3 pt-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1 text-primary">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="h-3.5 w-3.5 fill-[var(--primary)]" />
+                  <Star key={i} className="h-3.5 w-3.5 fill-primary" />
                 ))}
               </div>
-              <span className="font-semibold text-white">5/5 Verified</span>
+              <span className="font-semibold text-foreground">5/5 Verified</span>
               <span>·</span>
               <span className="flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5 text-[var(--primary)]" />
+                <MapPin className="h-3.5 w-3.5 text-primary" />
                 Coimbatore · Tirupur · Erode · Salem · Chennai
               </span>
             </div>

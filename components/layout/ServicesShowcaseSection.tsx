@@ -13,18 +13,18 @@ import { useRef } from "react";
 
 const SHOWCASE_CARDS = [
   {
-    image: cardHomeservices,
-    category: "Home Services",
-    title: "Skilled Labor",
-    desc: "Interiors, painting, plumbing, electrical, and masonry from verified professionals.",
-    primaryHref: "/services",
-    primaryLabel: "Book Service",
-    enquiryTarget: "Home services",
+    image: cardRealestate,
+    category: "Real Estate",
+    title: "Plots & Properties",
+    desc: "Buy, sell, or rent plots, flats, and land with verified transparent listings.",
+    primaryHref: "/properties",
+    primaryLabel: "View Listings",
+    enquiryTarget: "Real estate",
   },
   {
     image: cardExperts,
     category: "Professionals",
-    title: "Kattadam Experts",
+    title: "Find Expert",
     desc: "Engineers, architects, and builders to plan, design, and deliver your project.",
     primaryHref: "/builders",
     primaryLabel: "Find Experts",
@@ -40,13 +40,13 @@ const SHOWCASE_CARDS = [
     enquiryTarget: "Materials",
   },
   {
-    image: cardRealestate,
-    category: "Real Estate",
-    title: "Plots & Properties",
-    desc: "Buy, sell, or rent plots, flats, and land with verified transparent listings.",
-    primaryHref: "/properties",
-    primaryLabel: "View Listings",
-    enquiryTarget: "Real estate",
+    image: cardHomeservices,
+    category: "Home Services",
+    title: "Skilled Labour",
+    desc: "Interiors, painting, plumbing, electrical, and masonry from verified professionals.",
+    primaryHref: "/services",
+    primaryLabel: "Book Service",
+    enquiryTarget: "Home services",
   },
 ] as const;
 
@@ -140,7 +140,7 @@ export default function ServicesShowcaseSection({
             <span>{isTa ? "கட்டடம் சேவைகள் & தீர்வுகள்" : "KATTADAM ECOSYSTEM"}</span>
           </div>
 
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-foreground tracking-tight">
+          <h2 className="font-display text-4xl sm:text-5xl md:text-6xl font-extrabold text-foreground tracking-tight leading-tight">
             {isTa ? (
               <>
                 நமது <span className="italic font-serif text-primary">சேவைகள் & பொருட்கள்</span>
