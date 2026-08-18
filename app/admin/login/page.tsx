@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
       </Link>
       <div className="w-full max-w-md">
         <div className="flex justify-center mb-8">
-          <Image src="/logo.jpeg" alt="" width={56} height={56} className="rounded-xl object-cover border border-border" />
+          <Image src="/logo.png" alt="" width={56} height={56} className="rounded-xl object-cover border border-border" />
         </div>
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-cement-100">
           <h1 className="font-display text-2xl font-bold text-cement-900 text-center mb-1">Kattadam Admin</h1>

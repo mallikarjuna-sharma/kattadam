@@ -124,10 +124,10 @@ export default function HomePage() {
           <p className="text-xs font-semibold text-earth-500 uppercase tracking-wider mb-3">What are you looking for?</p>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { icon: Package, title: "Materials", sub: "Cement, steel, bricks…", href: "/materials", color: "text-orange-500", bg: "bg-orange-50", count: "50+ dealers" },
-              { icon: Building2, title: "Kattadam Experts", sub: "Engineers & builders", href: "/builders", color: "text-blue-500", bg: "bg-blue-50", count: "30+ listings" },
               { icon: Home, title: "Real estate", sub: "Buy / rent", href: "/properties", color: "text-green-500", bg: "bg-green-50", count: "200+ listings" },
-              { icon: Wrench, title: "Home services", sub: "Interiors, plumbing…", href: "/services", color: "text-purple-500", bg: "bg-purple-50", count: "Local pros" },
+              { icon: Building2, title: "Find expert", sub: "Engineers & builders", href: "/builders", color: "text-blue-500", bg: "bg-blue-50", count: "30+ listings" },
+              { icon: Package, title: "Materials", sub: "Cement, steel, bricks…", href: "/materials", color: "text-orange-500", bg: "bg-orange-50", count: "50+ dealers" },
+              { icon: Wrench, title: "Skilled labour", sub: "Interiors, plumbing…", href: "/services", color: "text-purple-500", bg: "bg-purple-50", count: "Local pros" },
             ].map((c) => (
               <Link key={c.title} href={c.href} className="card p-4 group">
                 <div className={`w-10 h-10 ${c.bg} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>

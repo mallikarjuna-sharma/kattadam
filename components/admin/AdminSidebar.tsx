@@ -57,7 +57,7 @@ export default function AdminSidebar() {
     <aside className="hidden md:flex w-64 bg-cement-900 text-white flex-col flex-shrink-0">
       <div className="p-4 border-b border-white/10">
         <Link href="/admin" className="flex items-center gap-3">
-          <Image src="/logo.jpeg" alt="" width={40} height={40} className="rounded-lg object-cover" />
+          <Image src="/logo.png" alt="" width={40} height={40} className="rounded-lg object-cover" />
           <div>
             <div className="font-display font-bold text-sm tracking-tight truncate w-32">{userName}</div>
             <div className="text-cement-400 text-xs">Admin</div>

@@ -26,10 +26,10 @@ type Lang = "en" | "ta";
 
 const DICT: Record<Lang, Record<string, string>> = {
   en: {
-    nav_materials: "Materials",
-    nav_experts: "Kattadam Experts",
     nav_realestate: "Real estate",
-    nav_homeservices: "Home services",
+    nav_experts: "Find expert",
+    nav_materials: "Materials",
+    nav_homeservices: "Skilled labour",
     nav_login: "Login",
     nav_register: "Register",
     lang_en: "English",
@@ -47,10 +47,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     expert_popup_footer: "Offer valid on first consultation. T&C apply.",
   },
   ta: {
-    nav_materials: "பொருட்கள்",
-    nav_experts: "கட்டடம் நிபுணர்கள்",
     nav_realestate: "நிலம் & வீடு",
-    nav_homeservices: "வீட்டு சேவைகள்",
+    nav_experts: "நிபுணர்கள்",
+    nav_materials: "பொருட்கள்",
+    nav_homeservices: "சேவைகள்",
     nav_login: "உள்நுழை",
     nav_register: "பதிவு",
     lang_en: "English",

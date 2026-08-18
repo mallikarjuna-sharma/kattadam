@@ -25,7 +25,7 @@ export default function FooterSection() {
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block">
               <Image
-                src="/logo.jpeg"
+                src="/logo.png"
                 alt="Kattadam"
                 width={220}
                 height={80}
@@ -62,23 +62,23 @@ export default function FooterSection() {
             </h4>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <Link href="/materials" className="hover:text-primary transition-colors">
-                  {isTa ? "மூலப்பொருட்கள்" : "Buy Materials"}
-                </Link>
-              </li>
-              <li>
-                <Link href="/builders" className="hover:text-primary transition-colors">
-                  {isTa ? "கட்டட நிபுணர்கள்" : "Kattadam Experts"}
-                </Link>
-              </li>
-              <li>
                 <Link href="/properties" className="hover:text-primary transition-colors">
                   {isTa ? "நிலம் & வீடுகள்" : "Real Estate Listings"}
                 </Link>
               </li>
               <li>
+                <Link href="/builders" className="hover:text-primary transition-colors">
+                  {isTa ? "நிபுணரைக் கண்டறி" : "Find Experts"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/materials" className="hover:text-primary transition-colors">
+                  {isTa ? "மூலப்பொருட்கள்" : "Buy Materials"}
+                </Link>
+              </li>
+              <li>
                 <Link href="/services" className="hover:text-primary transition-colors">
-                  {isTa ? "வீட்டு சேவைகள்" : "Home Services & Labor"}
+                  {isTa ? "திறன்மிகு தொழிலாளர்கள்" : "Skilled Labour & Services"}
                 </Link>
               </li>
             </ul>
