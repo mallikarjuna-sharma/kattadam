@@ -6,4 +6,3 @@ export const KD360_LOGO_SRC = kd360Badge;
 export const KD360_PHONE_DISPLAY = "9944994103";
 export const KD360_PHONE_E164 = "+919944994103";
 export const KD360_TEL_HREF = "tel:+919944994103";
-export const KD360_GSTIN = "33DFXPK6981PIZ7";

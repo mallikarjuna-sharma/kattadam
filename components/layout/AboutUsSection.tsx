@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, ShieldCheck, MapPin, Target, ArrowRight, Award, CheckCircle2 } from "lucide-react";
 import { useSiteLang } from "@/components/providers/AppShell";
-import { KD360_GSTIN } from "@/lib/kd360-contact";
 
 export default function AboutUsSection() {
   const { lang } = useSiteLang();
@@ -75,11 +74,11 @@ export default function AboutUsSection() {
           {/* Left Column: Content & GST Badge */}
           <div className="lg:col-span-6 space-y-6 text-left">
             
-            {/* GST Registered Company Badge */}
+            {/* Registered Company Badge */}
             <div className="inline-flex items-center gap-2.5 rounded-full border border-primary/40 bg-primary/15 px-4 py-2 text-xs font-extrabold text-primary backdrop-blur-md shadow-lg">
               <Award className="w-4 h-4 text-primary" />
               <span>
-                {isTa ? "GST பதிவு செய்யப்பட்ட நிறுவனம் · 100% நம்பகமானது" : "GST Registered Company · Verified Business"}
+                {isTa ? "அங்கீகரிக்கப்பட்ட நிறுவனம் · 100% நம்பகமானது" : "Registered Platform · Verified Business"}
               </span>
             </div>
 
@@ -92,8 +91,8 @@ export default function AboutUsSection() {
 
               <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
                 {isTa
-                  ? "நாங்கள் அரசு அனுமதி பெற்ற மற்றும் GST பதிவு செய்யப்பட்ட கட்டட தளமாக இயங்குகிறோம். வாடிக்கையாளர்களுக்கு சிறந்த தரமான பொருட்களை நியாயமான விலையில் பெற்றுத் தருகிறோம்."
-                  : "We operate as an officially registered and GST compliant construction platform. We protect customer privacy and directly connect home builders with verified suppliers."}
+                  ? "நாங்கள் அரசு அனுமதி பெற்ற மற்றும் நம்பகமான கட்டட தளமாக இயங்குகிறோம். வாடிக்கையாளர்களுக்கு சிறந்த தரமான பொருட்களை நியாயமான விலையில் பெற்றுத் தருகிறோம்."
+                  : "We operate as an officially registered and trusted construction platform. We protect customer privacy and directly connect home builders with verified suppliers."}
               </p>
             </div>
 
@@ -162,17 +161,17 @@ export default function AboutUsSection() {
               </div>
             </div>
 
-            {/* Top Right Floating GST Verified Badge */}
+            {/* Top Right Floating Verified Badge */}
             <div className="absolute -top-5 -right-3 md:-right-5 rounded-2xl border border-primary/50 bg-white/95 dark:bg-[#0d1910]/95 p-3.5 md:p-4 backdrop-blur-xl shadow-2xl flex items-center gap-3">
               <div className="w-11 h-11 rounded-xl bg-primary text-primary-foreground flex items-center justify-center font-black shadow-md shrink-0">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div className="text-left">
                 <p className="text-xs font-black text-foreground">
-                  {isTa ? "GST பதிவு செய்யப்பட்ட நிறுவனம்" : "GST Registered Company"}
+                  {isTa ? "அங்கீகரிக்கப்பட்ட நிறுவனம்" : "Verified Marketplace"}
                 </p>
-                <p className="text-[11px] font-mono font-bold text-primary">
-                  GSTIN: {KD360_GSTIN}
+                <p className="text-[11px] font-semibold text-primary">
+                  {isTa ? "100% நம்பகமானது" : "100% Verified Business"}
                 </p>
               </div>
             </div>

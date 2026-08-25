@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import FooterSection from "@/components/layout/FooterSection";
-import { KD360_PHONE_DISPLAY, KD360_GSTIN, KD360_NAME } from "@/lib/kd360-contact";
+import { KD360_PHONE_DISPLAY, KD360_NAME } from "@/lib/kd360-contact";
 import { ShieldCheck } from "lucide-react";
 
 export default function TermsConditionsPage() {
@@ -56,7 +56,7 @@ export default function TermsConditionsPage() {
                 When registering an account as a partner or vendor on {KD360_NAME}, you must provide accurate and complete information. For verified dealers:
               </p>
               <ul className="list-disc pl-6 space-y-2 marker:text-primary">
-                <li>You are required to submit valid business registration details, including your GSTIN. Our platform operates strictly with registered entities (Our GSTIN: <strong className="text-zinc-200">{KD360_GSTIN}</strong>).</li>
+                <li>You are required to submit valid business registration details. Our platform operates strictly with verified entities.</li>
                 <li>You are responsible for maintaining the confidentiality of your account credentials.</li>
                 <li>We reserve the right to suspend or terminate accounts that provide false information or violate our platform integrity guidelines.</li>
               </ul>
@@ -108,10 +108,6 @@ export default function TermsConditionsPage() {
                 <li className="flex items-center gap-3">
                   <span className="text-primary">Head Office:</span> 
                   <span className="text-foreground">Coimbatore, Tamil Nadu, India</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="text-primary">GSTIN:</span> 
-                  <span className="text-foreground font-mono">{KD360_GSTIN}</span>
                 </li>
               </ul>
             </section>

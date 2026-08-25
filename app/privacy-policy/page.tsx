@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import FooterSection from "@/components/layout/FooterSection";
-import { KD360_PHONE_DISPLAY, KD360_GSTIN, KD360_NAME } from "@/lib/kd360-contact";
+import { KD360_PHONE_DISPLAY, KD360_NAME } from "@/lib/kd360-contact";
 import { ShieldCheck } from "lucide-react";
 
 export default function PrivacyPolicyPage() {
@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
               <p className="mb-4">We may collect personal and business information that you voluntarily provide to us when you register on our platform, express an interest in obtaining information about our products/services, or otherwise contact us. The information we collect may include:</p>
               <ul className="list-disc pl-6 space-y-2 marker:text-primary">
                 <li><strong className="text-zinc-200">Personal Info:</strong> Name, phone number, email address, and delivery addresses.</li>
-                <li><strong className="text-zinc-200">Business Info:</strong> Company name, GSTIN (e.g., {KD360_GSTIN}), trade licenses, and business addresses for our verified dealer network.</li>
+                <li><strong className="text-zinc-200">Business Info:</strong> Company name, business registration details, trade licenses, and business addresses for our verified dealer network.</li>
                 <li><strong className="text-zinc-200">Project Details:</strong> Construction requirements, material estimates, and service requests used to match you with appropriate vendors.</li>
               </ul>
             </section>
@@ -51,7 +51,7 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-6 space-y-2 marker:text-primary">
                 <li>Connect home owners with verified material dealers, experts, and skilled labor.</li>
                 <li>Process and manage orders, enquiries, and lead generation.</li>
-                <li>Verify the authenticity of our vendors (via GSTIN and official documents) to maintain a trusted ecosystem.</li>
+                <li>Verify the authenticity of our vendors (via business registration and official documents) to maintain a trusted ecosystem.</li>
                 <li>Improve our website functionality, customer service, and overall user experience.</li>
               </ul>
             </section>
@@ -94,10 +94,6 @@ export default function PrivacyPolicyPage() {
                 <li className="flex items-center gap-3">
                   <span className="text-primary">Location:</span> 
                   <span className="text-foreground">Coimbatore, Tamil Nadu, India</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="text-primary">GSTIN:</span> 
-                  <span className="text-foreground font-mono">{KD360_GSTIN}</span>
                 </li>
               </ul>
             </section>

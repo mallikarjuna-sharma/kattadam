@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Phone, Mail, MapPin, ShieldCheck, ArrowRight, Heart } from "lucide-react";
-import { KD360_PHONE_DISPLAY, KD360_TEL_HREF, KD360_GSTIN } from "@/lib/kd360-contact";
+import { KD360_PHONE_DISPLAY, KD360_TEL_HREF } from "@/lib/kd360-contact";
 import { useSiteLang } from "@/components/providers/AppShell";
 
 export default function FooterSection() {
@@ -127,16 +127,11 @@ export default function FooterSection() {
                 <span>Coimbatore, Tamil Nadu, India</span>
               </div>
 
-              <div className="pt-2 space-y-2">
+              <div className="pt-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-bold text-primary">
                   <ShieldCheck className="w-3.5 h-3.5" />
                   {isTa ? "100% பாதுகாப்பான சேவை" : "Verified Marketplace"}
                 </span>
-
-                <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <span className="text-muted-foreground font-semibold">GSTIN:</span>
-                  <span className="text-foreground font-mono font-bold tracking-wider">{KD360_GSTIN}</span>
-                </div>
               </div>
             </div>
           </div>
@@ -147,8 +142,6 @@ export default function FooterSection() {
         <div className="pt-8 border-t border-border flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
           <div className="flex flex-wrap items-center gap-2">
             <span>© {new Date().getFullYear()} Kattadam Construction Ecosystem. All rights reserved.</span>
-            <span>·</span>
-            <span className="font-mono text-muted-foreground">GSTIN: {KD360_GSTIN}</span>
           </div>
 
           <div className="flex items-center gap-6">
