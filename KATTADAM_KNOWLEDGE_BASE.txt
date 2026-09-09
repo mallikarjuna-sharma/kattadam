@@ -1,0 +1,1569 @@
+================================================================================
+  KATTADAM — COMPLETE REPOSITORY KNOWLEDGE BASE
+  Generated for AI-assisted development, onboarding, and codebase navigation
+================================================================================
+
+Document purpose:
+  This file is a self-contained information center for the Kattodam repository.
+  An AI reading this document should be able to:
+    - Understand what the product does and how it is architected
+    - Locate the exact files to read or modify for any feature area
+    - Know which APIs, data models, and environment variables are involved
+    - Distinguish live (Lambda/DynamoDB) data from static mock data
+    - Implement fixes, additions, removals, and updates with minimal exploration
+
+Repository path: /Users/mallikarjuna.sharma/Downloads/Projects/kattodam 2
+Package name:   kattadam-customer (v0.1.0)
+Last audited:   2026-09-09
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+  1.  Product Overview
+  2.  High-Level Technical Architecture
+  3.  Request / Data Flow Diagrams
+  4.  Complete Folder & File Structure
+  5.  Technology Stack & Dependencies
+  6.  Environment Variables & Configuration
+  7.  Data Layer Package (@kattadam/data-layer)
+  8.  AWS Lambda Backend
+  9.  DynamoDB Single-Table Schema
+ 10.  TypeScript Data Models (types.ts)
+ 11.  API Reference — Next.js Route Handlers
+ 12.  API Reference — Lambda Endpoints
+ 13.  Authentication & Session Management
+ 14.  Customer Frontend — Pages & Routes
+ 15.  Admin Dashboard — Pages, Actions & Components
+ 16.  Shared Components Catalog
+ 17.  Library Modules (lib/)
+ 18.  Mock Data vs Live Data Matrix
+ 19.  State Management & Client Storage Keys
+ 20.  Styling, Theming & i18n
+ 21.  Build, Deploy & Infrastructure
+ 22.  AI Task Guide — Where To Change What
+ 23.  Common Implementation Patterns
+ 24.  Known Gaps, Risks & Production Concerns
+ 25.  Glossary
+
+================================================================================
+1. PRODUCT OVERVIEW
+================================================================================
+
+Kattodam (கட்டடம்) is a construction marketplace web application focused on
+western Tamil Nadu, India — primarily Coimbatore and surrounding districts
+(Coimbatore, Tirupur, Erode, Namakkal, Salem, Chennai).
+
+Core business domains:
+  A. Materials marketplace — cement, TMT steel, sand, bricks, paint, tiles,
+     electrical, plumbing, etc. Customers browse catalog, filter by district/
+     area, and submit enquiries to dealers.
+  B. Kattadam Experts — builders, architects, civil engineers (currently mock
+     data on customer site; admin can add experts to DynamoDB).
+  C. Real estate — buy/sell/rent property listings (live API + mock fallback).
+  D. Home services — plumbers, electricians, painters, etc. (mock on customer
+     site; admin can add providers to DynamoDB).
+  E. Admin dashboard — manage users, dealers, materials, enquiries, properties,
+     experts, home services, reviews, zones, notifications, activity/sessions.
+  F. KD360 partner integration — call button, chat enquiry widget, expert popup
+     with phone 9944994103 (see lib/kd360-contact.ts).
+
+User roles (UserRole type):
+  - customer         — end user browsing and enquiring
+  - dealer           — material shop partner (registration pending approval)
+  - service_provider — home service partner
+  - super_admin      — full admin access (Lambda role; routes to /admin on login)
+  - staff_admin      — staff admin (Lambda role; routes to /admin on login)
+
+IMPORTANT NOTE — README IS OUTDATED:
+  Root README.md claims "frontend-only, no database, no env vars". The codebase
+  has evolved into:
+    Next.js 14 frontend (Netlify)
+    + AWS Lambda HTTP API (Function URL)
+    + DynamoDB single-table store
+    + AWS SES for OTP emails
+    + npm workspace package @kattadam/data-layer bridging frontend ↔ Lambda
+
+Dev server runs on port 3001 (not 3000): npm run dev
+
+================================================================================
+2. HIGH-LEVEL TECHNICAL ARCHITECTURE
+================================================================================
+
+Architecture style: Monorepo with Next.js App Router frontend and separate
+AWS Lambda backend, connected via HTTP.
+
+Layers:
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │ BROWSER (Customer + Admin UI)                                           │
+  │   React 18 client components + Next.js 14 Server Components/Actions   │
+  └───────────────────────────────┬─────────────────────────────────────────┘
+                                  │
+          ┌───────────────────────┼───────────────────────┐
+          │                       │                       │
+          ▼                       ▼                       ▼
+  ┌───────────────┐    ┌─────────────────┐    ┌─────────────────────┐
+  │ /api/* routes │    │ Server Actions  │    │ Server Components   │
+  │ (Route        │    │ app/admin/      │    │ app/admin/* pages   │
+  │  Handlers)    │    │ actions.ts      │    │ fetch via data-layer│
+  └───────┬───────┘    └────────┬────────┘    └──────────┬──────────┘
+          │                     │                         │
+          │ lib/lambda-proxy  │ @kattadam/data-layer/   │
+          │ forwardToKattadam │ server                  │
+          │ Api()             │                         │
+          └─────────────────────┼───────────────────────┘
+                                │
+                                ▼
+          ┌─────────────────────────────────────────────────┐
+          │ AWS Lambda Function URL                         │
+          │ backend/lambda/src/handler.mjs                  │
+          │ backend/lambda/src/router.mjs                   │
+          │ Env: TABLE_NAME, KATTADAM_API_SECRET, SES, etc. │
+          └─────────────────────┬───────────────────────────┘
+                                │
+                    ┌───────────┴───────────┐
+                    ▼                       ▼
+          ┌─────────────────┐    ┌─────────────────┐
+          │ DynamoDB        │    │ AWS SES         │
+          │ kattadam-main   │    │ OTP emails      │
+          │ (ap-south-1)    │    │                 │
+          └─────────────────┘    └─────────────────┘
+
+Dev-only fallback:
+  When KATTADAM_API_URL is missing or API fails in development, enquiries are
+  stored in .data/enquiries.json via packages/data-layer/src/internal/
+  local-enquiry-store.ts
+
+Static fallback:
+  lib/mock-data.ts provides districts, areas, categories, and sample listings
+  for builders, services, dealers (partial), and properties (partial).
+
+No Next.js middleware.ts exists. Route protection is client-side only.
+
+================================================================================
+3. REQUEST / DATA FLOW DIAGRAMS
+================================================================================
+
+3.1 Customer catalog fetch (materials example)
+──────────────────────────────────────────────
+  Browser: app/materials/page.tsx
+    → useEffect fetch("/api/catalog/materials")
+      → app/api/catalog/materials/route.ts
+        → lib/lambda-proxy.ts forwardToKattadamApi("/catalog/materials")
+          → Lambda GET /catalog/materials
+            → router.mjs listEntity("material", mapMaterial)
+              → dynamo.mjs queryPk("ENTITY#material")
+    → Client filters by district, area, category using lib/location-filters.ts
+    → Category labels from lib/mock-data.ts MATERIAL_CATEGORIES
+
+3.2 Customer enquiry submission
+────────────────────────────────
+  Browser: components/ui/EnquiryModal.tsx or ChatEnquiryWidget.tsx
+    → lib/enquiries-api.ts submitEnquiry(payload)
+      → POST /api/enquiries
+        → app/api/enquiries/route.ts
+          → forwardToKattadamApi("/enquiries")
+            → Lambda POST /enquiries
+              → DynamoDB putItem ENTITY#enquiry / ENQUIRY#<uuid>
+  Dev fallback: packages/data-layer appendLocalEnquiry() → .data/enquiries.json
+
+3.3 Customer registration
+─────────────────────────
+  Browser: app/auth/login/page.tsx
+    → POST /api/auth/otp/send { email, purpose: "signup" }
+      → Lambda /auth/otp/send → SES email with 6-digit OTP (10 min expiry)
+    → POST /api/auth/register { mode, name, email, password, otp }
+      → Lambda /auth/register → verify OTP → createUser() in DynamoDB
+    → Auto-login: stores kattadam_session_id + kattadam_user in localStorage
+    → Redirect: /home (customer) or /admin (super_admin/staff_admin)
+
+3.4 Admin dashboard read (Server Component)
+──────────────────────────────────────────
+  Browser: app/admin/page.tsx (Server Component)
+    → import { adminGetDashboard } from "@kattadam/data-layer/server"
+      → getServerBackend() → createBackendFromEnv()
+        → HttpApiBackend (packages/data-layer/src/internal/http-api-backend.ts)
+          → GET Lambda /admin/dashboard
+            → Header: x-kattadam-internal: <KATTADAM_API_SECRET>
+            → DynamoDB aggregations
+
+3.5 Admin mutation (Server Action)
+──────────────────────────────────
+  Browser: components/admin/AddDealerForm.tsx
+    → <form action={actionUpsertDealer}>
+      → app/admin/actions.ts actionUpsertDealer(formData)
+        → adminUpsertDealer() from @kattadam/data-layer/server
+          → HttpApiBackend POST /admin/dealers
+            → Lambda upsertDealer() → DynamoDB
+        → revalidatePath("/admin/dealers")
+
+3.6 Session keepalive
+─────────────────────
+  AppShell SessionPing component (every 60s):
+    localStorage kattadam_session_id
+      → POST /api/session/ping { sessionId }
+        → Lambda /session/ping → update SESSION#<id> lastActiveAt
+
+================================================================================
+4. COMPLETE FOLDER & FILE STRUCTURE
+================================================================================
+
+kattodam 2/
+├── app/                              # Next.js 14 App Router
+│   ├── layout.tsx                    # Root layout: ThemeProvider + AppShell
+│   ├── page.tsx                      # Landing page (/)
+│   ├── globals.css                   # CSS variables, Tailwind base
+│   ├── home/page.tsx                 # Post-login customer home (/home)
+│   ├── materials/page.tsx            # Materials marketplace (/materials)
+│   ├── builders/page.tsx             # Kattadam Experts (/builders)
+│   ├── properties/page.tsx           # Real estate (/properties)
+│   ├── services/page.tsx             # Home services (/services)
+│   ├── privacy-policy/page.tsx       # Legal (/privacy-policy)
+│   ├── terms-conditions/page.tsx     # Legal (/terms-conditions)
+│   ├── auth/login/
+│   │   ├── layout.tsx                # Login page layout
+│   │   └── page.tsx                  # OTP + email/password auth UI
+│   ├── admin/
+│   │   ├── layout.tsx                # force-dynamic, AdminLayoutShell wrapper
+│   │   ├── actions.ts                # ALL admin Server Actions (CRUD)
+│   │   ├── page.tsx                  # Dashboard (/admin)
+│   │   ├── login/page.tsx            # Hardcoded admin login (/admin/login)
+│   │   ├── activity/page.tsx         # Admin events + app sessions
+│   │   ├── users/page.tsx            # User management
+│   │   ├── dealers/page.tsx          # Dealer management
+│   │   ├── experts/page.tsx          # Kattadam Experts CRUD
+│   │   ├── home-services/page.tsx    # Home service providers CRUD
+│   │   ├── properties/page.tsx       # Property listings CRUD
+│   │   ├── materials/page.tsx        # Materials catalog CRUD
+│   │   ├── enquiries/page.tsx        # Enquiry workflow
+│   │   ├── notifications/page.tsx    # Broadcast notifications
+│   │   ├── reviews/page.tsx          # Review moderation
+│   │   ├── zones/page.tsx            # Delivery zones + dealer zone mapping
+│   │   └── settings/page.tsx         # Admin settings UI
+│   └── api/                          # Next.js Route Handlers (Lambda proxy)
+│       ├── health/route.ts           # GET /api/health
+│       ├── enquiries/route.ts        # POST /api/enquiries
+│       ├── session/ping/route.ts     # POST /api/session/ping
+│       ├── auth/
+│       │   ├── login/route.ts        # POST /api/auth/login
+│       │   ├── register/route.ts     # POST /api/auth/register
+│       │   └── otp/send/route.ts     # POST /api/auth/otp/send
+│       └── catalog/
+│           ├── materials/route.ts    # GET /api/catalog/materials
+│           ├── dealers/route.ts      # GET /api/catalog/dealers
+│           └── properties/route.ts   # GET /api/catalog/properties
+│
+├── components/
+│   ├── layout/                       # Page layout sections
+│   │   ├── Navbar.tsx                # Main navigation bar
+│   │   ├── FooterSection.tsx         # Site footer
+│   │   ├── ListingPageShell.tsx      # Navbar + dark hero + search shell
+│   │   ├── HeroSection.tsx           # Landing hero
+│   │   ├── ThirukkuralSection.tsx    # Cultural section
+│   │   ├── ServicesShowcaseSection.tsx
+│   │   ├── StatsBannerSection.tsx
+│   │   ├── AboutUsSection.tsx
+│   │   ├── WhyKattadamSection.tsx
+│   │   ├── PartnersSection.tsx
+│   │   └── CallToActionSection.tsx
+│   ├── ui/                           # Reusable UI widgets
+│   │   ├── EnquiryModal.tsx          # Enquiry form modal
+│   │   ├── ChatEnquiryWidget.tsx     # Floating chat enquiry
+│   │   ├── DistrictAreaSelect.tsx    # District + area dropdowns
+│   │   ├── DistrictAreaSearch.tsx    # District + area search/filter
+│   │   ├── AreaSelect.tsx            # Area filter dropdown
+│   │   ├── BannerCarousel.tsx        # Image carousel
+│   │   ├── KD360Logo.tsx             # KD360 partner logo
+│   │   └── KD360CallButton.tsx       # KD360 call CTA button
+│   ├── admin/                        # Admin-specific components
+│   │   ├── AdminLayoutShell.tsx      # Admin auth gate + sidebar layout
+│   │   ├── AdminSidebar.tsx          # Desktop admin nav
+│   │   ├── AdminMobileNav.tsx        # Mobile admin nav
+│   │   ├── AdminConfigBanner.tsx     # Shows when API not configured
+│   │   ├── AddDealerForm.tsx
+│   │   ├── AddMaterialForm.tsx
+│   │   ├── AddExpertForm.tsx
+│   │   ├── AddHomeServiceForm.tsx
+│   │   └── AddPropertyListingForm.tsx
+│   └── providers/
+│       ├── AppShell.tsx              # Lang context, session ping, KD360 widgets
+│       └── ThemeProvider.tsx         # next-themes wrapper
+│
+├── lib/                              # Frontend utilities
+│   ├── mock-data.ts                  # Static catalog, locations, sample data
+│   ├── utils.ts                      # cn(), formatPrice, slugify, etc.
+│   ├── lambda-proxy.ts               # Forward /api/* → Lambda Function URL
+│   ├── enquiries-api.ts              # Client enquiry submit helpers
+│   ├── admin-auth-client.ts          # Client-side admin gate (hardcoded)
+│   ├── location-filters.ts           # District/area filter matching
+│   └── kd360-contact.ts              # KD360 phone/GST constants
+│
+├── packages/data-layer/              # Workspace: @kattadam/data-layer
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── src/
+│       ├── index.ts                  # Client-safe exports (types, isConfigured)
+│       ├── server.ts                 # Server-only API functions (40+ exports)
+│       ├── probe.ts                  # Dev startup health probe
+│       ├── configured.ts             # isDataLayerConfigured helper
+│       ├── types.ts                  # All TypeScript record types
+│       └── internal/
+│           ├── factory.ts            # createBackendFromEnv()
+│           ├── http-api-backend.ts   # HttpApiBackend implements IDataBackend
+│           ├── ports.ts              # IDataBackend interface (contract)
+│           ├── kattadam-api-env.ts   # readKattadamApiUrl/Secret
+│           ├── enquiry-fallback.ts   # useLocalEnquiryFallback()
+│           └── local-enquiry-store.ts # .data/enquiries.json persistence
+│
+├── backend/lambda/                   # AWS Lambda API
+│   ├── package.json
+│   ├── README.md
+│   ├── .env.local.example
+│   ├── src/
+│   │   ├── handler.mjs               # Lambda entry point
+│   │   ├── router.mjs                # All routes + DynamoDB business logic
+│   │   └── lib/
+│   │       ├── dynamo.mjs            # DynamoDB client + helpers
+│   │       ├── http.mjs              # CORS, path parsing
+│   │       ├── otp.mjs               # OTP generation + hashing
+│   │       ├── password.mjs          # PBKDF2 password hashing
+│   │       └── ses.mjs               # SES OTP email sending
+│   └── scripts/
+│       ├── deploy.mjs                # Deploy bundle to Lambda
+│       ├── local.mjs                 # Local dev server
+│       └── load-env.mjs              # Load .env for scripts
+│
+├── infra/
+│   ├── DEPLOY-LAMBDA.md              # Lambda deployment guide
+│   ├── deploy-lambda-cloudshell.sh   # CloudShell deploy script
+│   └── lambda-function-url-setup.sh  # Function URL setup
+│
+├── assets/images/                    # Source images (imported in components)
+├── public/                           # Static assets served at /
+│   ├── logo.jpeg, nav-logo.jpeg
+│   ├── hero-collage-*.png
+│   ├── about-us-collage.png
+│   ├── banners/                      # Material page banners
+│   └── images/landing/               # Landing page images
+│
+├── scripts/
+│   ├── replace-colors.js             # Color migration utility
+│   └── replace-text-colors.js        # Text color migration utility
+│
+├── package.json                      # Root workspace (kattadam-customer)
+├── package-lock.json
+├── tsconfig.json                     # @/* path alias
+├── next.config.js                    # transpilePackages, instrumentationHook
+├── netlify.toml                      # Netlify build config
+├── tailwind.config.ts                # brand/cement/earth palettes
+├── postcss.config.js
+├── instrumentation.ts                # Data layer startup probe
+├── .env.example                      # Env var documentation
+├── .gitignore
+├── README.md                         # OUTDATED — see section 1
+├── NETLIFY.md                        # Netlify deploy guide
+└── KATTADAM_KNOWLEDGE_BASE.txt       # THIS FILE
+
+Total tracked files: ~139. No test files exist.
+
+================================================================================
+5. TECHNOLOGY STACK & DEPENDENCIES
+================================================================================
+
+5.1 Frontend
+────────────
+  Framework:     Next.js 14.2.5 (App Router)
+  Language:      TypeScript 5.4.5 (strict mode)
+  UI:            React 18.3, Tailwind CSS 3.4
+  Icons:         lucide-react 0.383
+  Theming:       next-themes 0.4.6 (class-based dark mode)
+  Class utils:   clsx + tailwind-merge → lib/utils.ts cn()
+  Fonts:         Inter, Noto Sans Tamil (tailwind.config.ts)
+
+5.2 Monorepo
+────────────
+  npm workspaces: packages/*
+  Internal pkg:   @kattadam/data-layer (linked as "*" in root package.json)
+
+5.3 Backend (Lambda)
+────────────────────
+  Runtime:       Node.js 20
+  Bundle:        esbuild → backend/lambda/dist/index.js (CommonJS)
+  AWS SDK:       @aws-sdk/client-dynamodb, lib-dynamodb, client-sesv2
+  Region:        ap-south-1 (default)
+
+5.4 Deployment
+──────────────
+  Frontend:      Netlify + @netlify/plugin-nextjs
+  Backend:       AWS Lambda Function URL
+  Database:      AWS DynamoDB single-table (kattadam-main)
+
+5.5 Root package.json scripts
+─────────────────────────────
+  dev:   cross-env NODE_OPTIONS=--dns-result-order=ipv4first next dev -p 3001
+  build: next build
+  start: next start
+  lint:  next lint
+
+5.6 Lambda package.json scripts
+───────────────────────────────
+  build:  esbuild src/handler.mjs → dist/index.js
+  deploy: node scripts/deploy.mjs
+  dev:    node scripts/local.mjs
+
+5.7 NOT present
+───────────────
+  No Redux, Zustand, Jotai, or other global state library
+  No Jest, Vitest, Playwright, Cypress
+  No Next.js middleware.ts
+  No active Supabase, Stripe, or payment integrations
+
+================================================================================
+6. ENVIRONMENT VARIABLES & CONFIGURATION
+================================================================================
+
+6.1 Next.js / Netlify (.env.local — copy from .env.example)
+───────────────────────────────────────────────────────────
+  KATTADAM_API_URL          REQUIRED for live API. Lambda Function URL base.
+                            Example shape: https://<id>.lambda-url.ap-south-1.on.aws
+                            Used by: lib/lambda-proxy.ts, data-layer factory
+
+  KATTADAM_API_SECRET       OPTIONAL but recommended. Protects Lambda /admin/*
+                            and internal /auth/* routes. Sent as header
+                            x-kattadam-internal. Must match Lambda env.
+
+  NEXT_PUBLIC_ADMIN_URL     OPTIONAL. For split-host admin deployment.
+  NEXT_PUBLIC_CUSTOMER_URL  OPTIONAL. For split-host customer deployment.
+
+  ENQUIRY_LOCAL_FALLBACK    OPTIONAL. 0 or 1. When API missing/fails in dev,
+                            enquiries saved to .data/enquiries.json.
+                            Default: enabled in development.
+
+  OTP_HASH_SECRET           Normally set on Lambda only. Needed on Netlify only
+                            if running OTP locally.
+
+  NODE_VERSION              Set in netlify.toml = "20"
+  NODE_OPTIONS              Set in netlify.toml = --dns-result-order=ipv4first
+  NEXT_RUNTIME              Used by instrumentation.ts
+  NODE_ENV                  development | production
+
+6.2 Lambda environment
+──────────────────────
+  TABLE_NAME                DynamoDB table name (default: kattadam-main)
+  AWS_REGION                Default ap-south-1
+  SES_REGION                SES region (falls back to AWS_REGION)
+  SES_FROM_EMAIL            OTP email sender address
+  OTP_HASH_SECRET           Secret for OTP code hashing
+  KATTADAM_API_SECRET       Internal API auth secret
+
+6.3 Lambda deploy credentials (local only — backend/lambda/.env.local)
+──────────────────────────────────────────────────────────────────────
+  KATTADAM_AWS_ACCESS_KEY_ID
+  KATTADAM_AWS_SECRET_ACCESS_KEY
+  LAMBDA_FUNCTION_NAME
+  LAMBDA_FUNCTION_URL
+
+6.4 Config files reference
+──────────────────────────
+  next.config.js:
+    - transpilePackages: ["@kattadam/data-layer"]
+    - experimental.instrumentationHook: true
+
+  tsconfig.json:
+    - strict: true
+    - paths: { "@/*": ["./*"] }
+
+  netlify.toml:
+    - build.command: npm run build
+    - build.publish: .next (MUST NOT be repo root)
+    - plugin: @netlify/plugin-nextjs
+
+  instrumentation.ts:
+    - register() calls probeDataLayerOnStartup() on Node.js runtime in dev
+
+================================================================================
+7. DATA LAYER PACKAGE (@kattadam/data-layer)
+================================================================================
+
+Location: packages/data-layer/
+Import paths:
+  Client-safe:  import { ... } from "@kattadam/data-layer"
+  Server-only:  import { ... } from "@kattadam/data-layer/server"
+
+7.1 Architecture
+────────────────
+  IDataBackend (ports.ts) — abstract contract with 40+ methods
+  HttpApiBackend (http-api-backend.ts) — HTTP client to Lambda
+  createBackendFromEnv() (factory.ts) — reads KATTADAM_API_URL + SECRET
+  getServerBackend() (server.ts) — singleton backend instance
+
+7.2 Client exports (index.ts)
+─────────────────────────────
+  All types from types.ts
+  isDataLayerConfigured() from configured.ts
+
+7.3 Server exports (server.ts) — complete list
+────────────────────────────────────────────────
+  getServerBackend()
+
+  Catalog (public):
+    catalogListDealers()
+    catalogListMaterials()
+    catalogListPropertyListings()
+    catalogCreateEnquiry(row)
+
+  Auth:
+    authRegisterCustomer(row)
+    authRegisterPartner(row)
+    authLoginEmail(email, password)
+    authUserExistsByEmail(email)
+    authStoreEmailOtp(email, purpose, codeHash, expiresAt)
+    authCountEmailOtpsSince(email, purpose, sinceIso)
+    authVerifyEmailOtp(email, purpose, code)
+
+  Session:
+    sessionCreate(userId, email, userAgent?)
+    sessionTouch(id)
+
+  Admin reads:
+    adminGetDashboard()
+    adminListUsers()
+    adminListDealers()
+    adminListMaterials()
+    adminListEnquiries(filters?)
+    adminListPropertyListings()
+    adminListKattadamExperts()
+    adminListHomeServiceProviders()
+    adminListReviews()
+    adminListZones()
+    adminListNotifications()
+    adminListAdminEvents(limit?)
+    adminListAppSessions(limit?)
+
+  Admin writes:
+    adminUpdateUser(id, patch)
+    adminUpsertDealer(row)
+    adminUpdateDealer(id, patch)
+    adminDeleteDealer(id)
+    adminUpsertMaterial(row)
+    adminDeleteMaterial(id)
+    adminUpdateEnquiry(id, patch)
+    adminInsertPropertyListing(row)
+    adminDeletePropertyListing(id)
+    adminInsertKattadamExpert(row)
+    adminInsertHomeServiceProvider(row)
+    adminUpdateReview(id, patch)
+    adminCreateZone(name, notes?)
+    adminSetDealerZones(dealerId, zoneIds)
+    adminCreateNotification(audience, title, body)
+
+7.4 Enquiry fallback logic
+──────────────────────────
+  useLocalEnquiryFallback() in enquiry-fallback.ts:
+    Returns true when ENQUIRY_LOCAL_FALLBACK=1 OR (dev mode and not explicitly 0)
+  catalogCreateEnquiry(): tries API first, falls back to appendLocalEnquiry()
+  adminListEnquiries(): merges remote + local enquiries by id
+  adminUpdateEnquiry(): tries API, falls back to updateLocalEnquiry()
+  Local store file: .data/enquiries.json (gitignored)
+
+7.5 Startup probe (probe.ts)
+────────────────────────────
+  probeDataLayerOnStartup():
+    Called from instrumentation.ts in development
+    Checks KATTADAM_API_URL reachability via GET /health
+
+================================================================================
+8. AWS LAMBDA BACKEND
+================================================================================
+
+Entry: backend/lambda/src/handler.mjs
+  - Parses HTTP method, path, headers, body, query string
+  - Handles OPTIONS (CORS preflight)
+  - Delegates to routeRequest() in router.mjs
+  - Returns JSON response with CORS headers (origin: *)
+
+Router: backend/lambda/src/router.mjs (~884 lines)
+  - All business logic: auth, catalog, enquiries, admin CRUD
+  - DynamoDB operations via dynamo.mjs helpers
+  - Internal auth via requireInternal() checking x-kattadam-internal header
+
+Helper modules:
+  dynamo.mjs:
+    putItem, getItem, deleteItem, queryPk, queryGsi1, updateItem
+    entityPk(type) → "ENTITY#<type>"
+    itemSk(prefix, id) → "<PREFIX>#<id>"
+    tableName() → process.env.TABLE_NAME || "kattadam-main"
+
+  password.mjs:
+    hashPasswordPbkdf2(password) — PBKDF2-SHA256, 120,000 iterations
+    verifyPasswordPbkdf2(password, hash)
+
+  otp.mjs:
+    generateOtpCode() — 6-digit code
+    hashOtp(email, purpose, code)
+    otpExpiresAt() — 10 minutes from now
+
+  ses.mjs:
+    sendOtpEmail(email, code, purpose) — via AWS SESv2
+
+  http.mjs:
+    CORS headers, routePath(), httpMethod()
+
+Key internal functions in router.mjs:
+  createUser({ name, email, password, mode, emailVerified })
+  findUserByEmail(email) — via GSI1 EMAIL#<email>
+  createSession(userId, email, userAgent)
+  verifyOtpRecord(email, purpose, code) — max 5 attempts, deletes on success
+  upsertMaterial(row), upsertDealer(row), patchDealer(id, patch)
+  patchUser(id, patch), patchEnquiry(id, patch)
+  insertProperty(row), insertExpert(row), insertHomeService(row)
+  createZone(name, notes), createNotification(audience, title, body)
+  insertAdminEvent(kind, title, body)
+  listEntity(type, mapper, filterFn?) — generic entity list via queryPk
+  deleteEntity(type, prefix, id)
+
+================================================================================
+9. DYNAMODB SINGLE-TABLE SCHEMA
+================================================================================
+
+Table: kattadam-main (configurable via TABLE_NAME)
+Region: ap-south-1
+GSI: GSI1 — email lookup (GSI1PK = EMAIL#<email>, GSI1SK = USER#<id>)
+
+Entity key patterns:
+┌──────────────────┬─────────────────────┬──────────────────────┬─────────────────────────────┐
+│ Entity           │ PK                  │ SK                   │ Notes                       │
+├──────────────────┼─────────────────────┼──────────────────────┼─────────────────────────────┤
+│ User (auth)      │ USER#<id>           │ META                 │ passwordHash, GSI1PK        │
+│ User (list)      │ ENTITY#user         │ USER#<id>            │ Duplicate for admin list    │
+│ Dealer           │ ENTITY#dealer       │ DEALER#<id>          │ materials[], zoneIds[]      │
+│ Material         │ ENTITY#material     │ MATERIAL#<id>        │ category, price, dealerId   │
+│ Property         │ ENTITY#property     │ PROPERTY#<id>        │ listingType SELL|RENT       │
+│ Enquiry          │ ENTITY#enquiry      │ ENQUIRY#<id>         │ status workflow             │
+│ Expert           │ ENTITY#expert       │ EXPERT#<id>          │ expertType builder|arch|eng │
+│ Home service     │ ENTITY#home_service │ HOME_SERVICE#<id>    │ serviceCategory             │
+│ Review           │ ENTITY#review       │ REVIEW#<id>          │ approved flag               │
+│ Zone             │ ENTITY#zone         │ ZONE#<id>            │ name, notes                 │
+│ Notification     │ ENTITY#notification │ NOTIFICATION#<id>    │ audience all|dealers|cust   │
+│ Admin event      │ ENTITY#admin_event  │ EVENT#<id>           │ kind, title, body           │
+│ App session list │ ENTITY#app_session  │ SESSION#<id>          │ For admin activity view     │
+│ Live session     │ SESSION#<id>        │ META                 │ lastActiveAt, userAgent       │
+│ OTP record       │ OTP#<email>         │ <purpose>#<timestamp>│ codeHash, expiresAt, attempts│
+└──────────────────┴─────────────────────┴──────────────────────┴─────────────────────────────┘
+
+Enquiry status workflow:
+  pending → assigned → accepted → delivered
+  Any state can go to: cancelled
+
+Dealer visibility (public catalog):
+  enabled === true AND status === "approved"
+
+Property visibility (public catalog):
+  published === true
+
+================================================================================
+10. TYPESCRIPT DATA MODELS (packages/data-layer/src/types.ts)
+================================================================================
+
+UserRole: "customer" | "dealer" | "service_provider" | "super_admin" | "staff_admin"
+UserStatus: "pending" | "approved" | "rejected" | "blocked" | "active"
+DealerStatus: "pending" | "approved" | "rejected"
+EnquiryStatus: "pending" | "assigned" | "accepted" | "delivered" | "cancelled"
+MaterialPricingType: "fixed" | "dealer_quote"
+NotificationAudience: "all" | "dealers" | "customers"
+EmailOtpPurpose: "signup" | "password_reset"
+ExpertType: "builder" | "architect" | "engineer"
+PropertyListingType: "SELL" | "RENT"
+
+UserRecord:
+  id, name, phone, email, role, status, location, lat, lng, kycStatus, createdAt
+
+DealerRecord:
+  id, userId, shopName, ownerName, phone, materials[], location, district, area,
+  lat, lng, rating, verified, enabled, topDealer, status, gstDocUrl,
+  licenseDocUrl, createdAt
+
+MaterialRecord:
+  id, name, category (key e.g. CEMENT, TMT_STEEL), subcategory, unit, imageUrl,
+  pricingType, fixedPrice, price, dealerName, dealerId, district, area, createdAt
+
+PropertyListingRecord:
+  id, title, listingType, propertySubtype, price, district, area, description,
+  published, createdAt
+
+EnquiryRecord:
+  id, customerId, customerName, materialId, materialLabel, quantity, location,
+  lat, lng, status, assignedDealerId, notes, createdAt
+
+KattadamExpertRecord:
+  id, expertType, firmName, ownerName, contactNumber, serviceableAreas,
+  district, createdAt
+
+HomeServiceProviderRecord:
+  id, serviceCategory, firmName, ownerName, contactNumber, serviceableAreas,
+  district, createdAt
+
+ReviewRecord:
+  id, userId, dealerId, rating, comment, approved, complaint, createdAt
+
+ZoneRecord:
+  id, name, notes, createdAt
+
+NotificationBroadcastRecord:
+  id, audience, title, body, createdAt
+
+DashboardSummary:
+  totalUsers, totalDealers, activeDealers, pendingApprovals, totalEnquiries,
+  enquiriesLast7Days[{date, count}], weeklyUserGrowth[{weekStart, count}]
+
+AdminEventRecord:
+  id, kind, title, body, createdAt
+
+AppSessionRecord:
+  id, userId, email, startedAt, lastActiveAt, userAgent, endedAt
+
+================================================================================
+11. API REFERENCE — NEXT.JS ROUTE HANDLERS
+================================================================================
+
+All routes in app/api/* use lib/lambda-proxy.ts.
+If KATTADAM_API_URL is not set, they return HTTP 503.
+
+┌────────────────────────────┬────────┬─────────────────────┬──────────────────────────────────────┐
+│ Next.js Route              │ Method │ Lambda Path         │ File                                 │
+├────────────────────────────┼────────┼─────────────────────┼──────────────────────────────────────┤
+│ /api/health                │ GET    │ /health             │ app/api/health/route.ts              │
+│ /api/catalog/materials     │ GET    │ /catalog/materials  │ app/api/catalog/materials/route.ts   │
+│ /api/catalog/dealers       │ GET    │ /catalog/dealers    │ app/api/catalog/dealers/route.ts     │
+│ /api/catalog/properties    │ GET    │ /catalog/properties │ app/api/catalog/properties/route.ts  │
+│ /api/enquiries             │ POST   │ /enquiries          │ app/api/enquiries/route.ts           │
+│ /api/auth/login            │ POST   │ /auth/login         │ app/api/auth/login/route.ts          │
+│ /api/auth/register         │ POST   │ /auth/register      │ app/api/auth/register/route.ts       │
+│ /api/auth/otp/send         │ POST   │ /auth/otp/send      │ app/api/auth/otp/send/route.ts       │
+│ /api/session/ping          │ POST   │ /session/ping       │ app/api/session/ping/route.ts        │
+└────────────────────────────┴────────┴─────────────────────┴──────────────────────────────────────┘
+
+lambda-proxy.ts key functions:
+  getKattadamApiUrl() — reads KATTADAM_API_URL, strips trailing slashes
+  lambdaPathFromApiRoute(apiPath) — strips /api prefix
+  forwardToKattadamApi(lambdaPath, req?) — proxies request, adds secret header
+
+================================================================================
+12. API REFERENCE — LAMBDA ENDPOINTS
+================================================================================
+
+12.1 Public endpoints (no internal auth)
+────────────────────────────────────────
+  GET  /health
+  GET  /catalog/materials        → all materials
+  GET  /catalog/dealers           → enabled + approved dealers only
+  GET  /catalog/properties        → published listings only
+  POST /enquiries                 → create enquiry
+  POST /auth/otp/send             → send OTP email via SES
+  POST /auth/register             → register with OTP verification
+  POST /auth/login                → email/password login, returns sessionId + user
+  POST /session/ping              → touch session lastActiveAt
+
+12.2 Internal endpoints (require x-kattadam-internal = KATTADAM_API_SECRET)
+─────────────────────────────────────────────────────────────────────────
+  POST /auth/otp/store
+  GET  /auth/otp/count?email=&purpose=&since=
+  POST /auth/otp/verify
+  GET  /auth/user-exists?email=
+  POST /auth/register-internal
+  POST /auth/login-internal
+  POST /session/create
+
+12.3 Admin endpoints (all require internal auth header)
+───────────────────────────────────────────────────────
+  GET    /admin/dashboard
+  GET    /admin/users
+  PATCH  /admin/users/:id
+  GET    /admin/dealers
+  POST   /admin/dealers
+  PATCH  /admin/dealers/:id
+  DELETE /admin/dealers/:id
+  PUT    /admin/dealers/:id/zones
+  GET    /admin/materials
+  POST   /admin/materials
+  DELETE /admin/materials/:id
+  GET    /admin/enquiries?status=
+  PATCH  /admin/enquiries/:id
+  GET    /admin/properties
+  POST   /admin/properties
+  DELETE /admin/properties/:id
+  GET    /admin/experts
+  POST   /admin/experts
+  GET    /admin/home-services
+  POST   /admin/home-services
+  GET    /admin/reviews
+  PATCH  /admin/reviews/:id
+  GET    /admin/zones
+  POST   /admin/zones
+  GET    /admin/notifications
+  POST   /admin/notifications
+  GET    /admin/events
+  POST   /admin/events
+  GET    /admin/sessions
+
+12.4 Request/response examples
+──────────────────────────────
+  POST /auth/login
+    Body: { "email": "user@example.com", "password": "secret123" }
+    Success: { "ok": true, "sessionId": "<uuid>", "user": { "id", "name", "email", "role" } }
+    Failure: { "ok": false, "error": "Invalid email or password." }
+
+  POST /enquiries
+    Body: { "customerName", "phone", "message", "target", "materialId?", "dealerId?" }
+    Notes field auto-built from phone/message/target if notes not provided
+    Success: { "ok": true, "id": "<uuid>", "enquiry": {...} }
+
+  POST /auth/register
+    Body: { "mode": "user"|"partner", "name", "email", "password", "otp" }
+    Partner mode creates dealer role with status "pending"
+
+================================================================================
+13. AUTHENTICATION & SESSION MANAGEMENT
+================================================================================
+
+13.1 Customer auth (Lambda-backed)
+──────────────────────────────────
+  UI: app/auth/login/page.tsx
+  Tabs: signin | register | partner
+
+  Sign in flow:
+    1. POST /api/auth/login { email, password }
+    2. Lambda verifies PBKDF2 password hash
+    3. Creates DynamoDB session (SESSION#<id>)
+    4. Client stores:
+       localStorage kattadam_session_id = sessionId
+       localStorage kattadam_user = JSON.stringify(user)
+    5. Redirect: super_admin/staff_admin → /admin, else → /home
+
+  Register flow:
+    1. POST /api/auth/otp/send { email, purpose: "signup" }
+    2. User receives 6-digit OTP email (10 min expiry)
+    3. POST /api/auth/register { mode, name, email, password, otp }
+    4. Lambda verifies OTP, creates user
+       mode "user" → role customer, status active
+       mode "partner" → role dealer, status pending
+    5. Auto-login (same as sign in)
+
+  Session keepalive:
+    AppShell → SessionPing → POST /api/session/ping every 60 seconds
+
+13.2 Admin auth (SEPARATE — client-only, NOT Lambda)
+────────────────────────────────────────────────────
+  UI: app/admin/login/page.tsx
+  Gate: components/admin/AdminLayoutShell.tsx
+  Logic: lib/admin-auth-client.ts
+
+  Credentials (hardcoded):
+    Username: kattadam
+    Password: Kattadam#123
+
+  Storage: localStorage kattadam_admin_session_v1 = "1"
+
+  WARNING: This is NOT server-secured. Admin pages fetch data via data-layer
+  which uses KATTADAM_API_SECRET to call Lambda, but the /admin/* UI routes
+  themselves are only protected by client-side localStorage check.
+
+  NOTE: Customer login with super_admin/staff_admin Lambda role also routes
+  to /admin, but still requires the separate admin localStorage gate unless
+  AdminLayoutShell is bypassed.
+
+13.3 Lambda internal auth
+─────────────────────────
+  When KATTADAM_API_SECRET is set on Lambda:
+    All /admin/* routes require header x-kattadam-internal: <secret>
+    Internal /auth/* routes also require this header
+  When secret is NOT set: requireInternal() returns true (open admin API)
+
+================================================================================
+14. CUSTOMER FRONTEND — PAGES & ROUTES
+================================================================================
+
+┌─────────────────────┬──────────────────────────────────┬────────────────────────────────────────────┐
+│ Route               │ File                             │ Data Source                                │
+├─────────────────────┼──────────────────────────────────┼────────────────────────────────────────────┤
+│ /                   │ app/page.tsx                     │ Static sections, EnquiryModal              │
+│ /home               │ app/home/page.tsx                │ Mock categories, navigation links          │
+│ /materials          │ app/materials/page.tsx           │ LIVE /api/catalog/materials + mock cats    │
+│ /builders           │ app/builders/page.tsx            │ MOCK BUILDERS from lib/mock-data.ts        │
+│ /properties         │ app/properties/page.tsx          │ LIVE /api/catalog/properties + mock        │
+│ /services           │ app/services/page.tsx            │ MOCK SERVICES from lib/mock-data.ts        │
+│ /auth/login         │ app/auth/login/page.tsx          │ LIVE /api/auth/*                           │
+│ /privacy-policy     │ app/privacy-policy/page.tsx      │ Static content                             │
+│ /terms-conditions   │ app/terms-conditions/page.tsx    │ Static content                             │
+└─────────────────────┴──────────────────────────────────┴────────────────────────────────────────────┘
+
+14.1 Landing page (app/page.tsx)
+─────────────────────────────────
+  Composes layout sections:
+    HeroSection, ThirukkuralSection, ServicesShowcaseSection, StatsBannerSection,
+    AboutUsSection, WhyKattadamSection, PartnersSection, CallToActionSection
+  Uses EnquiryModal for general enquiries
+
+14.2 Materials page (app/materials/page.tsx)
+───────────────────────────────────────────
+  Client component with:
+    - ListingPageShell wrapper
+    - DistrictAreaSearch for location filter
+    - Category chips from MATERIAL_CATEGORIES (mock-data.ts)
+    - BannerCarousel with MATERIALS_BANNER_SLIDES
+    - Fetches /api/catalog/materials on mount
+    - Filters via matchesAreaFilter, matchesLocationSearch (location-filters.ts)
+    - EnquiryModal for per-material enquiry
+  Key types: ApiCatalogMaterial
+  Key functions: normalizeCategoryKey, formatMaterialPrice, CategoryImage
+
+14.3 Builders page (app/builders/page.tsx)
+──────────────────────────────────────────
+  Uses BUILDERS array from mock-data.ts
+  Expert types: Builder, Architect, Engineer
+  ListingPageShell + district/area filters + EnquiryModal
+
+14.4 Properties page (app/properties/page.tsx)
+──────────────────────────────────────────────
+  Fetches /api/catalog/properties
+  Falls back to PROPERTIES from mock-data.ts
+  Filters: SELL/RENT, district, area, price range, subtype
+
+14.5 Services page (app/services/page.tsx)
+──────────────────────────────────────────
+  Uses SERVICES + SERVICE_CATEGORY_FILTERS from mock-data.ts
+  ListingPageShell + category filter + EnquiryModal
+
+14.6 Global shell (components/providers/AppShell.tsx)
+─────────────────────────────────────────────────────
+  Provides:
+    - LangContext (EN/TA i18n) via useSiteLang() hook
+    - SessionPing (60s interval)
+    - ExpertCallPopup (KD360 free consultation popup)
+    - ChatEnquiryWidget (floating enquiry)
+    - KD360CallButton (on non-admin pages)
+  Hides KD360 widgets on /admin/* routes
+  localStorage keys: kattadam_lang, kattadam_expert_popup_minutes,
+                     kattadam_expert_popup_shown
+
+================================================================================
+15. ADMIN DASHBOARD — PAGES, ACTIONS & COMPONENTS
+================================================================================
+
+Layout: app/admin/layout.tsx
+  - export const dynamic = "force-dynamic"
+  - Wraps children in AdminLayoutShell
+
+15.1 Admin pages
+────────────────
+┌──────────────────────┬─────────────────────────────┬─────────────────────────────────────────────┐
+│ Route                │ File                        │ Data Layer Functions                        │
+├──────────────────────┼─────────────────────────────┼─────────────────────────────────────────────┤
+│ /admin               │ app/admin/page.tsx          │ adminGetDashboard                           │
+│ /admin/activity      │ app/admin/activity/page.tsx │ adminListAdminEvents, adminListAppSessions  │
+│ /admin/users         │ app/admin/users/page.tsx    │ adminListUsers                              │
+│ /admin/dealers       │ app/admin/dealers/page.tsx  │ adminListDealers                            │
+│ /admin/experts       │ app/admin/experts/page.tsx  │ adminListKattadamExperts                    │
+│ /admin/home-services │ app/admin/home-services/    │ adminListHomeServiceProviders               │
+│ /admin/properties    │ app/admin/properties/       │ adminListPropertyListings                   │
+│ /admin/materials     │ app/admin/materials/        │ adminListMaterials, adminListDealers        │
+│ /admin/enquiries     │ app/admin/enquiries/        │ adminListEnquiries, adminListDealers        │
+│ /admin/notifications │ app/admin/notifications/    │ adminListNotifications                      │
+│ /admin/reviews       │ app/admin/reviews/          │ adminListReviews                            │
+│ /admin/zones         │ app/admin/zones/            │ adminListZones, adminListDealers            │
+│ /admin/settings      │ app/admin/settings/         │ Settings UI                               │
+│ /admin/login         │ app/admin/login/            │ Client-only hardcoded auth                  │
+└──────────────────────┴─────────────────────────────┴─────────────────────────────────────────────┘
+
+15.2 Server Actions (app/admin/actions.ts)
+──────────────────────────────────────────
+  All actions call @kattadam/data-layer/server and revalidatePath().
+
+  actionSetUserStatus(id, status)
+  actionUpsertDealer(formData)         — reads: shopName, ownerName, phone,
+                                         district, area, categories[], status
+  actionDeleteDealer(id)
+  actionDealerApprove(id)
+  actionDealerReject(id)
+  actionDealerToggleEnabled(id, enabled)
+  actionUpdateDealerMaterials(formData) — dealerId, materials (comma-separated)
+  actionUpsertMaterial(formData)        — name, categoryKey, subcategory, unit,
+                                         price, dealerId, dealerName, district, area
+  actionDeleteMaterial(id)
+  actionSetEnquiryStatus(id, status)
+  actionAssignEnquiry(formData)         — enquiryId, dealerId
+  actionSendBroadcast(formData)         — audience, title, body
+  actionSetReviewApproved(id, approved)
+  actionCreateZone(formData)            — name, notes
+  actionSetDealerZonesFromForm(formData) — dealerId, zoneIds (comma-separated)
+  actionInsertExpert(formData)          — expertType, firmName, ownerName,
+                                         contactNumber, serviceableAreas, district
+  actionInsertHomeService(formData)     — serviceCategory, firmName, ownerName,
+                                         contactNumber, serviceableAreas, district
+  actionInsertPropertyListing(formData) — title, listingType, propertySubtype,
+                                         price, district, area, description, published
+  actionDeletePropertyListing(id)
+
+15.3 Admin components
+─────────────────────
+  AdminLayoutShell.tsx — checks isAdminClientAuthed(), redirects to /admin/login
+  AdminSidebar.tsx — desktop navigation links
+  AdminMobileNav.tsx — mobile navigation
+  AdminConfigBanner.tsx — warns when KATTADAM_API_URL not configured
+  AddDealerForm.tsx — form action={actionUpsertDealer}
+  AddMaterialForm.tsx — form action={actionUpsertMaterial}
+  AddExpertForm.tsx — form action={actionInsertExpert}
+  AddHomeServiceForm.tsx — form action={actionInsertHomeService}
+  AddPropertyListingForm.tsx — form action={actionInsertPropertyListing}
+
+================================================================================
+16. SHARED COMPONENTS CATALOG
+================================================================================
+
+16.1 Layout components (components/layout/)
+───────────────────────────────────────────
+  Navbar.tsx
+    - Main site navigation
+    - Uses useSiteLang() for EN/TA labels
+    - Links: /materials, /builders, /properties, /services, /auth/login
+
+  ListingPageShell.tsx
+    - Reusable shell for listing pages (materials, builders, properties, services)
+    - Props: title, subtitle, search placeholder, children
+    - Includes Navbar + dark gradient hero + search input area
+
+  FooterSection.tsx — site footer with links and KD360 info
+
+  HeroSection.tsx — landing page hero with collage images
+
+  ThirukkuralSection.tsx — Tamil cultural quote section
+
+  ServicesShowcaseSection.tsx — 4-card showcase (materials, experts, real estate, services)
+
+  StatsBannerSection.tsx — animated stats banner
+
+  AboutUsSection.tsx — about us with collage image
+
+  WhyKattadamSection.tsx — value propositions
+
+  PartnersSection.tsx — partner logos/info
+
+  CallToActionSection.tsx — CTA with enquiry trigger
+
+16.2 UI components (components/ui/)
+───────────────────────────────────
+  EnquiryModal.tsx
+    - Modal form for submitting enquiries
+    - Uses lib/enquiries-api.ts buildCreateEnquiryPayload + submitEnquiry
+    - Props: isOpen, onClose, target, dealerId?, materialId?
+
+  ChatEnquiryWidget.tsx
+    - Floating chat-style enquiry widget (bottom-right)
+    - Same enquiry API as EnquiryModal
+
+  DistrictAreaSelect.tsx — paired district + area <select> dropdowns
+
+  DistrictAreaSearch.tsx — district + area search with PIN code display
+
+  AreaSelect.tsx — single area dropdown (legacy)
+
+  BannerCarousel.tsx — auto-rotating image carousel
+
+  KD360Logo.tsx — KD360 partner brand logo
+
+  KD360CallButton.tsx — floating call button linking to KD360 phone
+
+16.3 Provider components (components/providers/)
+────────────────────────────────────────────────
+  AppShell.tsx
+    - LangContext provider (useSiteLang hook)
+    - SessionPing, ExpertCallPopup, ChatEnquiryWidget, KD360CallButton
+    - DICT object with EN and TA translations
+
+  ThemeProvider.tsx
+    - Wraps next-themes ThemeProvider
+    - attribute="class", defaultTheme="system", enableSystem
+
+================================================================================
+17. LIBRARY MODULES (lib/)
+================================================================================
+
+17.1 lib/mock-data.ts — STATIC DATA (780+ lines)
+────────────────────────────────────────────────
+  Location data:
+    DISTRICTS — ["Coimbatore", "Tirupur", "Erode", "Namakkal", "Salem", "Chennai"]
+    DISTRICT_FILTER_ALL — "All Districts"
+    AREA_LOCATIONS — [{ district, area, pin }] — 60 entries
+    DISTRICT_AREAS — Record<District, string[]>
+    AREA_PIN_CODES — Record<area, pin>
+    AREAS — deprecated, use areaOptionsForDistrict
+
+  Location helpers:
+    pinCodeForArea(area)
+    formatAreaWithPin(area) — "RS Puram · 641002"
+    formatLocationLine(area, district)
+    normalizeAreaName(areaLabel) — strips PIN suffix
+    areasForPinQuery(pinQuery)
+    areaOptionsForDistrict(district) — returns AreaSearchOption[]
+    areaNamesForDistrict(district) — deprecated
+    parseLocationToAreaDistrict(location) — parses "Area, District"
+
+  Catalog data:
+    DEALERS — 9 mock dealer objects with materials
+    BUILDERS — mock builders/architects/engineers with projects
+    PROPERTIES — mock property listings (SELL/RENT)
+    MATERIAL_CATEGORIES — category chips with keys, labels, emojis, images
+    MATERIAL_SUBCATEGORY_PRESETS — subcategory dropdown options per category
+    SERVICE_CATEGORY_FILTERS — home service category filters
+    SERVICES — mock home service providers
+
+  Material helpers:
+    materialCategoryUsesSubcategoryDropdown(categoryKey)
+    materialCategoryLabel(categoryKey)
+    formatPrice(price, type?)
+
+  Material category keys (examples):
+    CEMENT, TMT_STEEL, SAND, BRICKS, AGGREGATES, PAINT, TILES, HARDWARE,
+    ELECTRICAL, PLUMBING, ROOFING, WOOD, GLASS, STONE, GENERAL
+
+17.2 lib/utils.ts
+─────────────────
+  cn(...inputs) — clsx + tailwind-merge classname helper
+  formatPrice(amount) — ₹ formatted
+  formatPriceRange(min, max)
+  generateOtp() — 6-digit string (client-side utility, not used for real auth)
+  maskPhone(phone)
+  slugify(text)
+  truncate(text, maxLen)
+  COIMBATORE_AREAS — area name array
+
+17.3 lib/lambda-proxy.ts
+────────────────────────
+  getKattadamApiUrl()
+  lambdaPathFromApiRoute(apiPath)
+  forwardToKattadamApi(lambdaPath, req?)
+
+17.4 lib/enquiries-api.ts
+─────────────────────────
+  Types: CreateEnquiryPayload, CreateEnquirySuccess, CreateEnquiryFailure,
+         EnquiryFormValues, EnquiryContext
+  buildCreateEnquiryPayload(form, context)
+  submitEnquiry(payload) — POST /api/enquiries
+
+17.5 lib/admin-auth-client.ts
+─────────────────────────────
+  ADMIN_AUTH_STORAGE_KEY = "kattadam_admin_session_v1"
+  ADMIN_USERNAME = "kattadam"
+  ADMIN_PASSWORD = "Kattadam#123"
+  isAdminClientAuthed()
+  setAdminClientAuthed()
+  clearAdminClientAuthed()
+  validateAdminCredentials(username, password)
+
+17.6 lib/location-filters.ts
+────────────────────────────
+  matchesDistrictFilter(itemDistrict, selectedDistrict)
+  matchesAreaFilter(itemArea, selectedArea)
+  matchesLocationSearch(searchQuery, ...fields)
+
+17.7 lib/kd360-contact.ts
+─────────────────────────
+  KD360_PHONE_DISPLAY — "9944994103"
+  KD360_TEL_HREF — "tel:+919944994103"
+  KD360_GSTIN — GST identification number
+
+================================================================================
+18. MOCK DATA vs LIVE DATA MATRIX
+================================================================================
+
+┌────────────────────────┬──────────────────────┬─────────────────────────────────────────────┐
+│ Feature                │ Customer Page        │ Data Source                                 │
+├────────────────────────┼──────────────────────┼─────────────────────────────────────────────┤
+│ Material catalog       │ /materials           │ LIVE API (categories from mock-data)        │
+│ Dealer listings        │ /materials (dealer)  │ LIVE API /api/catalog/dealers               │
+│ Property listings      │ /properties          │ LIVE API + mock PROPERTIES fallback         │
+│ Builders/Experts       │ /builders            │ MOCK BUILDERS only (not wired to API)       │
+│ Home services          │ /services            │ MOCK SERVICES only (not wired to API)       │
+│ Districts/Areas/PINs   │ All listing pages    │ MOCK mock-data.ts (static)                  │
+│ Material categories    │ /materials, /home    │ MOCK MATERIAL_CATEGORIES                    │
+│ Enquiries              │ EnquiryModal/Chat    │ LIVE API (dev fallback: .data/enquiries.json)│
+│ User auth              │ /auth/login          │ LIVE API                                    │
+│ Admin dashboard data   │ /admin/*             │ LIVE API via data-layer                     │
+│ Admin experts list     │ /admin/experts       │ LIVE API (admin-added experts)              │
+│ Admin home services    │ /admin/home-services │ LIVE API (admin-added providers)            │
+│ Landing page content   │ /                    │ Static components + images                  │
+│ KD360 contact          │ Global widgets       │ lib/kd360-contact.ts constants              │
+└────────────────────────┴──────────────────────┴─────────────────────────────────────────────┘
+
+To wire builders/services customer pages to live API:
+  1. Add public catalog endpoints in Lambda (or reuse admin list with filter)
+  2. Add catalogListKattadamExperts() / catalogListHomeServices() in data-layer
+  3. Add /api/catalog/experts and /api/catalog/home-services route handlers
+  4. Update app/builders/page.tsx and app/services/page.tsx to fetch API
+
+================================================================================
+19. STATE MANAGEMENT & CLIENT STORAGE KEYS
+================================================================================
+
+No global state library. All state is local React useState or Context.
+
+localStorage keys:
+  kattadam_session_id       — Lambda session UUID (customer auth)
+  kattadam_user             — JSON string of { id, name, email, role }
+  kattadam_admin_session_v1 — "1" when admin client gate passed
+  kattadam_lang             — "en" | "ta" (language preference)
+  kattadam_expert_popup_minutes — popup timing config
+  kattadam_expert_popup_shown   — popup shown flag
+
+React Context:
+  LangContext in AppShell.tsx — useSiteLang() returns { lang, setLang, t }
+
+Server data:
+  Admin pages use Server Components → direct data-layer calls (no client cache)
+  Customer catalog pages use client-side fetch in useEffect
+
+Theme:
+  next-themes via ThemeProvider — class-based dark mode on <html>
+
+================================================================================
+20. STYLING, THEMING & i18n
+================================================================================
+
+20.1 Tailwind configuration (tailwind.config.ts)
+────────────────────────────────────────────────
+  Content paths: ./app/**, ./components/**
+  darkMode: "class"
+  Custom color palettes:
+    brand  — green shades (#4caf50 primary)
+    cement — gray shades
+    earth  — warm stone shades
+  CSS variables in globals.css:
+    --background, --foreground, --card, --primary, --muted, --border
+  Fonts: Inter, Noto Sans Tamil
+
+20.2 i18n approach
+──────────────────
+  Custom lightweight i18n (no i18next):
+    - LangContext in AppShell.tsx
+    - DICT object with "en" and "ta" keys
+    - useSiteLang().t("key") for translations
+    - Currently covers nav labels and expert popup text
+    - Most page content is English-only; Tamil nav + popup supported
+
+20.3 Image assets
+─────────────────
+  public/ — static files served at / (logos, hero collages, banners)
+  assets/images/ — imported in components via Next.js image imports
+  Material banners: public/banners/banner-cement.png, banner-tmt.png, etc.
+
+================================================================================
+21. BUILD, DEPLOY & INFRASTRUCTURE
+================================================================================
+
+21.1 Local development
+──────────────────────
+  1. cp .env.example .env.local
+  2. Set KATTADAM_API_URL to Lambda Function URL
+  3. npm install (installs workspace packages)
+  4. npm run dev → http://localhost:3001
+
+  Lambda local dev:
+    cd backend/lambda && npm run dev (scripts/local.mjs)
+
+21.2 Frontend deploy (Netlify)
+──────────────────────────────
+  1. Connect Git repo on netlify.com
+  2. Base directory: EMPTY (repo root)
+  3. netlify.toml auto-configures build
+  4. Set KATTADAM_API_URL in Netlify environment
+  5. Optionally set KATTADAM_API_SECRET
+  6. Build: npm run build → publish .next
+  7. Plugin: @netlify/plugin-nextjs handles SSR
+
+  Common issues (see NETLIFY.md):
+    - Publish directory MUST be .next (not repo root)
+    - Missing KATTADAM_API_URL → 503 on /api/* routes
+    - Remove legacy KATTADAM_AWS_* from Netlify env
+
+21.3 Backend deploy (Lambda)
+────────────────────────────
+  1. cd backend/lambda && npm run build
+  2. Deploy options:
+     a. AWS Cloud Shell: bash infra/deploy-lambda-cloudshell.sh
+     b. Local: npm run deploy (needs AWS credentials in .env.local)
+  3. Set up Function URL: infra/lambda-function-url-setup.sh
+  4. Configure Lambda env vars: TABLE_NAME, SES_FROM_EMAIL, OTP_HASH_SECRET,
+     KATTADAM_API_SECRET
+  5. Ensure DynamoDB table kattadam-main exists with GSI1
+  6. Ensure SES sender is verified in ap-south-1
+
+  Docs: infra/DEPLOY-LAMBDA.md, backend/lambda/README.md
+
+21.4 Infrastructure scripts
+───────────────────────────
+  infra/deploy-lambda-cloudshell.sh — full CloudShell deploy
+  infra/lambda-function-url-setup.sh — Function URL configuration
+  backend/lambda/scripts/deploy.mjs — local deploy script
+  backend/lambda/scripts/local.mjs — local HTTP server for Lambda router
+  backend/lambda/scripts/load-env.mjs — env file loader
+
+================================================================================
+22. AI TASK GUIDE — WHERE TO CHANGE WHAT
+================================================================================
+
+This section maps common tasks to exact files. Use this for fast navigation.
+
+─── ADD A NEW CUSTOMER PAGE ───
+  Create: app/<route>/page.tsx
+  If listing style: wrap in ListingPageShell from components/layout/
+  Add nav link: components/layout/Navbar.tsx
+  Add i18n keys: components/providers/AppShell.tsx DICT object
+
+─── ADD A NEW API ENDPOINT (public) ───
+  1. Add route handler: app/api/<path>/route.ts
+     Use forwardToKattadamApi() from lib/lambda-proxy.ts
+  2. Add Lambda handler: backend/lambda/src/router.mjs
+     Add if-block in routeRequest()
+  3. If admin/server needs it: add method to IDataBackend (ports.ts),
+     implement in http-api-backend.ts, export from server.ts
+
+─── ADD A NEW ADMIN PAGE ───
+  1. Create: app/admin/<section>/page.tsx (Server Component)
+  2. Import data functions from @kattadam/data-layer/server
+  3. Add sidebar link: components/admin/AdminSidebar.tsx + AdminMobileNav.tsx
+  4. If CRUD needed: add Server Action in app/admin/actions.ts
+  5. If form needed: create components/admin/Add<Thing>Form.tsx
+
+─── ADD A NEW ENTITY TYPE TO DATABASE ───
+  1. Add TypeScript type: packages/data-layer/src/types.ts
+  2. Add IDataBackend methods: packages/data-layer/src/internal/ports.ts
+  3. Implement HTTP client: packages/data-layer/src/internal/http-api-backend.ts
+  4. Export server functions: packages/data-layer/src/server.ts
+  5. Add Lambda routes: backend/lambda/src/router.mjs
+  6. Add mapper function in router.mjs
+  7. Use entityPk("<type>") and itemSk("<PREFIX>", id) in DynamoDB items
+
+─── MODIFY MATERIAL CATALOG ───
+  Customer display: app/materials/page.tsx
+  Category definitions: lib/mock-data.ts MATERIAL_CATEGORIES
+  Admin CRUD: app/admin/materials/page.tsx, AddMaterialForm.tsx
+  Server action: app/admin/actions.ts actionUpsertMaterial, actionDeleteMaterial
+  API: GET /catalog/materials, POST/DELETE /admin/materials
+  Lambda: upsertMaterial(), listEntity("material")
+
+─── MODIFY DEALER MANAGEMENT ───
+  Admin UI: app/admin/dealers/page.tsx, AddDealerForm.tsx
+  Server actions: actionUpsertDealer, actionDealerApprove, actionDealerReject, etc.
+  Lambda: upsertDealer(), patchDealer(), deleteEntity("dealer")
+  Public catalog: GET /catalog/dealers (filtered enabled+approved)
+
+─── MODIFY ENQUIRY FLOW ───
+  Customer UI: components/ui/EnquiryModal.tsx, ChatEnquiryWidget.tsx
+  Client API: lib/enquiries-api.ts
+  Route handler: app/api/enquiries/route.ts
+  Admin UI: app/admin/enquiries/page.tsx
+  Server actions: actionSetEnquiryStatus, actionAssignEnquiry
+  Lambda: POST /enquiries, PATCH /admin/enquiries/:id
+  Dev fallback: packages/data-layer/src/internal/local-enquiry-store.ts
+
+─── MODIFY AUTH / LOGIN ───
+  Customer UI: app/auth/login/page.tsx
+  Route handlers: app/api/auth/login, register, otp/send
+  Lambda: /auth/login, /auth/register, /auth/otp/send
+  Password hashing: backend/lambda/src/lib/password.mjs
+  OTP: backend/lambda/src/lib/otp.mjs, ses.mjs
+  Session: createSession(), /session/ping
+  Admin gate (separate): lib/admin-auth-client.ts, app/admin/login/page.tsx
+
+─── MODIFY LOCATION / DISTRICT FILTERS ───
+  Data: lib/mock-data.ts (DISTRICTS, AREA_LOCATIONS, DISTRICT_AREAS)
+  Filter logic: lib/location-filters.ts
+  UI: components/ui/DistrictAreaSearch.tsx, DistrictAreaSelect.tsx
+
+─── MODIFY LANDING PAGE ───
+  Main: app/page.tsx
+  Sections: components/layout/HeroSection.tsx, AboutUsSection.tsx, etc.
+
+─── MODIFY ADMIN DASHBOARD METRICS ───
+  UI: app/admin/page.tsx
+  Data: adminGetDashboard() → Lambda /admin/dashboard
+  Lambda aggregation logic: router.mjs /admin/dashboard handler
+
+─── MODIFY KD360 INTEGRATION ───
+  Contact constants: lib/kd360-contact.ts
+  Call button: components/ui/KD360CallButton.tsx
+  Logo: components/ui/KD360Logo.tsx
+  Expert popup: components/providers/AppShell.tsx ExpertCallPopup
+  Chat widget: components/ui/ChatEnquiryWidget.tsx
+
+─── MODIFY STYLING / THEME ───
+  Tailwind config: tailwind.config.ts
+  CSS variables: app/globals.css
+  Theme provider: components/providers/ThemeProvider.tsx
+  Class helper: lib/utils.ts cn()
+
+─── MODIFY DEPLOYMENT ───
+  Netlify: netlify.toml, NETLIFY.md
+  Lambda: backend/lambda/scripts/deploy.mjs, infra/DEPLOY-LAMBDA.md
+  Env docs: .env.example
+
+─── FIX 503 ON API ROUTES ───
+  Check: KATTADAM_API_URL in .env.local (dev) or Netlify env (prod)
+  Check: Lambda Function URL is accessible
+  Check: lib/lambda-proxy.ts getKattadamApiUrl() returns non-null
+  Dev probe: instrumentation.ts → probeDataLayerOnStartup()
+
+─── WIRE BUILDERS PAGE TO LIVE API ───
+  1. Add GET /catalog/experts in router.mjs (filter published if needed)
+  2. Add catalogListExperts in data-layer
+  3. Add app/api/catalog/experts/route.ts
+  4. Update app/builders/page.tsx to fetch API instead of BUILDERS mock
+
+─── WIRE SERVICES PAGE TO LIVE API ───
+  Same pattern as builders but for home_service entity type
+
+─── ADD TESTS ───
+  No test infrastructure exists. To add:
+  1. Install vitest or jest in package.json
+  2. Start with packages/data-layer unit tests
+  3. Add Playwright for E2E on critical flows (auth, enquiry)
+
+================================================================================
+23. COMMON IMPLEMENTATION PATTERNS
+================================================================================
+
+23.1 Next.js API route handler pattern
+──────────────────────────────────────
+  // app/api/<resource>/route.ts
+  import { forwardToKattadamApi, lambdaPathFromApiRoute } from "@/lib/lambda-proxy";
+  import { NextResponse } from "next/server";
+
+  export async function GET(req: Request) {
+    const proxied = await forwardToKattadamApi("/catalog/materials", req);
+    if (!proxied) {
+      return NextResponse.json({ ok: false, error: "API not configured" }, { status: 503 });
+    }
+    return proxied;
+  }
+
+23.2 Admin Server Action pattern
+────────────────────────────────
+  // app/admin/actions.ts
+  "use server";
+  import { revalidatePath } from "next/cache";
+  import { adminUpsertDealer } from "@kattadam/data-layer/server";
+
+  export async function actionUpsertDealer(formData: FormData) {
+    await adminUpsertDealer({ shopName: String(formData.get("shopName")) });
+    revalidatePath("/admin/dealers");
+  }
+
+23.3 Admin Server Component pattern
+───────────────────────────────────
+  // app/admin/dealers/page.tsx
+  import { adminListDealers } from "@kattadam/data-layer/server";
+
+  export default async function DealersPage() {
+    const dealers = await adminListDealers();
+    // render table...
+  }
+
+23.4 Client catalog fetch pattern
+─────────────────────────────────
+  // app/materials/page.tsx
+  useEffect(() => {
+    fetch("/api/catalog/materials")
+      .then(r => r.json())
+      .then(data => setMaterials(data.materials ?? []));
+  }, []);
+
+23.5 DynamoDB entity insert pattern (Lambda)
+────────────────────────────────────────────
+  const id = randomUUID();
+  const item = {
+    PK: entityPk("material"),       // "ENTITY#material"
+    SK: itemSk("MATERIAL", id),     // "MATERIAL#<uuid>"
+    id, name, category, ..., createdAt: nowIso(),
+  };
+  await putItem(item);
+
+23.6 Enquiry payload from modal
+───────────────────────────────
+  const payload = buildCreateEnquiryPayload(formValues, { target: "Cement enquiry" });
+  const result = await submitEnquiry(payload);
+
+================================================================================
+24. KNOWN GAPS, RISKS & PRODUCTION CONCERNS
+================================================================================
+
+1. ADMIN AUTH IS CLIENT-ONLY
+   - Hardcoded credentials in lib/admin-auth-client.ts
+   - Only localStorage gate, no server session
+   - MUST be replaced with proper server auth before production
+
+2. README IS STALE
+   - Claims frontend-only, no env vars, port 3000
+   - Actual: Lambda + DynamoDB, requires KATTADAM_API_URL, port 3001
+
+3. DUAL AUTH SYSTEMS
+   - Customer: Lambda sessions (kattadam_session_id)
+   - Admin UI: separate localStorage gate (kattadam_admin_session_v1)
+   - Not integrated
+
+4. NO TESTS
+   - Zero unit, integration, or E2E tests
+   - No test runner in dependencies
+
+5. NO NEXT.JS MIDDLEWARE
+   - No middleware.ts for route protection
+   - /admin routes accessible if client gate is bypassed
+
+6. CORS ALLOWS ALL ORIGINS
+   - Lambda http.mjs sets Access-Control-Allow-Origin: *
+
+7. MIXED MOCK AND LIVE DATA
+   - /builders and /services use mock data only
+   - /materials and /properties use live API
+   - Admin can add experts/services to DB but customer pages don't fetch them
+
+8. KATTADAM_API_SECRET OPTIONAL
+   - When not set, Lambda admin API is open to anyone with the URL
+
+9. NO RATE LIMITING
+   - OTP send endpoint has no rate limiting beyond OTP attempt counter
+
+10. NO PAYMENT INTEGRATION
+    - Enquiries only, no order/payment flow
+
+================================================================================
+25. GLOSSARY
+================================================================================
+
+Kattadam (கட்டடம்)  — "Building" in Tamil; the brand name
+KD360               — Partner logistics/delivery brand integrated in UI
+Data Layer          — @kattadam/data-layer workspace package; abstraction over Lambda
+Function URL        — AWS Lambda HTTP endpoint (no API Gateway needed)
+Single-table design — DynamoDB pattern: all entities in one table with PK/SK
+GSI1                — Global Secondary Index for email-based user lookup
+Server Action       — Next.js "use server" functions for form mutations
+Server Component    — React component that runs on server, can await data
+Route Handler       — Next.js app/api/*/route.ts API endpoint
+PBKDF2              — Password hashing algorithm (120k iterations, SHA-256)
+OTP                 — One-Time Password sent via SES email for registration
+Enquiry             — Customer request for quote/info on material or service
+Dealer              — Material shop partner on the platform
+Entity PK           — DynamoDB partition key pattern ENTITY#<type>
+ListingPageShell    — Shared layout wrapper for catalog listing pages
+mock-data.ts        — Static fallback data for locations, categories, samples
+revalidatePath      — Next.js cache invalidation after Server Action mutation
+
+================================================================================
+END OF KATTADAM KNOWLEDGE BASE
+================================================================================
+
+For questions about this codebase, provide this file as context. Key entry points:
+  - Architecture overview: Sections 2-3
+  - Find files for a feature: Section 22 (AI Task Guide)
+  - API contracts: Sections 11-12
+  - Data models: Sections 9-10
+  - What's mock vs live: Section 18
+  - Security concerns: Section 24
